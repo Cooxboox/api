@@ -1,0 +1,15 @@
+<Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".dockerignore" />
+    <File Path=".editorconfig" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="CHANGELOG.md" />
+    <File Path="docker-compose.yaml" />
+    <File Path="LICENSE" />
+    <File Path="README.md" />
+  </Folder>
+  <Project Path="src/Cooxboox.Core/Cooxboox.Core.csproj" />
+  <Project Path="src/Cooxboox.Infrastructure/Cooxboox.Infrastructure.csproj" Id="3a9fcdf0-40c1-421e-950e-56d55ce71ce0" />
+  <Project Path="src/Cooxboox/Cooxboox.csproj" Id="cd00b49d-c254-43bb-98a6-5a125aa8e920" />
+</Solution>
