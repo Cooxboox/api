@@ -28,7 +28,7 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
-          file: src/SkillCraft.Api/Dockerfile
+          file: src/Cooxboox/Dockerfile
           context: .
           push: true
           tags: ${{ steps.meta.outputs.tags }}
