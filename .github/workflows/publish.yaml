@@ -23,7 +23,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: cooxboox/api
+          images: logitar/cooxboox_api
 
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
