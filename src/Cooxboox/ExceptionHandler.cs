@@ -1,4 +1,5 @@
-﻿using Cooxboox.Extensions;
+﻿using Cooxboox.Core.Identity;
+using Cooxboox.Extensions;
 using Cooxboox.Settings;
 using FluentValidation;
 using Krakenar.Contracts;
@@ -52,7 +53,7 @@ internal class ExceptionHandler : IExceptionHandler
     return await _problemDetailsService.TryWriteAsync(context);
   }
 
-  private static bool IsBadRequest(Exception exception) => exception is ValidationException;
+  private static bool IsBadRequest(Exception exception) => exception is IdentityException || exception is ValidationException;
 
   private static Error ToError(Exception exception)
   {
@@ -60,6 +61,10 @@ internal class ExceptionHandler : IExceptionHandler
     if (exception is ErrorException errorException)
     {
       error = errorException.Error;
+    }
+    else if (exception is IdentityException)
+    {
+      error = new InvalidCredentialsError();
     }
     else if (exception is ValidationException validation)
     {

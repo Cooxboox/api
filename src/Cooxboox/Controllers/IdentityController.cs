@@ -5,7 +5,7 @@ using Cooxboox.Extensions;
 using Cooxboox.Models.Identity;
 using Cooxboox.Settings;
 using Krakenar.Client;
-using Krakenar.Contracts;
+using Logitar;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -85,12 +85,12 @@ public class IdentityController : ControllerBase
     string serializedError = JsonSerializer.Serialize(exception.Error);
     _logger.LogError(exception, "Invalid credentials: {Error}", serializedError);
 
-    Error error = new("InvalidCredentials", "The specified credentials did not match.");
+    InvalidCredentialsError error = new();
     return Problem(
       detail: error.Message,
       instance: Request.GetDisplayUrl(),
       statusCode: StatusCodes.Status400BadRequest,
-      title: "Invalid Credentials",
+      title: error.Code.Humanize(),
       type: null,
       extensions: new Dictionary<string, object?> { ["error"] = error });
   }

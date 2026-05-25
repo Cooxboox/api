@@ -33,6 +33,7 @@ internal class Startup : StartupBase
     services.AddCooxbooxInfrastructure();
     services.AddCooxbooxPostgreSQL(_configuration);
     services.AddKrakenarClient(_configuration);
+    services.AddSingleton<IContext, HttpApplicationContext>();
 
     services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
     services.AddHttpContextAccessor();

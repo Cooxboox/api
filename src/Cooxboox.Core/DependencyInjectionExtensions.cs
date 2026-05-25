@@ -9,10 +9,15 @@ public static class DependencyInjectionExtensions
 {
   public static IServiceCollection AddCooxbooxCore(this IServiceCollection services)
   {
-    IdentityService.Register(services);
-
     return services
+      .AddCoreServices()
       .AddLogitarCQRS()
       .AddLogitarEventSourcing();
+  }
+
+  private static IServiceCollection AddCoreServices(this IServiceCollection services)
+  {
+    IdentityService.Register(services);
+    return services;
   }
 }

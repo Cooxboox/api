@@ -6,12 +6,9 @@ namespace Cooxboox.Core.Identity;
 
 public static class UserExtensions
 {
-  private const string MultiFactorAuthenticationModeKey = "MultiFactorAuthenticationMode";
-  private const string ProfileCompletedOnKey = "ProfileCompletedOn";
-
   public static MultiFactorAuthenticationMode GetMultiFactorAuthenticationMode(this User user)
   {
-    CustomAttribute? customAttribute = user.GetCustomAttribute(MultiFactorAuthenticationModeKey);
+    CustomAttribute? customAttribute = user.GetCustomAttribute(UserHelper.MultiFactorAuthenticationModeKey);
     if (customAttribute is null)
     {
       return MultiFactorAuthenticationMode.None;
@@ -25,7 +22,7 @@ public static class UserExtensions
 
   public static string GetSubject(this User user) => user.Id.ToString();
 
-  public static bool IsProfileCompleted(this User user) => user.GetCustomAttribute(ProfileCompletedOnKey) is not null;
+  public static bool IsProfileCompleted(this User user) => user.GetCustomAttribute(UserHelper.ProfileCompletedOnKey) is not null;
 
   private static CustomAttribute? GetCustomAttribute(this User user, string key)
   {

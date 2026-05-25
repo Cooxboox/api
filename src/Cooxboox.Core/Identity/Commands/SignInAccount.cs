@@ -93,7 +93,7 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
     MultiFactorAuthenticationMode multiFactorAuthenticationMode = user.GetMultiFactorAuthenticationMode();
     if (multiFactorAuthenticationMode == MultiFactorAuthenticationMode.None && user.IsProfileCompleted())
     {
-      Session session = await _sessionGateway.SignInAsync(user, cancellationToken);
+      Session session = await _sessionGateway.SignInAsync(user, credentials.Password, cancellationToken);
       return SignInAccountResult.Succeed(session);
     }
 
