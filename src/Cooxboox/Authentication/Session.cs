@@ -1,4 +1,5 @@
-﻿using Cooxboox.Extensions;
+﻿using Cooxboox.Core.Identity;
+using Cooxboox.Extensions;
 using Krakenar.Contracts.Sessions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
@@ -9,12 +10,12 @@ internal class SessionAuthenticationOptions : AuthenticationSchemeOptions;
 
 internal class SessionAuthenticationHandler : AuthenticationHandler<SessionAuthenticationOptions>
 {
-  private readonly ISessionService _sessionService;
+  private readonly ISessionGateway _sessionGateway;
 
-  public SessionAuthenticationHandler(ISessionService sessionService, IOptionsMonitor<SessionAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder)
+  public SessionAuthenticationHandler(ISessionGateway sessionGateway, IOptionsMonitor<SessionAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder)
     : base(options, logger, encoder)
   {
-    _sessionService = sessionService;
+    _sessionGateway = sessionGateway;
   }
 
   protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -22,7 +23,7 @@ internal class SessionAuthenticationHandler : AuthenticationHandler<SessionAuthe
     Guid? sessionId = Context.GetSessionId();
     if (sessionId.HasValue)
     {
-      Session? session = await _sessionService.ReadAsync(sessionId.Value);
+      Session? session = await _sessionGateway.FindAsync(sessionId.Value);
       if (session is null)
       {
         return Fail($"The session 'Id={sessionId}' could not be found.");

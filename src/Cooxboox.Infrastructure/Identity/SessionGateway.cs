@@ -25,6 +25,11 @@ internal class SessionGateway : ISessionGateway
     return await _sessionClient.CreateAsync(payload, context);
   }
 
+  public async Task<Session?> FindAsync(Guid id, CancellationToken cancellationToken)
+  {
+    return await _sessionClient.ReadAsync(id, cancellationToken);
+  }
+
   public async Task<Session> RenewAsync(string refreshToken, CancellationToken cancellationToken)
   {
     RenewSessionPayload payload = new(refreshToken, _context.GetSessionCustomAttributes());
@@ -36,5 +41,11 @@ internal class SessionGateway : ISessionGateway
     SignInSessionPayload payload = new(user.UniqueName, password, isPersistent: true, _context.GetSessionCustomAttributes());
     RequestContext context = new RequestContextBuilder(cancellationToken).WithUser(user).Build();
     return await _sessionClient.SignInAsync(payload, context);
+  }
+
+  public async Task<Session> SignOutAsync(Session session, CancellationToken cancellationToken)
+  {
+    RequestContext context = new RequestContextBuilder(cancellationToken).WithUserId(session.User.Id).Build();
+    return await _sessionClient.SignOutAsync(session.Id, context) ?? throw new ArgumentException($"The signed-out session 'Id={session.Id}' was not found.", nameof(session));
   }
 }

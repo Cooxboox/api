@@ -1,4 +1,5 @@
-﻿using Cooxboox.Extensions;
+﻿using Cooxboox.Core.Identity;
+using Cooxboox.Extensions;
 using Krakenar.Contracts.Constants;
 using Krakenar.Contracts.Sessions;
 using Krakenar.Contracts.Users;
@@ -12,12 +13,12 @@ internal class BearerAuthenticationOptions : AuthenticationSchemeOptions;
 
 internal class BearerAuthenticationHandler : AuthenticationHandler<BearerAuthenticationOptions>
 {
-  private readonly IOpenAuthenticationService _openAuthenticationService;
+  private readonly ITokenGateway _tokenGateway;
 
-  public BearerAuthenticationHandler(IOpenAuthenticationService openAuthenticationService, IOptionsMonitor<BearerAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder)
+  public BearerAuthenticationHandler(ITokenGateway tokenGateway, IOptionsMonitor<BearerAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder)
     : base(options, logger, encoder)
   {
-    _openAuthenticationService = openAuthenticationService;
+    _tokenGateway = tokenGateway;
   }
 
   protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -42,7 +43,7 @@ internal class BearerAuthenticationHandler : AuthenticationHandler<BearerAuthent
         {
           try
           {
-            User user = await _openAuthenticationService.GetUserAsync(values[1]);
+            User user = await _tokenGateway.ValidateAccessAsync(values[1]);
             Session? session = user.Sessions.Count == 1 ? user.Sessions.Single() : null;
 
             ClaimsPrincipal principal;

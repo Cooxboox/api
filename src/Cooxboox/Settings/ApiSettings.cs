@@ -6,6 +6,7 @@ public record ApiSettings
 {
   public const string SectionKey = "Api";
 
+  public bool EnableBasicAuthentication { get; set; }
   public bool EnableSwagger { get; set; }
   public string Title { get; set; } = string.Empty;
   public string? Build { get; set; }
@@ -15,6 +16,7 @@ public record ApiSettings
   {
     ApiSettings settings = configuration.GetSection(SectionKey).Get<ApiSettings>() ?? new();
 
+    settings.EnableBasicAuthentication = EnvironmentHelper.GetBoolean("ADMIN_ENABLE_BASIC_AUTHENTICATION", settings.EnableBasicAuthentication);
     settings.EnableSwagger = EnvironmentHelper.GetBoolean("ADMIN_ENABLE_SWAGGER", settings.EnableSwagger);
     settings.Title = EnvironmentHelper.GetString("ADMIN_TITLE", settings.Title);
 

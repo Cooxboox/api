@@ -1,4 +1,5 @@
-﻿using Cooxboox.Extensions;
+﻿using Cooxboox.Core.Identity;
+using Cooxboox.Extensions;
 using Krakenar.Contracts.ApiKeys;
 using Krakenar.Contracts.Constants;
 using Microsoft.AspNetCore.Authentication;
@@ -11,12 +12,12 @@ internal class ApiKeyAuthenticationOptions : AuthenticationSchemeOptions;
 
 internal class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions>
 {
-  private readonly IApiKeyService _apiKeyService;
+  private readonly IApiKeyGateway _apiKeyGateway;
 
-  public ApiKeyAuthenticationHandler(IApiKeyService apiKeyService, IOptionsMonitor<ApiKeyAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder)
+  public ApiKeyAuthenticationHandler(IApiKeyGateway apiKeyGateway, IOptionsMonitor<ApiKeyAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder)
     : base(options, logger, encoder)
   {
-    _apiKeyService = apiKeyService;
+    _apiKeyGateway = apiKeyGateway;
   }
 
   protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -33,8 +34,7 @@ internal class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthent
       {
         try
         {
-          AuthenticateApiKeyPayload payload = new(xApiKey: sanitized.Single());
-          ApiKey apiKey = await _apiKeyService.AuthenticateAsync(payload);
+          ApiKey apiKey = await _apiKeyGateway.AuthenticateAsync(sanitized.Single());
 
           Context.SetApiKey(apiKey);
 

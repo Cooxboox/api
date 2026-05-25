@@ -41,18 +41,15 @@ internal class Startup : StartupBase
     services.AddSingleton(_corsSettings);
     services.AddCors();
 
-    AuthenticationSettings authenticationSettings = AuthenticationSettings.Initialize(_configuration);
-    services.AddSingleton(authenticationSettings);
-    string[] authenticationSchemes = GetAuthenticationSchemes(authenticationSettings);
+    string[] authenticationSchemes = GetAuthenticationSchemes();
     AuthenticationBuilder authenticationBuilder = services.AddAuthentication()
       .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(Schemes.ApiKey, options => { })
       .AddScheme<BearerAuthenticationOptions, BearerAuthenticationHandler>(Schemes.Bearer, options => { })
       .AddScheme<SessionAuthenticationOptions, SessionAuthenticationHandler>(Schemes.Session, options => { });
-    if (authenticationSettings.EnableBasic)
+    if (_apiSettings.EnableBasicAuthentication)
     {
       authenticationBuilder.AddScheme<BasicAuthenticationOptions, BasicAuthenticationHandler>(Schemes.Basic, options => { });
     }
-    services.AddSingleton<IOpenAuthenticationService, OpenAuthenticationService>();
 
     services.AddAuthorizationBuilder().SetDefaultPolicy(new AuthorizationPolicyBuilder(authenticationSchemes).RequireAuthenticatedUser().Build());
 
@@ -78,7 +75,7 @@ internal class Startup : StartupBase
       services.AddCooxbooxSwagger(_apiSettings);
     }
   }
-  private static string[] GetAuthenticationSchemes(AuthenticationSettings settings)
+  private string[] GetAuthenticationSchemes()
   {
     List<string> schemes = new(capacity: 4)
     {
@@ -87,7 +84,7 @@ internal class Startup : StartupBase
       Schemes.Session
     };
 
-    if (settings.EnableBasic)
+    if (_apiSettings.EnableBasicAuthentication)
     {
       schemes.Add(Schemes.Basic);
     }
