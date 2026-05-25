@@ -1,8 +1,8 @@
-﻿using Cooxboox.Constants;
-using Cooxboox.Settings;
-using Microsoft.Net.Http.Headers;
+﻿using Cooxboox.Settings;
+using Krakenar.Contracts.Constants;
 using Microsoft.OpenApi;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using KrakenarHeaders = Krakenar.Contracts.Constants.Headers;
 
 namespace Cooxboox.Extensions;
 
@@ -57,7 +57,7 @@ internal static class SwaggerExtensions
     {
       Description = "Enter your API key in the input below:",
       In = ParameterLocation.Header,
-      Name = Headers.ApiKey,
+      Name = KrakenarHeaders.ApiKey,
       Scheme = Schemes.ApiKey,
       Type = SecuritySchemeType.ApiKey
     });
@@ -65,7 +65,7 @@ internal static class SwaggerExtensions
     {
       Description = "Enter your credentials in the inputs below:",
       In = ParameterLocation.Header,
-      Name = HeaderNames.Authorization,
+      Name = KrakenarHeaders.Authorization,
       Scheme = Schemes.Basic,
       Type = SecuritySchemeType.Http
     });
@@ -73,7 +73,7 @@ internal static class SwaggerExtensions
     {
       Description = "Enter your access token in the input below:",
       In = ParameterLocation.Header,
-      Name = HeaderNames.Authorization,
+      Name = KrakenarHeaders.Authorization,
       Scheme = Schemes.Bearer,
       Type = SecuritySchemeType.Http
     });
