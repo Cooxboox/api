@@ -22,6 +22,7 @@ public static class DependencyInjectionExtensions
   private static IServiceCollection AddIdentityGateways(this IServiceCollection services)
   {
     return services
+      .AddSingleton<IApiKeyGateway, ApiKeyGateway>()
       .AddSingleton<IMessageGateway, MessageGateway>()
       .AddSingleton<IOneTimePasswordGateway, OneTimePasswordGateway>()
       .AddSingleton<IRealmGateway, RealmGateway>()
