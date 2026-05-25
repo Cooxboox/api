@@ -7,6 +7,7 @@ using Krakenar.Client;
 using Krakenar.Contracts.Sessions;
 using Krakenar.Contracts.Users;
 using Logitar;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,6 +37,15 @@ public class IdentityController : ControllerBase
     _sessionGateway = sessionGateway;
     _tokenGateway = tokenGateway;
     _userGateway = userGateway;
+  }
+
+  [HttpGet("/profile")]
+  [Authorize]
+  public ActionResult GetProfile()
+  {
+    User user = HttpContext.GetUser() ?? throw new InvalidOperationException("An authenticated user is required.");
+    ProfileModel profile = new(user);
+    return Ok(profile);
   }
 
   [HttpPost("/auth/token")]
