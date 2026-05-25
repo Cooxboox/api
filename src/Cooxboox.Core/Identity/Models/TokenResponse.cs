@@ -1,4 +1,4 @@
-﻿namespace Cooxboox.Models.Identity;
+﻿namespace Cooxboox.Core.Identity.Models;
 
 public record TokenResponse
 {

@@ -6,6 +6,8 @@ namespace Cooxboox.Core.Identity;
 public interface ISessionGateway
 {
   Task<Session> CreateAsync(User user, CancellationToken cancellationToken = default);
+  Task<Session?> FindAsync(Guid id, CancellationToken cancellationToken = default);
   Task<Session> RenewAsync(string refreshToken, CancellationToken cancellationToken = default);
   Task<Session> SignInAsync(User user, string password, CancellationToken cancellationToken = default);
+  Task<Session> SignOutAsync(Session session, CancellationToken cancellationToken = default);
 }

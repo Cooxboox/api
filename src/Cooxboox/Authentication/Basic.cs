@@ -1,4 +1,5 @@
-﻿using Cooxboox.Extensions;
+﻿using Cooxboox.Core.Identity;
+using Cooxboox.Extensions;
 using Krakenar.Contracts.Constants;
 using Krakenar.Contracts.Users;
 using Microsoft.AspNetCore.Authentication;
@@ -11,12 +12,12 @@ internal class BasicAuthenticationOptions : AuthenticationSchemeOptions;
 
 internal class BasicAuthenticationHandler : AuthenticationHandler<BasicAuthenticationOptions>
 {
-  private readonly IUserService _userService;
+  private readonly IUserGateway _userGateway;
 
-  public BasicAuthenticationHandler(IUserService userService, IOptionsMonitor<BasicAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder)
+  public BasicAuthenticationHandler(IUserGateway userGateway, IOptionsMonitor<BasicAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder)
     : base(options, logger, encoder)
   {
-    _userService = userService;
+    _userGateway = userGateway;
   }
 
   protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -49,8 +50,9 @@ internal class BasicAuthenticationHandler : AuthenticationHandler<BasicAuthentic
 
           try
           {
-            AuthenticateUserPayload payload = new(user: credentials[..index], password: credentials[(index + 1)..]);
-            User user = await _userService.AuthenticateAsync(payload);
+            string uniqueName = credentials[..index];
+            string password = credentials[(index + 1)..];
+            User user = await _userGateway.AuthenticateAsync(uniqueName, password);
 
             Context.SetUser(user);
 

@@ -1,10 +1,11 @@
-﻿using Cooxboox.Authentication;
-using Cooxboox.Core.Identity;
+﻿using Cooxboox.Core.Identity;
 using Cooxboox.Core.Identity.Models;
 using Cooxboox.Extensions;
 using Cooxboox.Models.Identity;
 using Cooxboox.Settings;
 using Krakenar.Client;
+using Krakenar.Contracts.Sessions;
+using Krakenar.Contracts.Users;
 using Logitar;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc;
@@ -17,18 +18,24 @@ public class IdentityController : ControllerBase
   private readonly ErrorSettings _errorSettings;
   private readonly IIdentityService _identityService;
   private readonly ILogger<IdentityController> _logger;
-  private readonly IOpenAuthenticationService _openAuthenticationService;
+  private readonly ISessionGateway _sessionGateway;
+  private readonly ITokenGateway _tokenGateway;
+  private readonly IUserGateway _userGateway;
 
   public IdentityController(
     ErrorSettings errorSettings,
     IIdentityService identityService,
     ILogger<IdentityController> logger,
-    IOpenAuthenticationService openAuthenticationService)
+    ISessionGateway sessionGateway,
+    ITokenGateway tokenGateway,
+    IUserGateway userGateway)
   {
     _errorSettings = errorSettings;
     _identityService = identityService;
     _logger = logger;
-    _openAuthenticationService = openAuthenticationService;
+    _sessionGateway = sessionGateway;
+    _tokenGateway = tokenGateway;
+    _userGateway = userGateway;
   }
 
   [HttpPost("/auth/token")]
@@ -41,7 +48,7 @@ public class IdentityController : ControllerBase
       GetTokenResponse response = new(result);
       if (result.Session is not null)
       {
-        response.Token = await _openAuthenticationService.GetTokenResponseAsync(result.Session, cancellationToken);
+        response.Token = await _tokenGateway.GetResponseAsync(result.Session, cancellationToken);
       }
       return Ok(response);
     }
@@ -78,6 +85,28 @@ public class IdentityController : ControllerBase
       }
       return InvalidCredentials(exception);
     }
+  }
+
+  [HttpPost("/sign/out")]
+  public async Task<ActionResult> SignOutAsync(bool everywhere, CancellationToken cancellationToken)
+  {
+    if (everywhere)
+    {
+      User? user = HttpContext.GetUser();
+      if (user is not null)
+      {
+        await _userGateway.SignOutAsync(user, cancellationToken);
+      }
+    }
+    else
+    {
+      Session? session = HttpContext.GetSession();
+      if (session is not null)
+      {
+        await _sessionGateway.SignOutAsync(session, cancellationToken);
+      }
+    }
+    return NoContent();
   }
 
   private ActionResult InvalidCredentials(KrakenarClientException exception)

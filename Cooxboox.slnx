@@ -11,6 +11,8 @@
   </Folder>
   <Project Path="src/Cooxboox.Core/Cooxboox.Core.csproj" />
   <Project Path="src/Cooxboox.Infrastructure/Cooxboox.Infrastructure.csproj" Id="3a9fcdf0-40c1-421e-950e-56d55ce71ce0" />
-  <Project Path="src/Cooxboox.PostgreSQL/Cooxboox.PostgreSQL.csproj" Id="c5d4ba25-3b57-487f-ba3d-6f54bdfe8d06" />
+  <Project Path="src/Cooxboox.PostgreSQL/Cooxboox.PostgreSQL.csproj" Id="c5d4ba25-3b57-487f-ba3d-6f54bdfe8d06">
+    <Build Solution="Debug|*" Project="false" />
+  </Project>
   <Project Path="src/Cooxboox/Cooxboox.csproj" Id="cd00b49d-c254-43bb-98a6-5a125aa8e920" />
 </Solution>

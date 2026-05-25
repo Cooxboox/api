@@ -1,5 +1,4 @@
 ﻿using Cooxboox.Core.Identity;
-using Cooxboox.Core.Identity.Gateways;
 using Cooxboox.Core.Identity.Models;
 using Krakenar.Client;
 using Krakenar.Client.Users;
@@ -18,6 +17,11 @@ internal class UserGateway : IUserGateway
     _userClient = userClient;
   }
 
+  public async Task<User> AuthenticateAsync(string uniqueName, string password, CancellationToken cancellationToken)
+  {
+    AuthenticateUserPayload payload = new(uniqueName, password);
+    return await _userClient.AuthenticateAsync(payload, cancellationToken);
+  }
   public async Task<User> AuthenticateAsync(User user, string password, CancellationToken cancellationToken)
   {
     AuthenticateUserPayload payload = new(user.Id.ToString(), password);
@@ -63,6 +67,12 @@ internal class UserGateway : IUserGateway
   public async Task<User?> FindAsync(string uniqueName, CancellationToken cancellationToken)
   {
     return await _userClient.ReadAsync(id: null, uniqueName, customIdentifier: null, cancellationToken);
+  }
+
+  public async Task<User> SignOutAsync(User user, CancellationToken cancellationToken)
+  {
+    RequestContext context = new RequestContextBuilder(cancellationToken).WithUser(user).Build();
+    return await _userClient.SignOutAsync(user.Id, context) ?? throw new ArgumentException($"The signed-out user 'Id={user.Id}' was not found.", nameof(user));
   }
 
   public async Task<User> UpdateEmailAsync(User user, Email email, CancellationToken cancellationToken)

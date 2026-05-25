@@ -1,5 +1,4 @@
-﻿using Cooxboox.Core.Identity.Gateways;
-using Cooxboox.Core.Identity.Models;
+﻿using Cooxboox.Core.Identity.Models;
 using Krakenar.Contracts.Passwords;
 using Krakenar.Contracts.Realms;
 using Krakenar.Contracts.Sessions;
