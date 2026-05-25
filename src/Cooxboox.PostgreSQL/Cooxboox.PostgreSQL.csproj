@@ -15,16 +15,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Krakenar.Client" Version="2.1.0" />
-    <PackageReference Include="Logitar.EventSourcing.EntityFrameworkCore.Relational" Version="10.1.1" />
+    <PackageReference Include="Logitar.EventSourcing.EntityFrameworkCore.PostgreSQL" Version="10.1.1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Cooxboox.Core\Cooxboox.Core.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Using Include="System.Reflection" />
+    <ProjectReference Include="..\Cooxboox.Infrastructure\Cooxboox.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
