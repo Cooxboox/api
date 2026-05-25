@@ -43,7 +43,13 @@ public class IdentityController : ControllerBase
   [Authorize]
   public ActionResult GetProfile()
   {
-    User user = HttpContext.GetUser() ?? throw new InvalidOperationException("An authenticated user is required.");
+    User? user = HttpContext.GetUser();
+    if (user is null)
+    {
+      _logger.LogError("{Error}", "An authenticated user is required.");
+      return InvalidCredentials();
+    }
+
     ProfileModel profile = new(user);
     return Ok(profile);
   }
@@ -68,7 +74,9 @@ public class IdentityController : ControllerBase
       {
         throw;
       }
-      return InvalidCredentials(exception);
+
+      _logger.LogError(exception, "Invalid credentials: {Error}", JsonSerializer.Serialize(exception.Error));
+      return InvalidCredentials();
     }
   }
 
@@ -93,7 +101,9 @@ public class IdentityController : ControllerBase
       {
         throw;
       }
-      return InvalidCredentials(exception);
+
+      _logger.LogError(exception, "Invalid credentials: {Error}", JsonSerializer.Serialize(exception.Error));
+      return InvalidCredentials();
     }
   }
 
@@ -119,11 +129,8 @@ public class IdentityController : ControllerBase
     return NoContent();
   }
 
-  private ActionResult InvalidCredentials(KrakenarClientException exception)
+  private ObjectResult InvalidCredentials()
   {
-    string serializedError = JsonSerializer.Serialize(exception.Error);
-    _logger.LogError(exception, "Invalid credentials: {Error}", serializedError);
-
     InvalidCredentialsError error = new();
     return Problem(
       detail: error.Message,
