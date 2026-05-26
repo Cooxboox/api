@@ -126,6 +126,7 @@ public class IdentityController : ControllerBase
         await _sessionGateway.SignOutAsync(session, cancellationToken);
       }
     }
+    HttpContext.SignOut();
     return NoContent();
   }
 

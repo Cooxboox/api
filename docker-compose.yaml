@@ -1,13 +1,59 @@
 name: cooxboox_api
 services:
+  cooxboox_mongo:
+    image: mongo
+    container_name: cooxboox_mongo
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: cooxboox
+      MONGO_INITDB_ROOT_PASSWORD: m74BTKMLakJGegjV
+    ports:
+      - 27050:27017
+    volumes:
+      - mongodata:/data/db
+
+  cooxboox_postgres:
+    image: postgres
+    container_name: cooxboox_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: nvqZx7HP6KjzaLf8
+    ports:
+      - 5450:5432
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+  cooxboox_cms:
+    image: logitar/krakenar:v2.1.0
+    container_name: cooxboox_cms
+    depends_on:
+      - cooxboox_mongo
+      - cooxboox_postgres
+    restart: unless-stopped
+    environment:
+      ASPNETCORE_Environment: Development
+      DATABASE_PROVIDER: EntityFrameworkCorePostgreSQL
+      MONGOCONNSTR_Krakenar: mongodb://cooxboox:m74BTKMLakJGegjV@cooxboox_mongo:27017/
+      POSTGRESQLCONNSTR_Krakenar: User ID=postgres;Password=nvqZx7HP6KjzaLf8;Host=cooxboox_postgres;Port=5432;Database=cooxboox;
+    ports:
+      - 8900:8080
+
   cooxboox_api:
     build:
       context: .
       dockerfile: /src/Cooxboox/Dockerfile
     image: cooxboox_api
-    container_name: Cooxboox_api
+    container_name: cooxboox_api
+    depends_on:
+      - cooxboox_mongo
+      - cooxboox_postgres
+      - cooxboox_cms
     restart: unless-stopped
     environment:
       ASPNETCORE_Environment: Development
     ports:
       - 8100:8080
+
+volumes:
+  mongodata:
+  postgres_data:
