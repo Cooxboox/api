@@ -13,4 +13,5 @@ public interface IUserGateway
   Task<User?> FindAsync(string uniqueName, CancellationToken cancellationToken = default);
   Task<User> SignOutAsync(User user, CancellationToken cancellationToken = default);
   Task<User> UpdateEmailAsync(User user, Email email, CancellationToken cancellationToken = default);
+  Task<User> UpdateProfileAsync(Guid id, UpdateProfilePayload profile, CancellationToken cancellationToken = default);
 }
