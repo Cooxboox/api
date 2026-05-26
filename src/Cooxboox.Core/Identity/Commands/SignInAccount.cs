@@ -69,8 +69,13 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
     credentials.Validate();
 
     User? user = await _userGateway.FindAsync(credentials.EmailAddress, cancellationToken);
-    if (user is null || !user.HasPassword)
+    if (user is null || !user.HasPassword || credentials.UsePasswordless)
     {
+      //if (user is not null && user.GetMultiFactorAuthenticationMode() == MultiFactorAuthenticationMode.Email)
+      //{
+      //  throw new NotImplementedException(); // TODO(fpion): 403 Forbidden
+      //} // TODO(fpion): implement
+
       Guid messageId;
       if (user is null)
       {
@@ -128,16 +133,12 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
     }
 
     MultiFactorAuthenticationMode multiFactorAuthenticationMode = user.GetMultiFactorAuthenticationMode();
-    switch (multiFactorAuthenticationMode)
+    return multiFactorAuthenticationMode switch
     {
-      case MultiFactorAuthenticationMode.Email:
-        // TODO(fpion): what to do?
-        break;
-      case MultiFactorAuthenticationMode.Phone:
-        return await SendMultiFactorAuthenticationMessageAsync(user, locale: null, cancellationToken);
-    }
-
-    return await EnsureProfileIsCompletedAsync(user, cancellationToken);
+      MultiFactorAuthenticationMode.Email => throw new NotImplementedException(),// TODO(fpion): 403 Forbidden
+      MultiFactorAuthenticationMode.Phone => await SendMultiFactorAuthenticationMessageAsync(user, locale: null, cancellationToken),
+      _ => await EnsureProfileIsCompletedAsync(user, cancellationToken),
+    };
   }
 
   private async Task<SignInAccountResult> HandleOneTimePasswordAsync(OneTimePasswordValidation validation, CancellationToken cancellationToken)
