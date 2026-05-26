@@ -74,7 +74,7 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
     {
       if (multiFactorAuthenticationMode == MultiFactorAuthenticationMode.Email)
       {
-        throw new NotImplementedException(); // TODO(fpion): 403 Forbidden
+        throw AuthenticationFlowNotAllowedException.Passwordless;
       }
 
       Guid messageId;
@@ -135,7 +135,7 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
     MultiFactorAuthenticationMode multiFactorAuthenticationMode = user.GetMultiFactorAuthenticationMode();
     return multiFactorAuthenticationMode switch
     {
-      MultiFactorAuthenticationMode.Email => throw new NotImplementedException(),// TODO(fpion): 403 Forbidden
+      MultiFactorAuthenticationMode.Email => throw AuthenticationFlowNotAllowedException.Passwordless,
       MultiFactorAuthenticationMode.Phone => await SendMultiFactorAuthenticationMessageAsync(user, locale: null, cancellationToken),
       _ => await EnsureProfileIsCompletedAsync(user, cancellationToken),
     };
