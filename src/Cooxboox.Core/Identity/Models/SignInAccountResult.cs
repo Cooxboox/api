@@ -16,11 +16,6 @@ public record SignInAccountResult
     ProfileCompletionToken = token
   };
 
-  public static SignInAccountResult Continue(IEnumerable<AuthenticationFlow> allowedFlows) => new()
-  {
-    AllowedFlows = allowedFlows.ToList()
-  };
-
   public static SignInAccountResult EmailVerificationMessageSent(Guid id) => new()
   {
     EmailVerificationMessageId = id
@@ -30,6 +25,17 @@ public record SignInAccountResult
   {
     MultiFactorAuthenticationMessage = new MultiFactorAuthenticationMessage(oneTimePassword, messageId, multiFactorAuthenticationMode)
   };
+
+  public static SignInAccountResult RequirePassword(bool allowPasswordless = false)
+  {
+    SignInAccountResult result = new();
+    result.AllowedFlows.Add(AuthenticationFlow.Password);
+    if (allowPasswordless)
+    {
+      result.AllowedFlows.Add(AuthenticationFlow.Passwordless);
+    }
+    return result;
+  }
 
   public static SignInAccountResult Succeed(Session session) => new()
   {

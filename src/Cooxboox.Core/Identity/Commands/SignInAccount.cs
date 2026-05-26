@@ -72,10 +72,10 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
     MultiFactorAuthenticationMode multiFactorAuthenticationMode = user?.GetMultiFactorAuthenticationMode() ?? MultiFactorAuthenticationMode.None;
     if (user is null || !user.HasPassword || credentials.UsePasswordless)
     {
-      //if (user is not null && user.GetMultiFactorAuthenticationMode() == MultiFactorAuthenticationMode.Email)
-      //{
-      //  throw new NotImplementedException(); // TODO(fpion): 403 Forbidden
-      //} // TODO(fpion): implement
+      if (multiFactorAuthenticationMode == MultiFactorAuthenticationMode.Email)
+      {
+        throw new NotImplementedException(); // TODO(fpion): 403 Forbidden
+      }
 
       Guid messageId;
       if (user is null)
@@ -92,15 +92,7 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
     }
     else if (string.IsNullOrWhiteSpace(credentials.Password))
     {
-      List<AuthenticationFlow> allowedFlows = new(capacity: 2)
-      {
-        AuthenticationFlow.Password
-      };
-      if (multiFactorAuthenticationMode != MultiFactorAuthenticationMode.Email)
-      {
-        allowedFlows.Add(AuthenticationFlow.Passwordless);
-      }
-      return SignInAccountResult.Continue(allowedFlows);
+      return SignInAccountResult.RequirePassword(allowPasswordless: multiFactorAuthenticationMode != MultiFactorAuthenticationMode.Email);
     }
 
     if (multiFactorAuthenticationMode == MultiFactorAuthenticationMode.None && user.IsProfileCompleted())
