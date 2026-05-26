@@ -42,7 +42,7 @@ public record CompleteProfilePayload
 
       When(x => x.Password is not null, () => RuleFor(x => x.Password!).Password(passwordSettings));
       RuleFor(x => x.MultiFactorAuthenticationMode).IsInEnum();
-      When(x => x.MultiFactorAuthenticationMode != MultiFactorAuthenticationMode.None, () => RuleFor(x => x.Password).NotNull());
+      When(x => x.MultiFactorAuthenticationMode == MultiFactorAuthenticationMode.Email, () => RuleFor(x => x.Password).NotNull());
 
       RuleFor(x => x.FirstName).PersonName();
       RuleFor(x => x.LastName).PersonName();

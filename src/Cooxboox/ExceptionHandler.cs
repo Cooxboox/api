@@ -30,6 +30,10 @@ internal class ExceptionHandler : IExceptionHandler
     {
       statusCode = StatusCodes.Status400BadRequest;
     }
+    else if (IsForbidden(exception))
+    {
+      statusCode = StatusCodes.Status403Forbidden;
+    }
     else if (_errorSettings.ExposeDetail)
     {
       statusCode = StatusCodes.Status500InternalServerError;
@@ -54,6 +58,8 @@ internal class ExceptionHandler : IExceptionHandler
   }
 
   private static bool IsBadRequest(Exception exception) => exception is IdentityException || exception is ValidationException;
+
+  private static bool IsForbidden(Exception exception) => exception is AuthenticationFlowNotAllowedException;
 
   private static Error ToError(Exception exception)
   {

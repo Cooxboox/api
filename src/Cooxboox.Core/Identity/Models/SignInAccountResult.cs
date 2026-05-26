@@ -5,7 +5,7 @@ namespace Cooxboox.Core.Identity.Models;
 
 public record SignInAccountResult
 {
-  public bool IsPasswordRequired { get; set; }
+  public List<AuthenticationFlow> AllowedFlows { get; set; } = [];
   public Guid? EmailVerificationMessageId { get; set; }
   public MultiFactorAuthenticationMessage? MultiFactorAuthenticationMessage { get; set; }
   public string? ProfileCompletionToken { get; set; }
@@ -26,10 +26,16 @@ public record SignInAccountResult
     MultiFactorAuthenticationMessage = new MultiFactorAuthenticationMessage(oneTimePassword, messageId, multiFactorAuthenticationMode)
   };
 
-  public static SignInAccountResult RequirePassword() => new()
+  public static SignInAccountResult RequirePassword(bool allowPasswordless = false)
   {
-    IsPasswordRequired = true
-  };
+    SignInAccountResult result = new();
+    result.AllowedFlows.Add(AuthenticationFlow.Password);
+    if (allowPasswordless)
+    {
+      result.AllowedFlows.Add(AuthenticationFlow.Passwordless);
+    }
+    return result;
+  }
 
   public static SignInAccountResult Succeed(Session session) => new()
   {

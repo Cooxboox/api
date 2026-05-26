@@ -4,7 +4,7 @@ namespace Cooxboox.Models.Identity;
 
 public class GetTokenResponse
 {
-  public bool IsPasswordRequired { get; set; }
+  public List<AuthenticationFlow> AllowedFlows { get; set; } = [];
   public Guid? EmailVerificationMessageId { get; set; }
   public MultiFactorAuthenticationMessage? MultiFactorAuthenticationMessage { get; set; }
   public string? ProfileCompletionToken { get; set; }
@@ -16,7 +16,7 @@ public class GetTokenResponse
 
   public GetTokenResponse(SignInAccountResult result)
   {
-    IsPasswordRequired = result.IsPasswordRequired;
+    AllowedFlows = result.AllowedFlows;
     EmailVerificationMessageId = result.EmailVerificationMessageId;
     MultiFactorAuthenticationMessage = result.MultiFactorAuthenticationMessage;
     ProfileCompletionToken = result.ProfileCompletionToken;

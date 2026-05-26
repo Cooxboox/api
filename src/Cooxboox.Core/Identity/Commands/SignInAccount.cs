@@ -69,8 +69,14 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
     credentials.Validate();
 
     User? user = await _userGateway.FindAsync(credentials.EmailAddress, cancellationToken);
-    if (user is null || !user.HasPassword)
+    MultiFactorAuthenticationMode multiFactorAuthenticationMode = user?.GetMultiFactorAuthenticationMode() ?? MultiFactorAuthenticationMode.None;
+    if (user is null || !user.HasPassword || credentials.UsePasswordless)
     {
+      if (multiFactorAuthenticationMode == MultiFactorAuthenticationMode.Email)
+      {
+        throw AuthenticationFlowNotAllowedException.Passwordless;
+      }
+
       Guid messageId;
       if (user is null)
       {
@@ -86,10 +92,9 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
     }
     else if (string.IsNullOrWhiteSpace(credentials.Password))
     {
-      return SignInAccountResult.RequirePassword();
+      return SignInAccountResult.RequirePassword(allowPasswordless: multiFactorAuthenticationMode != MultiFactorAuthenticationMode.Email);
     }
 
-    MultiFactorAuthenticationMode multiFactorAuthenticationMode = user.GetMultiFactorAuthenticationMode();
     if (multiFactorAuthenticationMode == MultiFactorAuthenticationMode.None && user.IsProfileCompleted())
     {
       Session session = await _sessionGateway.SignInAsync(user, credentials.Password, cancellationToken);
@@ -100,9 +105,7 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
 
     if (multiFactorAuthenticationMode != MultiFactorAuthenticationMode.None)
     {
-      OneTimePassword oneTimePassword = await _oneTimePasswordGateway.CreateMultiFactorAuthenticationAsync(user, cancellationToken);
-      Guid messageId = await _messageGateway.SendMultiFactorAuthenticationAsync(user, credentials.Locale, oneTimePassword, cancellationToken);
-      return SignInAccountResult.MultiFactorAuthenticationMessageSent(oneTimePassword, messageId, multiFactorAuthenticationMode);
+      return await SendMultiFactorAuthenticationMessageAsync(user, credentials.Locale, cancellationToken);
     }
 
     return await EnsureProfileIsCompletedAsync(user, cancellationToken);
@@ -129,7 +132,13 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
       }
     }
 
-    return await EnsureProfileIsCompletedAsync(user, cancellationToken);
+    MultiFactorAuthenticationMode multiFactorAuthenticationMode = user.GetMultiFactorAuthenticationMode();
+    return multiFactorAuthenticationMode switch
+    {
+      MultiFactorAuthenticationMode.Email => throw AuthenticationFlowNotAllowedException.Passwordless,
+      MultiFactorAuthenticationMode.Phone => await SendMultiFactorAuthenticationMessageAsync(user, locale: null, cancellationToken),
+      _ => await EnsureProfileIsCompletedAsync(user, cancellationToken),
+    };
   }
 
   private async Task<SignInAccountResult> HandleOneTimePasswordAsync(OneTimePasswordValidation validation, CancellationToken cancellationToken)
@@ -160,6 +169,13 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
   {
     Session session = await _sessionGateway.RenewAsync(refreshToken, cancellationToken);
     return SignInAccountResult.Succeed(session);
+  }
+
+  private async Task<SignInAccountResult> SendMultiFactorAuthenticationMessageAsync(User user, string? locale, CancellationToken cancellationToken)
+  {
+    OneTimePassword oneTimePassword = await _oneTimePasswordGateway.CreateMultiFactorAuthenticationAsync(user, cancellationToken);
+    Guid messageId = await _messageGateway.SendMultiFactorAuthenticationAsync(user, locale, oneTimePassword, cancellationToken);
+    return SignInAccountResult.MultiFactorAuthenticationMessageSent(oneTimePassword, messageId, user.GetMultiFactorAuthenticationMode());
   }
 
   private async Task<SignInAccountResult> EnsureProfileIsCompletedAsync(User user, CancellationToken cancellationToken)
