@@ -1,0 +1,32 @@
+﻿[
+  {
+    "Id": "52691b64-71e1-40cb-8540-bc1b0ca78ccb",
+    "UniqueName": "EmailVerification",
+    "DisplayName": "Email Verification",
+    "Description": null,
+    "Subject": "EmailVerification_Subject",
+    "Content": {
+      "Type": "text/html"
+    }
+  },
+  {
+    "Id": "f325d8dd-b172-425c-aca7-8c6066597e56",
+    "UniqueName": "MultiFactorAuthenticationEmail",
+    "DisplayName": "Multi-Factor Authentication (Email)",
+    "Description": null,
+    "Subject": "MultiFactorAuthentication_Subject",
+    "Content": {
+      "Type": "text/html"
+    }
+  },
+  {
+    "Id": "cdacead0-b494-4572-a0ca-aa417065ebe5",
+    "UniqueName": "MultiFactorAuthenticationPhone",
+    "DisplayName": "Multi-Factor Authentication (Phone)",
+    "Description": null,
+    "Subject": "MultiFactorAuthentication_Subject",
+    "Content": {
+      "Type": "text/plain"
+    }
+  }
+]

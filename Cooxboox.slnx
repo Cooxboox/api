@@ -9,6 +9,9 @@
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
+  <Folder Name="/Tools/">
+    <Project Path="tools/Cooxboox.Tools.Seeding/Cooxboox.Tools.Seeding.csproj" Id="dd8865b5-99f6-432a-aaa7-e3ae60358d23" />
+  </Folder>
   <Project Path="src/Cooxboox.Core/Cooxboox.Core.csproj" Id="ade3c7cd-a57c-4cf9-bf0a-83f32f601b80" />
   <Project Path="src/Cooxboox.Infrastructure/Cooxboox.Infrastructure.csproj" Id="3a9fcdf0-40c1-421e-950e-56d55ce71ce0" />
   <Project Path="src/Cooxboox.PostgreSQL/Cooxboox.PostgreSQL.csproj" Id="c5d4ba25-3b57-487f-ba3d-6f54bdfe8d06" />
