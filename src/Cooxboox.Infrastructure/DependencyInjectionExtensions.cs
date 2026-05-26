@@ -16,6 +16,7 @@ public static class DependencyInjectionExtensions
       .AddIdentityGateways()
       .AddLogitarEventSourcingInfrastructure()
       .AddLogitarEventSourcingWithEntityFrameworkCoreRelational()
+      .AddSingleton(serviceProvider => ClientAppSettings.Initialize(serviceProvider.GetRequiredService<IConfiguration>()))
       .AddSingleton(serviceProvider => TokensSettings.Initialize(serviceProvider.GetRequiredService<IConfiguration>()));
   }
 

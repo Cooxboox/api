@@ -1,5 +1,6 @@
 ﻿using Cooxboox.Core.Identity;
 using Cooxboox.Core.Identity.Models;
+using Cooxboox.Infrastructure.Settings;
 using Krakenar.Contracts.Messages;
 using Krakenar.Contracts.Passwords;
 using Krakenar.Contracts.Senders;
@@ -13,26 +14,34 @@ internal class MessageGateway : IMessageGateway
   private const string MultiFactorAuthenticationTemplate = "MultiFactorAuthentication";
 
   private const string OneTimePasswordKey = "OneTimePassword";
-  private const string TokenKey = "Token";
+  private const string UrlKey = "Url";
 
+  private readonly ClientAppSettings _clientApp;
   private readonly IMessageService _messageService;
 
-  public MessageGateway(IMessageService messageService)
+  public MessageGateway(ClientAppSettings clientApp, IMessageService messageService)
   {
+    _clientApp = clientApp;
     _messageService = messageService;
   }
 
   public async Task<Guid> SendEmailVerificationAsync(string emailAddress, string locale, string token, CancellationToken cancellationToken)
   {
     RecipientPayload recipient = new(new EmailPayload(emailAddress));
-    Variable variables = new(TokenKey, token);
+    Variable variables = new(UrlKey, GetEmailVerificationUrl(token));
     return (await SendAsync(SenderKind.Email, EmailVerificationTemplate, [recipient], ignoreUserLocale: true, locale, [variables], cancellationToken)).Ids.Single();
   }
   public async Task<Guid> SendEmailVerificationAsync(User user, string locale, string token, CancellationToken cancellationToken)
   {
     RecipientPayload recipient = new(user.Id);
-    Variable variables = new(TokenKey, token);
+    Variable variables = new(UrlKey, GetEmailVerificationUrl(token));
     return (await SendAsync(SenderKind.Email, EmailVerificationTemplate, [recipient], ignoreUserLocale: true, locale, [variables], cancellationToken)).Ids.Single();
+  }
+  private string GetEmailVerificationUrl(string token)
+  {
+    string baseUrl = _clientApp.BaseUrl.TrimEnd('/');
+    string path = _clientApp.EmailVerificationPath.Replace("{token}", token).TrimStart('/');
+    return $"{baseUrl}/{path}";
   }
 
   public async Task<Guid> SendMultiFactorAuthenticationAsync(User user, string locale, OneTimePassword oneTimePassword, CancellationToken cancellationToken)
