@@ -50,7 +50,7 @@ public class IdentityController : ControllerBase
       return InvalidCredentials();
     }
 
-    ProfileModel profile = new(user);
+    ProfileModel profile = new(user); // TODO(fpion): profile is not complete when Scheme == Bearer.
     return Ok(profile);
   }
 
@@ -128,6 +128,21 @@ public class IdentityController : ControllerBase
     }
     HttpContext.SignOut();
     return NoContent();
+  }
+
+  [HttpPatch("/profile")]
+  [Authorize]
+  public async Task<ActionResult<ProfileModel>> UpdateProfileAsync([FromBody] UpdateProfilePayload payload, CancellationToken cancellationToken)
+  {
+    User? user = HttpContext.GetUser();
+    if (user is null)
+    {
+      _logger.LogError("{Error}", "An authenticated user is required.");
+      return InvalidCredentials();
+    }
+
+    ProfileModel profile = await _identityService.UpdateProfileAsync(user.Id, payload, cancellationToken);
+    return Ok(profile);
   }
 
   private ObjectResult InvalidCredentials()

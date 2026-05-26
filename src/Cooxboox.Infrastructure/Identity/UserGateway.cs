@@ -84,4 +84,19 @@ internal class UserGateway : IUserGateway
     RequestContext context = new RequestContextBuilder(cancellationToken).WithUser(user).Build();
     return await _userClient.UpdateAsync(user.Id, payload, context) ?? throw new ArgumentException($"The updated user 'Id={user.Id}' was not found.", nameof(user));
   }
+
+  public async Task<User> UpdateProfileAsync(Guid id, UpdateProfilePayload profile, CancellationToken cancellationToken)
+  {
+    UpdateUserPayload payload = new()
+    {
+      FirstName = string.IsNullOrWhiteSpace(profile.FirstName) ? null : new Change<string>(profile.FirstName),
+      LastName = string.IsNullOrWhiteSpace(profile.LastName) ? null : new Change<string>(profile.LastName),
+      Birthdate = profile.DateOfBirth is null ? null : new Change<DateTime?>(profile.DateOfBirth.Value),
+      Gender = profile.Gender is null ? null : new Change<string>(profile.Gender.Value),
+      Locale = string.IsNullOrWhiteSpace(profile.Locale) ? null : new Change<string>(profile.Locale),
+      TimeZone = string.IsNullOrWhiteSpace(profile.TimeZone) ? null : new Change<string>(profile.TimeZone)
+    };
+    RequestContext context = new RequestContextBuilder(cancellationToken).WithUserId(id).Build();
+    return await _userClient.UpdateAsync(id, payload, context) ?? throw new ArgumentException($"The updated user 'Id={id}' was not found.", nameof(id));
+  }
 }
