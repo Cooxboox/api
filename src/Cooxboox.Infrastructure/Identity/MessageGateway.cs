@@ -44,7 +44,7 @@ internal class MessageGateway : IMessageGateway
     return $"{baseUrl}/{path}";
   }
 
-  public async Task<Guid> SendMultiFactorAuthenticationAsync(User user, string locale, OneTimePassword oneTimePassword, CancellationToken cancellationToken)
+  public async Task<Guid> SendMultiFactorAuthenticationAsync(User user, string? locale, OneTimePassword oneTimePassword, CancellationToken cancellationToken)
   {
     SenderKind senderKind = user.GetMultiFactorAuthenticationMode() switch
     {
@@ -53,8 +53,9 @@ internal class MessageGateway : IMessageGateway
       _ => throw new ArgumentException("The Multi-Factor Authentication mode is not valid.", nameof(user)),
     };
     RecipientPayload recipient = new(user.Id);
+    bool ignoreUserLocale = locale is not null;
     Variable variable = new(OneTimePasswordKey, oneTimePassword.Password ?? throw new ArgumentException("The one-time password is required.", nameof(oneTimePassword)));
-    return (await SendAsync(senderKind, GetMultiFactorAuthenticationTemplate(senderKind), [recipient], ignoreUserLocale: true, locale, [variable], cancellationToken)).Ids.Single();
+    return (await SendAsync(senderKind, GetMultiFactorAuthenticationTemplate(senderKind), [recipient], ignoreUserLocale, locale, [variable], cancellationToken)).Ids.Single();
   }
 
   private async Task<SentMessages> SendAsync(

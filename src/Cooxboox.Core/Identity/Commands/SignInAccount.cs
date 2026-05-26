@@ -100,9 +100,7 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
 
     if (multiFactorAuthenticationMode != MultiFactorAuthenticationMode.None)
     {
-      OneTimePassword oneTimePassword = await _oneTimePasswordGateway.CreateMultiFactorAuthenticationAsync(user, cancellationToken);
-      Guid messageId = await _messageGateway.SendMultiFactorAuthenticationAsync(user, credentials.Locale, oneTimePassword, cancellationToken);
-      return SignInAccountResult.MultiFactorAuthenticationMessageSent(oneTimePassword, messageId, multiFactorAuthenticationMode);
+      return await SendMultiFactorAuthenticationMessageAsync(user, credentials.Locale, cancellationToken);
     }
 
     return await EnsureProfileIsCompletedAsync(user, cancellationToken);
@@ -127,6 +125,16 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
       {
         user = await _userGateway.UpdateEmailAsync(user, email, cancellationToken);
       }
+    }
+
+    MultiFactorAuthenticationMode multiFactorAuthenticationMode = user.GetMultiFactorAuthenticationMode();
+    switch (multiFactorAuthenticationMode)
+    {
+      case MultiFactorAuthenticationMode.Email:
+        // TODO(fpion): what to do?
+        break;
+      case MultiFactorAuthenticationMode.Phone:
+        return await SendMultiFactorAuthenticationMessageAsync(user, locale: null, cancellationToken);
     }
 
     return await EnsureProfileIsCompletedAsync(user, cancellationToken);
@@ -160,6 +168,13 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
   {
     Session session = await _sessionGateway.RenewAsync(refreshToken, cancellationToken);
     return SignInAccountResult.Succeed(session);
+  }
+
+  private async Task<SignInAccountResult> SendMultiFactorAuthenticationMessageAsync(User user, string? locale, CancellationToken cancellationToken)
+  {
+    OneTimePassword oneTimePassword = await _oneTimePasswordGateway.CreateMultiFactorAuthenticationAsync(user, cancellationToken);
+    Guid messageId = await _messageGateway.SendMultiFactorAuthenticationAsync(user, locale, oneTimePassword, cancellationToken);
+    return SignInAccountResult.MultiFactorAuthenticationMessageSent(oneTimePassword, messageId, user.GetMultiFactorAuthenticationMode());
   }
 
   private async Task<SignInAccountResult> EnsureProfileIsCompletedAsync(User user, CancellationToken cancellationToken)
