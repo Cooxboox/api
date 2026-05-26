@@ -69,6 +69,7 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
     credentials.Validate();
 
     User? user = await _userGateway.FindAsync(credentials.EmailAddress, cancellationToken);
+    MultiFactorAuthenticationMode multiFactorAuthenticationMode = user?.GetMultiFactorAuthenticationMode() ?? MultiFactorAuthenticationMode.None;
     if (user is null || !user.HasPassword || credentials.UsePasswordless)
     {
       //if (user is not null && user.GetMultiFactorAuthenticationMode() == MultiFactorAuthenticationMode.Email)
@@ -91,10 +92,17 @@ internal class SignInAccountCommandHandler : ICommandHandler<SignInAccountComman
     }
     else if (string.IsNullOrWhiteSpace(credentials.Password))
     {
-      return SignInAccountResult.RequirePassword();
+      List<AuthenticationFlow> allowedFlows = new(capacity: 2)
+      {
+        AuthenticationFlow.Password
+      };
+      if (multiFactorAuthenticationMode != MultiFactorAuthenticationMode.Email)
+      {
+        allowedFlows.Add(AuthenticationFlow.Passwordless);
+      }
+      return SignInAccountResult.Continue(allowedFlows);
     }
 
-    MultiFactorAuthenticationMode multiFactorAuthenticationMode = user.GetMultiFactorAuthenticationMode();
     if (multiFactorAuthenticationMode == MultiFactorAuthenticationMode.None && user.IsProfileCompleted())
     {
       Session session = await _sessionGateway.SignInAsync(user, credentials.Password, cancellationToken);
