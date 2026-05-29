@@ -41,7 +41,7 @@ public class IdentityController : ControllerBase
 
   [HttpGet("/profile")]
   [Authorize]
-  public async Task<ActionResult> GetProfileAsync(CancellationToken cancellationToken)
+  public async Task<ActionResult<ProfileModel>> GetProfileAsync(CancellationToken cancellationToken)
   {
     User? user = HttpContext.GetUser();
     if (user is null)
