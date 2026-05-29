@@ -41,7 +41,7 @@ public class IdentityController : ControllerBase
 
   [HttpGet("/profile")]
   [Authorize]
-  public ActionResult GetProfile()
+  public async Task<ActionResult<ProfileModel>> GetProfileAsync(CancellationToken cancellationToken)
   {
     User? user = HttpContext.GetUser();
     if (user is null)
@@ -50,7 +50,12 @@ public class IdentityController : ControllerBase
       return InvalidCredentials();
     }
 
-    ProfileModel profile = new(user); // TODO(fpion): profile is not complete when Scheme == Bearer.
+    if (user.Version < 1)
+    {
+      user = await _userGateway.FindAsync(user.Id, cancellationToken) ?? throw new InvalidOperationException($"The user 'Id={user.Id}' was not found.");
+    }
+
+    ProfileModel profile = new(user);
     return Ok(profile);
   }
 
