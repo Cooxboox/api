@@ -3,4 +3,4 @@ using Logitar.EventSourcing;
 
 namespace Cooxboox.Core.Kitchens.Events;
 
-public record KitchenCreated(UserId OwnerId, Confidentiality Confidentiality, Name Name) : DomainEvent;
+public record KitchenCreated(UserId OwnerId, Name Name) : DomainEvent;
