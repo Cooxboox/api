@@ -20,6 +20,8 @@ internal class KitchenEntity : AggregateEntity
 
   public KitchenEntity(KitchenCreated @event) : base(@event)
   {
+    UniqueId = new KitchenId(@event.StreamId).EntityId;
+
     OwnerId = @event.OwnerId.Value;
 
     Name = @event.Name.Value;

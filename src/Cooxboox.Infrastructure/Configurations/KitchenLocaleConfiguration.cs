@@ -11,10 +11,8 @@ internal class KitchenLocaleConfiguration : IEntityTypeConfiguration<KitchenLoca
   public void Configure(EntityTypeBuilder<KitchenLocaleEntity> builder)
   {
     builder.ToTable(nameof(CooxbooxContext.KitchenLocales), CooxbooxContext.Schema);
-    builder.HasKey(x => x.KitchenLocaleId);
+    builder.HasKey(x => new { x.KitchenId, x.Language });
 
-    builder.HasIndex(x => x.UniqueId).IsUnique();
-    builder.HasIndex(x => new { x.KitchenId, x.Language }).IsUnique();
     builder.HasIndex(x => x.Language);
     builder.HasIndex(x => x.Version);
     builder.HasIndex(x => x.CreatedBy);

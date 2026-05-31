@@ -5,9 +5,6 @@ namespace Cooxboox.Infrastructure.Entities;
 
 internal class KitchenLocaleEntity
 {
-  public int KitchenLocaleId { get; private set; }
-  public Guid UniqueId { get; private set; }
-
   public KitchenEntity? Kitchen { get; private set; }
   public int KitchenId { get; private set; }
   public string Language { get; private set; } = string.Empty;
@@ -23,8 +20,6 @@ internal class KitchenLocaleEntity
 
   public KitchenLocaleEntity(KitchenEntity kitchen, KitchenLocaleChanged @event)
   {
-    UniqueId = Guid.NewGuid();
-
     Kitchen = kitchen;
     KitchenId = kitchen.KitchenId;
     Language = @event.Language.Code;
@@ -48,4 +43,8 @@ internal class KitchenLocaleEntity
     UpdatedBy = @event.ActorId?.Value;
     UpdatedOn = @event.OccurredOn.AsUniversalTime();
   }
+
+  public override bool Equals(object? obj) => obj is KitchenLocaleEntity locale && locale.KitchenId == KitchenId && locale.Language == Language;
+  public override int GetHashCode() => HashCode.Combine(KitchenId, Language);
+  public override string ToString() => $"{base.ToString()} (KitchenId={KitchenId}, Language={Language})";
 }
