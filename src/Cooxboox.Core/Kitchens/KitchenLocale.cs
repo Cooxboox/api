@@ -1,3 +1,5 @@
-﻿namespace Cooxboox.Core.Kitchens;
+﻿using Cooxboox.Core.Seo;
 
-public record KitchenLocale(Description? HtmlContent = null, Description? MetaDescription = null);
+namespace Cooxboox.Core.Kitchens;
+
+public record KitchenLocale(HtmlContent? HtmlContent = null, MetaDescription? MetaDescription = null);
