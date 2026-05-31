@@ -1,5 +1,4 @@
 ﻿using Cooxboox.Core.Identity;
-using Cooxboox.Infrastructure.Handlers;
 using Cooxboox.Infrastructure.Identity;
 using Cooxboox.Infrastructure.Settings;
 using Logitar.EventSourcing.EntityFrameworkCore.Relational;
@@ -25,7 +24,6 @@ public static class DependencyInjectionExtensions
 
   private static IServiceCollection AddEventHandlers(this IServiceCollection services)
   {
-    KitchenEvents.Register(services);
     return services;
   }
 
