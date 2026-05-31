@@ -1,4 +1,5 @@
 ﻿using Cooxboox.Core.Kitchens.Events;
+using Cooxboox.Core.Localization;
 using Cooxboox.Core.Validation;
 using Logitar.EventSourcing;
 
@@ -19,6 +20,7 @@ public class Kitchen : AggregateRoot
   public Slug? Slug { get; private set; }
 
   // TODO(fpion): Localization /w Publishing
+  private readonly Dictionary<Language, KitchenLocale> _locales = [];
 
   public Kitchen() : base()
   {
@@ -42,6 +44,25 @@ public class Kitchen : AggregateRoot
     {
       Raise(new KitchenDeleted(), actorId);
     }
+  }
+
+  public bool HasLocale(Language language) => _locales.ContainsKey(language);
+
+  public void Publish(Language language, ActorId? actorId = null)
+  {
+    // TODO(fpion): implement
+  }
+
+  public void RemoveLocale(Language language, ActorId? actorId = null)
+  {
+    if (_locales.ContainsKey(language))
+    {
+      Raise(new KitchenLocaleRemoved(language), actorId);
+    }
+  }
+  protected virtual void Handle(KitchenLocaleRemoved @event)
+  {
+    _locales.Remove(@event.Language);
   }
 
   public void Rename(Name name, ActorId? actorId = null)
@@ -68,6 +89,18 @@ public class Kitchen : AggregateRoot
     Confidentiality = @event.Confidentiality;
   }
 
+  public void SetLocale(Language language, KitchenLocale locale, ActorId? actorId = null)
+  {
+    if (!_locales.TryGetValue(language, out KitchenLocale? existingLocale) || !existingLocale.Equals(locale))
+    {
+      Raise(new KitchenLocaleChanged(language, locale), actorId);
+    }
+  }
+  protected virtual void Handle(KitchenLocaleChanged @event)
+  {
+    _locales[@event.Language] = @event.Locale;
+  }
+
   public void SetSlug(Slug? slug, ActorId? actorId = null)
   {
     if (Slug?.Equals(slug) != true)
@@ -78,6 +111,11 @@ public class Kitchen : AggregateRoot
   protected virtual void Handle(KitchenSlugChanged @event)
   {
     Slug = @event.Slug;
+  }
+
+  public void Unpublish(Language language, ActorId? actorId = null)
+  {
+    // TODO(fpion): implement
   }
 
   public override string ToString() => $"{Name} | {base.ToString()}";
