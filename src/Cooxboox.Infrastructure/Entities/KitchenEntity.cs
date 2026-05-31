@@ -53,7 +53,7 @@ internal class KitchenEntity : AggregateEntity
     locale.Publish(@event);
   }
 
-  public KitchenLocaleEntity? RemoveLocale(KitchenLocaleChanged @event)
+  public KitchenLocaleEntity? RemoveLocale(KitchenLocaleRemoved @event)
   {
     base.Update(@event);
 
