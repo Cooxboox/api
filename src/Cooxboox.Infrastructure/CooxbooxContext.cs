@@ -13,6 +13,7 @@ public class CooxbooxContext : DbContext
 
   internal DbSet<KitchenEntity> Kitchens => Set<KitchenEntity>();
   internal DbSet<KitchenLocaleEntity> KitchenLocales => Set<KitchenLocaleEntity>();
+  internal DbSet<PublishedKitchenLocaleEntity> PublishedKitchenLocales => Set<PublishedKitchenLocaleEntity>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {

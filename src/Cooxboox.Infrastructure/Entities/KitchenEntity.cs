@@ -20,6 +20,7 @@ internal class KitchenEntity : AggregateEntity
   public string? Slug { get; private set; }
 
   public List<KitchenLocaleEntity> Locales { get; private set; } = [];
+  public List<PublishedKitchenLocaleEntity> PublishedLocales { get; private set; } = [];
 
   public KitchenEntity(KitchenCreated @event) : base(@event)
   {
@@ -48,7 +49,8 @@ internal class KitchenEntity : AggregateEntity
   {
     base.Update(@event);
 
-    // TODO(fpion): implement
+    KitchenLocaleEntity locale = FindLocale(@event.Language) ?? throw new InvalidOperationException($"The kitchen (KitchenId={KitchenId}) locale (Language={@event.Language}) was not found.");
+    locale.Publish(@event);
   }
 
   public KitchenLocaleEntity? RemoveLocale(KitchenLocaleChanged @event)
@@ -95,11 +97,13 @@ internal class KitchenEntity : AggregateEntity
     Slug = @event.Slug?.Value;
   }
 
-  public void UnpublishLocale(KitchenLocaleUnpublished @event)
+  public PublishedKitchenLocaleEntity? UnpublishLocale(KitchenLocaleUnpublished @event)
   {
     base.Update(@event);
 
-    // TODO(fpion): implement
+    KitchenLocaleEntity locale = FindLocale(@event.Language) ?? throw new InvalidOperationException($"The kitchen (KitchenId={KitchenId}) locale (Language={@event.Language}) was not found.");
+    locale.Unpublish(@event);
+    return locale.PublishedLocale;
   }
 
   private KitchenLocaleEntity? FindLocale(Language language) => Locales.SingleOrDefault(x => x.Language == language.Code);

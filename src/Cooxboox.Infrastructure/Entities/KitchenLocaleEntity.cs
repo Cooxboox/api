@@ -1,4 +1,5 @@
-﻿using Cooxboox.Core.Kitchens.Events;
+﻿using Cooxboox.Core;
+using Cooxboox.Core.Kitchens.Events;
 using Logitar;
 using Logitar.EventSourcing;
 
@@ -21,6 +22,12 @@ internal class KitchenLocaleEntity
   public string? UpdatedBy { get; private set; }
   public DateTime UpdatedOn { get; private set; }
 
+  public ContentStatus Status { get; private set; }
+  public long? PublishedVersion { get; private set; }
+  public string? PublishedBy { get; private set; }
+  public DateTime? PublishedOn { get; private set; }
+  public PublishedKitchenLocaleEntity? PublishedLocale { get; private set; }
+
   public KitchenLocaleEntity(KitchenEntity kitchen, KitchenLocaleChanged @event)
   {
     Kitchen = kitchen;
@@ -37,7 +44,7 @@ internal class KitchenLocaleEntity
   {
   }
 
-  public virtual IReadOnlyCollection<ActorId> GetActorIds()
+  public IReadOnlyCollection<ActorId> GetActorIds()
   {
     HashSet<ActorId> actorIds = new(capacity: 2);
     if (CreatedBy is not null)
@@ -51,6 +58,31 @@ internal class KitchenLocaleEntity
     return actorIds;
   }
 
+  public void Publish(KitchenLocalePublished @event)
+  {
+    if (PublishedLocale is null)
+    {
+      PublishedLocale = new PublishedKitchenLocaleEntity(this, @event);
+    }
+    else
+    {
+      PublishedLocale.Update(this, @event);
+    }
+
+    Status = ContentStatus.Latest;
+    PublishedVersion = Version;
+    PublishedBy = @event.ActorId?.Value;
+    PublishedOn = @event.OccurredOn.AsUniversalTime();
+  }
+
+  public void Unpublish(KitchenLocaleUnpublished _)
+  {
+    Status = ContentStatus.Unpublished;
+    PublishedVersion = null;
+    PublishedBy = null;
+    PublishedOn = null;
+  }
+
   public void Update(KitchenLocaleChanged @event)
   {
     MetaDescription = @event.Locale.MetaDescription?.Value;
@@ -59,6 +91,11 @@ internal class KitchenLocaleEntity
     Version = @event.Version;
     UpdatedBy = @event.ActorId?.Value;
     UpdatedOn = @event.OccurredOn.AsUniversalTime();
+
+    if (Status == ContentStatus.Latest)
+    {
+      Status = ContentStatus.Published;
+    }
   }
 
   public override bool Equals(object? obj) => obj is KitchenLocaleEntity locale && locale.KitchenLocaleId == KitchenLocaleId;
