@@ -35,6 +35,8 @@ internal class KitchenLocaleConfiguration : IEntityTypeConfiguration<KitchenLoca
     builder.Property(x => x.Status).HasMaxLength(16).HasConversion(new EnumToStringConverter<ContentStatus>());
     builder.Property(x => x.PublishedBy).HasMaxLength(ActorId.MaximumLength);
 
-    builder.HasOne(x => x.Kitchen).WithMany(x => x.Locales).OnDelete(DeleteBehavior.Cascade);
+    builder.HasOne(x => x.Kitchen).WithMany(x => x.Locales)
+      .HasPrincipalKey(x => x.KitchenId).HasForeignKey(x => x.KitchenId)
+      .OnDelete(DeleteBehavior.Cascade);
   }
 }

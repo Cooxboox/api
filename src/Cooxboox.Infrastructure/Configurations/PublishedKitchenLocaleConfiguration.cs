@@ -28,6 +28,8 @@ internal class PublishedKitchenLocaleConfiguration : IEntityTypeConfiguration<Pu
       .HasPrincipalKey<KitchenLocaleEntity>(x => x.KitchenLocaleId)
       .HasForeignKey<PublishedKitchenLocaleEntity>(x => x.KitchenLocaleId)
       .OnDelete(DeleteBehavior.Cascade);
-    builder.HasOne(x => x.Kitchen).WithMany(x => x.PublishedLocales).OnDelete(DeleteBehavior.Cascade);
+    builder.HasOne(x => x.Kitchen).WithMany(x => x.PublishedLocales)
+      .HasPrincipalKey(x => x.KitchenId).HasForeignKey(x => x.KitchenId)
+      .OnDelete(DeleteBehavior.Cascade);
   }
 }
