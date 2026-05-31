@@ -9,7 +9,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Cooxboox.Infrastructure.Configurations;
 
-internal class KitchenConfiguration : AggregateConfiguration<KitchenEntity>
+internal class KitchenConfiguration : AggregateConfiguration<KitchenEntity>, IEntityTypeConfiguration<KitchenEntity>
 {
   public override void Configure(EntityTypeBuilder<KitchenEntity> builder)
   {
