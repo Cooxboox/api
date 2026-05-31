@@ -14,10 +14,11 @@ public static class DependencyInjectionExtensions
   {
     return services
       .AddIdentityGateways()
-      .AddLogitarEventSourcingInfrastructure()
       .AddLogitarEventSourcingWithEntityFrameworkCoreRelational()
       .AddSingleton(serviceProvider => ClientAppSettings.Initialize(serviceProvider.GetRequiredService<IConfiguration>()))
-      .AddSingleton(serviceProvider => TokensSettings.Initialize(serviceProvider.GetRequiredService<IConfiguration>()));
+      .AddSingleton(serviceProvider => TokensSettings.Initialize(serviceProvider.GetRequiredService<IConfiguration>()))
+      .AddSingleton<IEventSerializer, EventSerializer>()
+      .AddScoped<IEventBus, EventBus>();
   }
 
   private static IServiceCollection AddIdentityGateways(this IServiceCollection services)
