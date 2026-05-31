@@ -1,4 +1,5 @@
 ﻿using Cooxboox.Core.Kitchens.Events;
+using Logitar;
 
 namespace Cooxboox.Infrastructure.Entities;
 
@@ -14,6 +15,12 @@ internal class KitchenLocaleEntity
   public string? HtmlContent { get; private set; }
   public string? MetaDescription { get; private set; }
 
+  public long Version { get; private set; }
+  public string? CreatedBy { get; private set; }
+  public DateTime CreatedOn { get; private set; }
+  public string? UpdatedBy { get; private set; }
+  public DateTime UpdatedOn { get; private set; }
+
   public KitchenLocaleEntity(KitchenEntity kitchen, KitchenLocaleChanged @event)
   {
     UniqueId = Guid.NewGuid();
@@ -21,6 +28,9 @@ internal class KitchenLocaleEntity
     Kitchen = kitchen;
     KitchenId = kitchen.KitchenId;
     Language = @event.Language.Code;
+
+    CreatedBy = @event.ActorId?.Value;
+    CreatedOn = @event.OccurredOn.AsUniversalTime();
 
     Update(@event);
   }
@@ -33,5 +43,9 @@ internal class KitchenLocaleEntity
   {
     HtmlContent = @event.Locale.HtmlContent?.Value;
     MetaDescription = @event.Locale.MetaDescription?.Value;
+
+    Version = @event.Version;
+    UpdatedBy = @event.ActorId?.Value;
+    UpdatedOn = @event.OccurredOn.AsUniversalTime();
   }
 }
