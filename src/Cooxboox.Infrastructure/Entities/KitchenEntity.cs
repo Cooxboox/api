@@ -1,5 +1,8 @@
 ﻿using Cooxboox.Core.Kitchens;
 using Cooxboox.Core.Kitchens.Events;
+using Cooxboox.Core.Localization;
+using Logitar;
+using Logitar.EventSourcing;
 
 namespace Cooxboox.Infrastructure.Entities;
 
@@ -16,6 +19,8 @@ internal class KitchenEntity : AggregateEntity
 
   public string? Slug { get; private set; }
 
+  public List<KitchenLocaleEntity> Locales { get; private set; } = [];
+
   public KitchenEntity(KitchenCreated @event) : base(@event)
   {
     UniqueId = new KitchenId(@event.StreamId).EntityId;
@@ -27,6 +32,30 @@ internal class KitchenEntity : AggregateEntity
 
   private KitchenEntity() : base()
   {
+  }
+
+  public override IReadOnlyCollection<ActorId> GetActorIds()
+  {
+    HashSet<ActorId> actorIds = base.GetActorIds().ToHashSet();
+    foreach (KitchenLocaleEntity locale in Locales)
+    {
+      actorIds.AddRange(locale.GetActorIds());
+    }
+    return actorIds;
+  }
+
+  public void PublishLocale(KitchenLocalePublished @event)
+  {
+    base.Update(@event);
+
+    // TODO(fpion): implement
+  }
+
+  public KitchenLocaleEntity? RemoveLocale(KitchenLocaleChanged @event)
+  {
+    base.Update(@event);
+
+    return FindLocale(@event.Language);
   }
 
   public void Rename(KitchenRenamed @event)
@@ -43,12 +72,37 @@ internal class KitchenEntity : AggregateEntity
     Confidentiality = @event.Confidentiality;
   }
 
+  public void SetLocale(KitchenLocaleChanged @event)
+  {
+    base.Update(@event);
+
+    KitchenLocaleEntity? locale = FindLocale(@event.Language);
+    if (locale is null)
+    {
+      locale = new KitchenLocaleEntity(this, @event);
+      Locales.Add(locale);
+    }
+    else
+    {
+      locale.Update(@event);
+    }
+  }
+
   public void SetSlug(KitchenSlugChanged @event)
   {
     base.Update(@event);
 
     Slug = @event.Slug?.Value;
   }
+
+  public void UnpublishLocale(KitchenLocaleUnpublished @event)
+  {
+    base.Update(@event);
+
+    // TODO(fpion): implement
+  }
+
+  private KitchenLocaleEntity? FindLocale(Language language) => Locales.SingleOrDefault(x => x.Language == language.Code);
 
   public override string ToString() => $"{Name} | {base.ToString()} (KitchenId={KitchenId})";
 }
