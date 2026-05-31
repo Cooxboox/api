@@ -4,8 +4,8 @@ namespace Cooxboox.Core;
 
 public readonly struct UserId
 {
-  private const char Separator = '|';
-  private const string RealmKind = "Realm";
+  private const char Separator = '|'; // TODO(fpion): refactor
+  private const string RealmKind = "Realm"; // TODO(fpion): refactor
   private const string UserKind = "User";
 
   public ActorId ActorId { get; }
