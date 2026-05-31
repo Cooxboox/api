@@ -7,8 +7,10 @@ namespace Cooxboox.Core.Kitchens;
 
 public class Kitchen : AggregateRoot
 {
+  public const string EntityKind = "Kitchen";
+
   public new KitchenId Id => new(base.Id);
-  public Guid EntityId => Id.ToGuid();
+  public Guid EntityId => Id.EntityId;
 
   public UserId OwnerId { get; private set; }
 

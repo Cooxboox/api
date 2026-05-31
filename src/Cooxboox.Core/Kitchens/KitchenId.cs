@@ -1,5 +1,4 @@
-﻿using Logitar;
-using Logitar.EventSourcing;
+﻿using Logitar.EventSourcing;
 
 namespace Cooxboox.Core.Kitchens;
 
@@ -8,22 +7,24 @@ public readonly struct KitchenId
   public StreamId StreamId { get; }
   public string Value => StreamId.Value;
 
+  public Guid EntityId { get; }
+
   public KitchenId(StreamId streamId)
   {
     StreamId = streamId;
+
+    EntityId = Entity.Parse(streamId.Value, Kitchen.EntityKind).Id;
   }
 
   public KitchenId(string value) : this(new StreamId(value))
   {
   }
 
-  public KitchenId(Guid value) : this($"Kitchen:{Convert.ToBase64String(value.ToByteArray()).ToUriSafeBase64()}")
+  public KitchenId(Guid value) : this(new Entity(Kitchen.EntityKind, value).ToString())
   {
   }
 
   public static KitchenId NewId() => new(Guid.NewGuid());
-
-  public Guid ToGuid() => default; // TODO(fpion): implement
 
   public static bool operator ==(KitchenId left, KitchenId right) => left.Equals(right);
   public static bool operator !=(KitchenId left, KitchenId right) => !left.Equals(right);
