@@ -5,7 +5,7 @@ namespace Cooxboox.Infrastructure;
 
 public class CooxbooxContext : DbContext
 {
-  internal const string? Schema = null;
+  internal const string Schema = "Cooxboox";
 
   public CooxbooxContext(DbContextOptions<CooxbooxContext> options) : base(options)
   {
