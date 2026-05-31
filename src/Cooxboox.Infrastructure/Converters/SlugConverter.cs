@@ -1,4 +1,4 @@
-﻿using Cooxboox.Core;
+﻿using Cooxboox.Core.Seo;
 
 namespace Cooxboox.Infrastructure.Converters;
 

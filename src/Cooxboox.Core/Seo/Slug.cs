@@ -1,7 +1,7 @@
 ﻿using Cooxboox.Core.Validation;
 using FluentValidation;
 
-namespace Cooxboox.Core;
+namespace Cooxboox.Core.Seo;
 
 public class Slug
 {

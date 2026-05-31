@@ -1,5 +1,6 @@
 ﻿using Cooxboox.Core.Kitchens.Events;
 using Cooxboox.Core.Localization;
+using Cooxboox.Core.Seo;
 using Logitar.EventSourcing;
 
 namespace Cooxboox.Core.Kitchens;
