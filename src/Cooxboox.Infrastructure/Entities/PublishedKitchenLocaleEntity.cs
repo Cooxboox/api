@@ -20,8 +20,6 @@ internal class PublishedKitchenLocaleEntity
   public string? PublishedBy { get; private set; }
   public DateTime PublishedOn { get; private set; }
 
-  public PublishedKitchenLocaleEntity? PublishedKitchenLocale { get; private set; }
-
   public PublishedKitchenLocaleEntity(KitchenLocaleEntity locale, KitchenLocalePublished @event)
   {
     KitchenLocale = locale;
