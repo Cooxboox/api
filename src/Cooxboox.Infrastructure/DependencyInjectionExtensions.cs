@@ -1,4 +1,5 @@
 ﻿using Cooxboox.Core.Identity;
+using Cooxboox.Infrastructure.Handlers;
 using Cooxboox.Infrastructure.Identity;
 using Cooxboox.Infrastructure.Settings;
 using Logitar.EventSourcing.EntityFrameworkCore.Relational;
@@ -13,12 +14,19 @@ public static class DependencyInjectionExtensions
   public static IServiceCollection AddCooxbooxInfrastructure(this IServiceCollection services)
   {
     return services
+      .AddEventHandlers()
       .AddIdentityGateways()
       .AddLogitarEventSourcingWithEntityFrameworkCoreRelational()
       .AddSingleton(serviceProvider => ClientAppSettings.Initialize(serviceProvider.GetRequiredService<IConfiguration>()))
       .AddSingleton(serviceProvider => TokensSettings.Initialize(serviceProvider.GetRequiredService<IConfiguration>()))
       .AddSingleton<IEventSerializer, EventSerializer>()
       .AddScoped<IEventBus, EventBus>();
+  }
+
+  private static IServiceCollection AddEventHandlers(this IServiceCollection services)
+  {
+    KitchenEvents.Register(services);
+    return services;
   }
 
   private static IServiceCollection AddIdentityGateways(this IServiceCollection services)

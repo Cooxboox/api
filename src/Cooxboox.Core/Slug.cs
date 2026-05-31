@@ -11,9 +11,11 @@ public class Slug
 
   public Slug(string value)
   {
-    Value = value.Trim();
+    Value = Normalize(value);
     new Validator().ValidateAndThrow(this);
   }
+
+  public static string Normalize(string value) => value.Trim().ToLowerInvariant();
 
   public static Slug? TryCreate(string? value) => string.IsNullOrWhiteSpace(value) ? null : new(value);
 
