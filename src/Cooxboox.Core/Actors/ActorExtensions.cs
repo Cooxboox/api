@@ -1,17 +1,49 @@
 ﻿using Krakenar.Contracts.Actors;
+using Krakenar.Contracts.Users;
 using Logitar.EventSourcing;
 
 namespace Cooxboox.Core.Actors;
 
 public static class ActorExtensions
 {
-  private const char Separator = '|'; // TODO(fpion): refactor
-  private const string RealmKind = "Realm"; // TODO(fpion): refactor
+  private const char Separator = '|';
+  private const string RealmKind = "Realm";
+
+  public static Actor GetActor(this ActorId actorId)
+  {
+    string[] values = actorId.Value.Split(Separator);
+    if (values.Length > 2)
+    {
+      throw new ArgumentException("The actor identifier is not valid.", nameof(actorId));
+    }
+
+    Entity? realm = values.Length == 2 ? Entity.Parse(values.First(), RealmKind) : null;
+
+    Entity entity = Entity.Parse(values.Last());
+    if (!Enum.TryParse(entity.Kind, out ActorType type) || !Enum.IsDefined(type))
+    {
+      throw new ArgumentException("The actor type is not valid.", nameof(actorId));
+    }
+
+    return new Actor
+    {
+      RealmId = realm?.Id,
+      Type = type,
+      Id = entity.Id
+    };
+  }
 
   public static ActorId GetActorId(this Actor actor)
   {
     Entity? realm = actor.RealmId.HasValue ? new Entity(RealmKind, actor.RealmId.Value) : null;
     Entity entity = new(actor.Type.ToString(), actor.Id);
     return new ActorId(realm is null ? entity.ToString() : string.Join(Separator, realm, entity));
+  }
+
+  public static UserId GetUserId(this User user)
+  {
+    Actor actor = new(user);
+    ActorId actorId = actor.GetActorId();
+    return new UserId(actorId);
   }
 }

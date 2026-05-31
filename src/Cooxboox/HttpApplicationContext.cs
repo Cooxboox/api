@@ -40,7 +40,7 @@ internal class HttpApplicationContext : IContext
     get
     {
       User user = Context.GetUser() ?? throw new InvalidOperationException("An authenticated user is required.");
-      return new UserId(user.Id, user.Realm?.Id);
+      return user.GetUserId();
     }
   }
 
