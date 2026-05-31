@@ -19,8 +19,10 @@ public class Kitchen : AggregateRoot
 
   public Slug? Slug { get; private set; }
 
-  // TODO(fpion): Localization /w Publishing
   private readonly Dictionary<Language, KitchenLocale> _locales = [];
+  public IReadOnlyDictionary<Language, KitchenLocale> Locales => _locales.AsReadOnly();
+  private readonly Dictionary<Language, ContentStatus> _statuses = [];
+  public IReadOnlyDictionary<Language, ContentStatus> Statuses => _statuses.AsReadOnly();
 
   public Kitchen() : base()
   {
@@ -46,11 +48,27 @@ public class Kitchen : AggregateRoot
     }
   }
 
-  public bool HasLocale(Language language) => _locales.ContainsKey(language);
-
+  public void Publish(ActorId? actorId = null)
+  {
+    foreach (Language language in _statuses.Keys)
+    {
+      Publish(language, actorId);
+    }
+  }
   public void Publish(Language language, ActorId? actorId = null)
   {
-    // TODO(fpion): implement
+    if (!_statuses.TryGetValue(language, out ContentStatus existingStatus))
+    {
+      throw new KitchenLocaleNotFoundException(this, language);
+    }
+    else if (existingStatus != ContentStatus.Latest)
+    {
+      Raise(new KitchenLocalePublished(language), actorId);
+    }
+  }
+  protected virtual void Handle(KitchenLocalePublished @event)
+  {
+    _statuses[@event.Language] = ContentStatus.Latest;
   }
 
   public void RemoveLocale(Language language, ActorId? actorId = null)
@@ -63,6 +81,7 @@ public class Kitchen : AggregateRoot
   protected virtual void Handle(KitchenLocaleRemoved @event)
   {
     _locales.Remove(@event.Language);
+    _statuses.Remove(@event.Language);
   }
 
   public void Rename(Name name, ActorId? actorId = null)
@@ -99,6 +118,15 @@ public class Kitchen : AggregateRoot
   protected virtual void Handle(KitchenLocaleChanged @event)
   {
     _locales[@event.Language] = @event.Locale;
+
+    if (!_statuses.TryGetValue(@event.Language, out ContentStatus existingStatus))
+    {
+      _statuses[@event.Language] = ContentStatus.Unpublished;
+    }
+    else if (existingStatus == ContentStatus.Latest)
+    {
+      _statuses[@event.Language] = ContentStatus.Published;
+    }
   }
 
   public void SetSlug(Slug? slug, ActorId? actorId = null)
@@ -113,9 +141,27 @@ public class Kitchen : AggregateRoot
     Slug = @event.Slug;
   }
 
+  public void Unpublish(ActorId? actorId = null)
+  {
+    foreach (Language language in _statuses.Keys)
+    {
+      Unpublish(language, actorId);
+    }
+  }
   public void Unpublish(Language language, ActorId? actorId = null)
   {
-    // TODO(fpion): implement
+    if (!_statuses.TryGetValue(language, out ContentStatus existingStatus))
+    {
+      throw new KitchenLocaleNotFoundException(this, language);
+    }
+    else if (existingStatus != ContentStatus.Unpublished)
+    {
+      Raise(new KitchenLocaleUnpublished(language), actorId);
+    }
+  }
+  protected virtual void Handle(KitchenLocaleUnpublished @event)
+  {
+    _statuses[@event.Language] = ContentStatus.Unpublished;
   }
 
   public override string ToString() => $"{Name} | {base.ToString()}";

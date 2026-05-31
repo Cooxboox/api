@@ -13,5 +13,6 @@ internal class CommandBus : Logitar.CQRS.CommandBus
   protected override bool ShouldRetry<TResult>(ICommand<TResult> command, Exception exception)
     => exception is not AuthenticationFlowNotAllowedException
     && exception is not IdentityException
+    && exception is not NotFoundException
     && exception is not ValidationException;
 }
