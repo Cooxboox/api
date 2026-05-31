@@ -1,9 +1,12 @@
-﻿using FluentValidation;
+﻿using Cooxboox.Core.Validation;
+using FluentValidation;
 
 namespace Cooxboox.Core;
 
 public class Name
 {
+  public const int MaximumLength = byte.MaxValue;
+
   public string Value { get; }
 
   public Name(string value)
@@ -18,7 +21,7 @@ public class Name
   {
     public Validator()
     {
-      RuleFor(x => x.Value).NotEmpty(); // TODO(fpion): implement
+      RuleFor(x => x.Value).Name();
     }
   }
 }

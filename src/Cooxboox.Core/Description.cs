@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Cooxboox.Core.Validation;
+using FluentValidation;
 
 namespace Cooxboox.Core;
 
@@ -18,7 +19,7 @@ public class Description
   {
     public Validator()
     {
-      RuleFor(x => x.Value).NotEmpty(); // TODO(fpion): implement
+      RuleFor(x => x.Value).Description();
     }
   }
 }

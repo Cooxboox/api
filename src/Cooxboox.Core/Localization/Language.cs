@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Cooxboox.Core.Validation;
+using FluentValidation;
 
 namespace Cooxboox.Core.Localization;
 
@@ -10,7 +11,7 @@ public class Language
   public static readonly Language French = new(CultureInfo.GetCultureInfo(Languages.French));
 
   public static IReadOnlyCollection<Language> All { get; } = new Language[] { English, French }.ToList().AsReadOnly();
-  public static Language Default => French;
+  public static readonly Language Default = new(CultureInfo.GetCultureInfo(Languages.Default));
 
   public CultureInfo Culture { get; }
   public string Code { get; }
@@ -19,7 +20,7 @@ public class Language
   public bool IsEnglish => English.Equals(this);
   public bool IsFrench => French.Equals(this);
 
-  private Language(string code)
+  public Language(string code)
   {
     Code = code.Trim().ToLowerInvariant();
     new Validator().ValidateAndThrow(this);
@@ -38,7 +39,7 @@ public class Language
   {
     public Validator()
     {
-      RuleFor(x => x.Code).NotEmpty(); // TODO(fpion): implement
+      RuleFor(x => x.Code).Language();
     }
   }
 }

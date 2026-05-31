@@ -1,9 +1,12 @@
-﻿using FluentValidation;
+﻿using Cooxboox.Core.Validation;
+using FluentValidation;
 
 namespace Cooxboox.Core;
 
 public class Slug
 {
+  public const int MaximumLength = byte.MaxValue;
+
   public string Value { get; }
 
   public Slug(string value)
@@ -18,7 +21,7 @@ public class Slug
   {
     public Validator()
     {
-      RuleFor(x => x.Value).NotEmpty(); // TODO(fpion): implement
+      RuleFor(x => x.Value).Slug();
     }
   }
 }
