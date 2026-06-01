@@ -1,0 +1,6 @@
+﻿namespace Cooxboox;
+
+public static class Traits
+{
+  public const string Category = "Category";
+}

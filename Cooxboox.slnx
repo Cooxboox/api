@@ -9,6 +9,10 @@
     <File Path="LICENSE" />
     <File Path="README.md" />
   </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="tests/Cooxboox.IntegrationTests/Cooxboox.IntegrationTests.csproj" Id="7afaa7f9-fb4b-484b-975d-940e0963b410" />
+    <Project Path="tests/Cooxboox.Tests/Cooxboox.Tests.csproj" Id="9f19b6cf-da7f-43f4-9c6b-f1c61d16ad2c" />
+  </Folder>
   <Folder Name="/Tools/">
     <Project Path="tools/Cooxboox.Tools.Seeding/Cooxboox.Tools.Seeding.csproj" Id="dd8865b5-99f6-432a-aaa7-e3ae60358d23" />
   </Folder>

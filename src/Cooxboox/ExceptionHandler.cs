@@ -1,4 +1,6 @@
-﻿using Cooxboox.Core.Identity;
+﻿using Cooxboox.Core;
+using Cooxboox.Core.Identity;
+using Cooxboox.Core.Permissions;
 using Cooxboox.Extensions;
 using Cooxboox.Settings;
 using FluentValidation;
@@ -34,6 +36,10 @@ internal class ExceptionHandler : IExceptionHandler
     {
       statusCode = StatusCodes.Status403Forbidden;
     }
+    else if (exception is NotFoundException)
+    {
+      statusCode = StatusCodes.Status404NotFound;
+    }
     else if (_errorSettings.ExposeDetail)
     {
       statusCode = StatusCodes.Status500InternalServerError;
@@ -59,7 +65,7 @@ internal class ExceptionHandler : IExceptionHandler
 
   private static bool IsBadRequest(Exception exception) => exception is IdentityException || exception is ValidationException;
 
-  private static bool IsForbidden(Exception exception) => exception is AuthenticationFlowNotAllowedException;
+  private static bool IsForbidden(Exception exception) => exception is AuthenticationFlowNotAllowedException || exception is PermissionDeniedException;
 
   private static Error ToError(Exception exception)
   {

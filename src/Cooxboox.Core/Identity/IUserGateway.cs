@@ -10,6 +10,7 @@ public interface IUserGateway
   Task<User> CompleteProfileAsync(Guid id, CompleteProfilePayload profile, PhonePayload? phone = null, CancellationToken cancellationToken = default);
   Task<User> CreateAsync(Email email, CancellationToken cancellationToken = default);
   Task<User?> FindAsync(Guid id, CancellationToken cancellationToken = default);
+  Task<IReadOnlyCollection<User>> FindAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken = default);
   Task<User?> FindAsync(string uniqueName, CancellationToken cancellationToken = default);
   Task<User> SignOutAsync(User user, CancellationToken cancellationToken = default);
   Task<User> UpdateEmailAsync(User user, Email email, CancellationToken cancellationToken = default);
