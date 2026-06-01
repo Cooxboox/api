@@ -34,7 +34,7 @@ services:
       ASPNETCORE_Environment: Development
       DATABASE_PROVIDER: EntityFrameworkCorePostgreSQL
       MONGOCONNSTR_Krakenar: mongodb://cooxboox:m74BTKMLakJGegjV@cooxboox_mongo:27017/
-      POSTGRESQLCONNSTR_Krakenar: User ID=postgres;Password=nvqZx7HP6KjzaLf8;Host=cooxboox_postgres;Port=5432;Database=cooxboox;
+      POSTGRESQLCONNSTR_Krakenar: User ID=postgres;Password=nvqZx7HP6KjzaLf8;Host=cooxboox_postgres;Port=5432;Database=cms;
     ports:
       - 8900:8080
 
@@ -51,6 +51,8 @@ services:
     restart: unless-stopped
     environment:
       ASPNETCORE_Environment: Development
+      KRAKENAR_BASE_URL: http://cooxboox_cms:8080
+      POSTGRESQLCONNSTR_Cooxboox: User ID=postgres;Password=nvqZx7HP6KjzaLf8;Host=cooxboox_postgres;Port=5432;Database=api;
     ports:
       - 8100:8080
 
