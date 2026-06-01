@@ -13,7 +13,7 @@ public static class ActorExtensions
     string[] values = actorId.Value.Split(Separator);
     if (values.Length > 2)
     {
-      throw new ArgumentException("The actor identifier is not valid.", nameof(actorId));
+      throw new ArgumentException($"The actor identifier '{actorId}' is not valid.", nameof(actorId));
     }
 
     Entity? realm = values.Length == 2 ? Entity.Parse(values.First(), RealmKind) : null;
@@ -21,7 +21,7 @@ public static class ActorExtensions
     Entity entity = Entity.Parse(values.Last());
     if (!Enum.TryParse(entity.Kind, out ActorType type) || !Enum.IsDefined(type))
     {
-      throw new ArgumentException("The actor type is not valid.", nameof(actorId));
+      throw new ArgumentException($"The actor type '{entity.Kind}' is not valid.", nameof(actorId));
     }
 
     return new Actor
