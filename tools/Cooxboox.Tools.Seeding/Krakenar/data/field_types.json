@@ -1,0 +1,69 @@
+﻿[
+  {
+    "Id": "3f3b3d5b-3f84-4c2e-9f98-b7d91885db5f",
+    "UniqueName": "Confidentiality",
+    "DisplayName": null,
+    "Description": null,
+    "Select": {
+      "IsMultiple": false,
+      "Options": [
+        {
+          "Text": "Private",
+          "Value": "Private"
+        },
+        {
+          "Text": "Unlisted",
+          "Value": "Unlisted"
+        },
+        {
+          "Text": "Public",
+          "Value": "Public"
+        }
+      ]
+    }
+  },
+  {
+    "Id": "7f427abe-a33f-4b75-b400-e61b486fe1f1",
+    "UniqueName": "HtmlContent",
+    "DisplayName": null,
+    "Description": null,
+    "RichText": {
+      "ContentType": "text/html",
+      "MinimumLength": null,
+      "MaximumLength": null
+    }
+  },
+  {
+    "Id": "df38c1a0-d21e-4668-889c-8a2803f56aff",
+    "UniqueName": "MetaDescription",
+    "DisplayName": null,
+    "Description": null,
+    "RichText": {
+      "ContentType": "text/plain",
+      "MinimumLength": null,
+      "MaximumLength": 160
+    }
+  },
+  {
+    "Id": "2cd98953-4fb9-4a88-a97e-d8e7420d626a",
+    "UniqueName": "Slug",
+    "DisplayName": null,
+    "Description": null,
+    "String": {
+      "MinimumLength": null,
+      "MaximumLength": 100,
+      "Pattern": "^[A-Za-z0-9]+(?:-[A-Za-z0-9]+)*$"
+    }
+  },
+  {
+    "Id": "cf8caa06-9b10-4eb0-aeaf-efd49216fe16",
+    "UniqueName": "UUID",
+    "DisplayName": null,
+    "Description": null,
+    "String": {
+      "MinimumLength": null,
+      "MaximumLength": 36,
+      "Pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$"
+    }
+  }
+]

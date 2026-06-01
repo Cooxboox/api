@@ -1,0 +1,71 @@
+﻿[
+  {
+    "Id": "11b16a18-5429-48df-9295-c29c04d336aa",
+    "IsInvariant": false,
+    "UniqueName": "Kitchen",
+    "DisplayName": null,
+    "Description": null,
+    "Fields": [
+      {
+        "Id": "19aa8867-57d0-410a-b83d-e548f4ea9dad",
+        "FieldType": "UUID",
+        "IsInvariant": true,
+        "IsRequired": true,
+        "IsIndexed": false,
+        "IsUnique": false,
+        "UniqueName": "Owner",
+        "DisplayName": null,
+        "Description": null,
+        "Placeholder": null
+      },
+      {
+        "Id": "4a2b1383-e9ff-4ed1-9b2c-40e202941daa",
+        "FieldType": "Confidentiality",
+        "IsInvariant": true,
+        "IsRequired": true,
+        "IsIndexed": false,
+        "IsUnique": false,
+        "UniqueName": "Confidentiality",
+        "DisplayName": null,
+        "Description": null,
+        "Placeholder": null
+      },
+      {
+        "Id": "53d351cc-9aff-46e5-a665-f9dbe3747fe3",
+        "FieldType": "Slug",
+        "IsInvariant": true,
+        "IsRequired": true,
+        "IsIndexed": false,
+        "IsUnique": true,
+        "UniqueName": "Slug",
+        "DisplayName": null,
+        "Description": null,
+        "Placeholder": null
+      },
+      {
+        "Id": "cdeed04a-5524-401d-99d8-197a5631daf9",
+        "FieldType": "MetaDescription",
+        "IsInvariant": false,
+        "IsRequired": false,
+        "IsIndexed": false,
+        "IsUnique": false,
+        "UniqueName": "MetaDescription",
+        "DisplayName": null,
+        "Description": null,
+        "Placeholder": null
+      },
+      {
+        "Id": "a5c89813-91f6-49e5-875a-9edb94b042aa",
+        "FieldType": "HtmlContent",
+        "IsInvariant": false,
+        "IsRequired": false,
+        "IsIndexed": false,
+        "IsUnique": false,
+        "UniqueName": "HtmlContent",
+        "DisplayName": null,
+        "Description": null,
+        "Placeholder": null
+      }
+    ]
+  }
+]

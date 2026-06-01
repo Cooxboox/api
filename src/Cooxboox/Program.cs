@@ -17,7 +17,8 @@ internal class Program
 
     startup.Configure(application);
 
-    ICommandBus commandBus = application.Services.GetRequiredService<ICommandBus>();
+    using IServiceScope scope = application.Services.CreateScope();
+    ICommandBus commandBus = scope.ServiceProvider.GetRequiredService<ICommandBus>();
     await commandBus.ExecuteAsync(new MigrateDatabaseCommand());
 
     application.Run();
