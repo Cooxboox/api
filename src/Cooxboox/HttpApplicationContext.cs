@@ -22,14 +22,14 @@ internal class HttpApplicationContext : IContext
       if (user is not null)
       {
         Actor actor = new(user);
-        return actor.GetActorId();
+        return actor.ToActorId();
       }
 
       ApiKey? apiKey = Context.GetApiKey();
       if (apiKey is not null)
       {
         Actor actor = new(apiKey);
-        return actor.GetActorId();
+        return actor.ToActorId();
       }
 
       return null;
@@ -40,7 +40,7 @@ internal class HttpApplicationContext : IContext
     get
     {
       User user = Context.GetUser() ?? throw new InvalidOperationException("An authenticated user is required.");
-      return user.GetUserId();
+      return new UserId(user);
     }
   }
 

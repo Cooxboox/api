@@ -1,4 +1,5 @@
 ﻿using Cooxboox.Core.Identity;
+using Cooxboox.Core.Permissions;
 using FluentValidation;
 using Logitar.CQRS;
 
@@ -14,5 +15,6 @@ internal class CommandBus : Logitar.CQRS.CommandBus
     => exception is not AuthenticationFlowNotAllowedException
     && exception is not IdentityException
     && exception is not NotFoundException
+    && exception is not PermissionDeniedException
     && exception is not ValidationException;
 }

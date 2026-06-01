@@ -1,0 +1,27 @@
+﻿using Logitar.CQRS;
+using Logitar.EventSourcing.EntityFrameworkCore.Relational;
+using Microsoft.EntityFrameworkCore;
+
+namespace Cooxboox.Infrastructure;
+
+public record MigrateDatabaseCommand : ICommand;
+
+internal class MigrateDatabaseCommandHandler : ICommandHandler<MigrateDatabaseCommand, Unit>
+{
+  private readonly EventContext _events;
+  private readonly CooxbooxContext _cooxboox;
+
+  public MigrateDatabaseCommandHandler(EventContext events, CooxbooxContext cooxboox)
+  {
+    _events = events;
+    _cooxboox = cooxboox;
+  }
+
+  public async Task<Unit> HandleAsync(MigrateDatabaseCommand _, CancellationToken cancellationToken)
+  {
+    await _events.Database.MigrateAsync(cancellationToken);
+    await _cooxboox.Database.MigrateAsync(cancellationToken);
+
+    return Unit.Value;
+  }
+}

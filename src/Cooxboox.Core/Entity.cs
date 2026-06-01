@@ -38,12 +38,25 @@ public class Entity
     string[] values = value.Split(Separator);
     if (values.Length > 2)
     {
-      throw new ArgumentException("The entity is not valid.", nameof(value));
+      throw new ArgumentException($"The value '{value}' is not a valid entity.", nameof(value));
     }
 
-    KitchenId? kitchenId = values.Length == 2 ? new(Parse(values.First(), Kitchen.EntityKind).Id) : null;
-    Entity entity = Parse(values.Last(), expectedKind);
-    return new Entity(entity.Kind, entity.Id, kitchenId);
+    KitchenId? kitchenId = values.Length == 2 ? new(values.First()) : null;
+
+    string[] entity = values.Last().Split(EntitySeparator);
+    if (entity.Length != 2)
+    {
+      throw new ArgumentException($"The entity '{values.Last()}' is not valid.", nameof(value));
+    }
+
+    string kind = entity.First();
+    if (expectedKind is not null && expectedKind != kind)
+    {
+      throw new ArgumentException($"The entity kind '{expectedKind}' was expected, but '{kind}' was received.", nameof(value));
+    }
+    Guid id = new(Convert.FromBase64String(entity.Last().FromUriSafeBase64()));
+
+    return new Entity(kind, id, kitchenId);
   }
 
   public override bool Equals(object? obj) => obj is Entity entity && entity._value == _value;

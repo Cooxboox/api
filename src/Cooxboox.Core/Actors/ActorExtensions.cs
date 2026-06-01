@@ -1,5 +1,4 @@
 ﻿using Krakenar.Contracts.Actors;
-using Krakenar.Contracts.Users;
 using Logitar.EventSourcing;
 
 namespace Cooxboox.Core.Actors;
@@ -9,7 +8,7 @@ public static class ActorExtensions
   private const char Separator = '|';
   private const string RealmKind = "Realm";
 
-  public static Actor GetActor(this ActorId actorId)
+  public static Actor ToActor(this ActorId actorId)
   {
     string[] values = actorId.Value.Split(Separator);
     if (values.Length > 2)
@@ -33,17 +32,10 @@ public static class ActorExtensions
     };
   }
 
-  public static ActorId GetActorId(this Actor actor)
+  public static ActorId ToActorId(this Actor actor)
   {
     Entity? realm = actor.RealmId.HasValue ? new Entity(RealmKind, actor.RealmId.Value) : null;
     Entity entity = new(actor.Type.ToString(), actor.Id);
     return new ActorId(realm is null ? entity.ToString() : string.Join(Separator, realm, entity));
-  }
-
-  public static UserId GetUserId(this User user)
-  {
-    Actor actor = new(user);
-    ActorId actorId = actor.GetActorId();
-    return new UserId(actorId);
   }
 }
