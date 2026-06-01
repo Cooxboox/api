@@ -10,6 +10,7 @@ public interface IKitchenService
 {
   Task<CreateOrReplaceKitchenResult> CreateOrReplaceAsync(CreateOrReplaceKitchenPayload payload, Guid? id = null, CancellationToken cancellationToken = default);
   Task<KitchenModel?> ReadAsync(Guid id, CancellationToken cancellationToken = default);
+  Task<KitchenModel?> UpdateAsync(Guid id, UpdateKitchenPayload payload, CancellationToken cancellationToken = default);
 }
 
 internal class KitchenService : IKitchenService
@@ -18,6 +19,7 @@ internal class KitchenService : IKitchenService
   {
     services.AddTransient<IKitchenService, KitchenService>();
     services.AddTransient<ICommandHandler<CreateOrReplaceKitchenCommand, CreateOrReplaceKitchenResult>, CreateOrReplaceKitchenCommandHandler>();
+    services.AddTransient<ICommandHandler<UpdateKitchenCommand, KitchenModel?>, UpdateKitchenCommandHandler>();
     services.AddTransient<IQueryHandler<ReadKitchenQuery, KitchenModel?>, ReadKitchenQueryHandler>();
   }
 
@@ -40,5 +42,11 @@ internal class KitchenService : IKitchenService
   {
     ReadKitchenQuery query = new(id);
     return await _queryBus.ExecuteAsync(query, cancellationToken);
+  }
+
+  public async Task<KitchenModel?> UpdateAsync(Guid id, UpdateKitchenPayload payload, CancellationToken cancellationToken)
+  {
+    UpdateKitchenCommand command = new(id, payload);
+    return await _commandBus.ExecuteAsync(command, cancellationToken);
   }
 }
