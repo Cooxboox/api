@@ -5,6 +5,7 @@ using Cooxboox.Core.Kitchens;
 using Cooxboox.Core.Kitchens.Models;
 using Cooxboox.Core.Permissions;
 using Krakenar.Contracts.Actors;
+using Krakenar.Contracts.Search;
 using Krakenar.Contracts.Users;
 using Logitar;
 using Microsoft.Extensions.DependencyInjection;
@@ -95,6 +96,17 @@ public class KitchenIntegrationTests : IntegrationTests
     Assert.Equal(_kitchen.Slug?.Value, kitchen.Slug);
   }
 
+  [Fact(DisplayName = "It should return empty search results.")]
+  public async Task Given_NotMatching_When_Search_Then_EmptyResults()
+  {
+    Context.User = new UserBuilder().Build();
+
+    SearchKitchensPayload payload = new();
+    SearchResults<KitchenModel> results = await _kitchenService.SearchAsync(payload);
+    Assert.Equal(0, results.Total);
+    Assert.Empty(results.Items);
+  }
+
   [Fact(DisplayName = "It should return null when the kitchen does not exist.")]
   public async Task Given_NotExist_When_Update_Then_NullReturned()
   {
@@ -108,6 +120,25 @@ public class KitchenIntegrationTests : IntegrationTests
     Context.User = new UserBuilder().Build();
 
     Assert.Null(await _kitchenService.ReadAsync(_kitchen.EntityId));
+  }
+
+  [Fact(DisplayName = "It should return the correct search results.")]
+  public async Task Given_Matching_When_Search_Then_CorrectResults()
+  {
+    SearchKitchensPayload payload = new()
+    {
+      Confidentiality = _kitchen.Confidentiality,
+      Skip = 0,
+      Limit = 1
+    };
+    payload.Ids.Add(_kitchen.EntityId);
+    payload.Search.Terms.Add(new SearchTerm($"%{_kitchen.Name.Value[1..^1]}%"));
+
+    SearchResults<KitchenModel> results = await _kitchenService.SearchAsync(payload);
+    Assert.Equal(1, results.Total);
+
+    KitchenModel kitchen = Assert.Single(results.Items);
+    Assert.Equal(_kitchen.EntityId, kitchen.Id);
   }
 
   [Fact(DisplayName = "It should throw PermissionDeniedException when creating a new kitchen.")]

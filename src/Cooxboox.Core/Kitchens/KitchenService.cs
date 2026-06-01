@@ -1,6 +1,7 @@
 ﻿using Cooxboox.Core.Kitchens.Commands;
 using Cooxboox.Core.Kitchens.Models;
 using Cooxboox.Core.Kitchens.Queries;
+using Krakenar.Contracts.Search;
 using Logitar.CQRS;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,6 +11,7 @@ public interface IKitchenService
 {
   Task<CreateOrReplaceKitchenResult> CreateOrReplaceAsync(CreateOrReplaceKitchenPayload payload, Guid? id = null, CancellationToken cancellationToken = default);
   Task<KitchenModel?> ReadAsync(Guid id, CancellationToken cancellationToken = default);
+  Task<SearchResults<KitchenModel>> SearchAsync(SearchKitchensPayload payload, CancellationToken cancellationToken = default);
   Task<KitchenModel?> UpdateAsync(Guid id, UpdateKitchenPayload payload, CancellationToken cancellationToken = default);
 }
 
@@ -21,6 +23,7 @@ internal class KitchenService : IKitchenService
     services.AddTransient<ICommandHandler<CreateOrReplaceKitchenCommand, CreateOrReplaceKitchenResult>, CreateOrReplaceKitchenCommandHandler>();
     services.AddTransient<ICommandHandler<UpdateKitchenCommand, KitchenModel?>, UpdateKitchenCommandHandler>();
     services.AddTransient<IQueryHandler<ReadKitchenQuery, KitchenModel?>, ReadKitchenQueryHandler>();
+    services.AddTransient<IQueryHandler<SearchKitchensQuery, SearchResults<KitchenModel>>, SearchKitchensQueryHandler>();
   }
 
   private readonly ICommandBus _commandBus;
@@ -41,6 +44,12 @@ internal class KitchenService : IKitchenService
   public async Task<KitchenModel?> ReadAsync(Guid id, CancellationToken cancellationToken)
   {
     ReadKitchenQuery query = new(id);
+    return await _queryBus.ExecuteAsync(query, cancellationToken);
+  }
+
+  public async Task<SearchResults<KitchenModel>> SearchAsync(SearchKitchensPayload payload, CancellationToken cancellationToken)
+  {
+    SearchKitchensQuery query = new(payload);
     return await _queryBus.ExecuteAsync(query, cancellationToken);
   }
 
