@@ -50,6 +50,11 @@ internal class ActorService : IActorService
           actors[actorId] = actor;
         }
       }
+
+      foreach (Actor actor in actors.Values)
+      {
+        _cacheService.SetActor(actor);
+      }
     }
 
     return actors.AsReadOnly();

@@ -41,10 +41,7 @@ public class KitchenIntegrationTests : IntegrationTests
     Actor actor = new(user);
     Context.User = user;
 
-    CreateOrReplaceKitchenPayload payload = new()
-    {
-      Name = $"  {Faker.Company.CompanyName()}  "
-    };
+    CreateOrReplaceKitchenPayload payload = new($"  {Faker.Company.CompanyName()}  ");
     Guid? id = withId ? Guid.NewGuid() : null;
 
     CreateOrReplaceKitchenResult result = await _kitchenService.CreateOrReplaceAsync(payload, id);
@@ -78,10 +75,7 @@ public class KitchenIntegrationTests : IntegrationTests
   [Fact(DisplayName = "It should replace an existing kitchen.")]
   public async Task Given_Exists_When_CreateOrReplace_Then_Replaced()
   {
-    CreateOrReplaceKitchenPayload payload = new()
-    {
-      Name = $"  {Faker.Company.CompanyName()}  "
-    };
+    CreateOrReplaceKitchenPayload payload = new($"  {Faker.Company.CompanyName()}  ");
 
     CreateOrReplaceKitchenResult result = await _kitchenService.CreateOrReplaceAsync(payload, _kitchen.EntityId);
     Assert.False(result.Created);
@@ -109,10 +103,7 @@ public class KitchenIntegrationTests : IntegrationTests
   [Fact(DisplayName = "It should throw PermissionDeniedException when creating a new kitchen.")]
   public async Task Given_NotExist_When_CreateOrReplace_Then_PermissionDeniedException()
   {
-    CreateOrReplaceKitchenPayload payload = new()
-    {
-      Name = Faker.Company.CompanyName()
-    };
+    CreateOrReplaceKitchenPayload payload = new(Faker.Company.CompanyName());
 
     var exception = await Assert.ThrowsAsync<PermissionDeniedException>(async () => await _kitchenService.CreateOrReplaceAsync(payload));
     Assert.Equal(Actor.ToActorId().Value, exception.ActorId);
@@ -125,10 +116,7 @@ public class KitchenIntegrationTests : IntegrationTests
   {
     Context.User = new UserBuilder().Build();
 
-    CreateOrReplaceKitchenPayload payload = new()
-    {
-      Name = Faker.Company.CompanyName()
-    };
+    CreateOrReplaceKitchenPayload payload = new(Faker.Company.CompanyName());
 
     var exception = await Assert.ThrowsAsync<PermissionDeniedException>(async () => await _kitchenService.CreateOrReplaceAsync(payload, _kitchen.EntityId));
     Assert.Equal(Actor.ToActorId().Value, exception.ActorId);
