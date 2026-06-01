@@ -59,6 +59,11 @@ internal class KitchenQuerier : IKitchenQuerier
       .ApplyIdFilter(Db.Kitchens.UniqueId, payload.Ids);
     _sqlHelper.ApplyTextSearch(builder, payload.Search, Db.Kitchens.Name, Db.Kitchens.Slug);
 
+    if (payload.Confidentiality.HasValue)
+    {
+      builder.Where(Db.Kitchens.Confidentiality, Operators.IsEqualTo(payload.Confidentiality.Value.ToString()));
+    }
+
     IQueryable<KitchenEntity> query = _kitchens.FromQuery(builder).AsNoTracking();
 
     long total = await query.LongCountAsync(cancellationToken);
