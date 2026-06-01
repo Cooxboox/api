@@ -38,6 +38,13 @@ public class KitchenController : ControllerBase
     return ToActionResult(result);
   }
 
+  [HttpPatch("{id}")]
+  public async Task<ActionResult<KitchenModel>> UpdateAsync(Guid id, [FromBody] UpdateKitchenPayload payload, CancellationToken cancellationToken)
+  {
+    KitchenModel? kitchen = await _kitchenService.UpdateAsync(id, payload, cancellationToken);
+    return kitchen is null ? NotFound() : Ok(kitchen);
+  }
+
   private ActionResult<KitchenModel> ToActionResult(CreateOrReplaceKitchenResult result)
   {
     KitchenModel kitchen = result.Kitchen;
