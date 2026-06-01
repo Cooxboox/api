@@ -19,6 +19,7 @@ public static class DependencyInjectionExtensions
 
     return services
       .AddDbContext<CooxbooxContext>(options => options.UseNpgsql(connectionString, options => options.MigrationsAssembly("Cooxboox.PostgreSQL")))
-      .AddLogitarEventSourcingWithEntityFrameworkCorePostgreSQL(connectionString);
+      .AddLogitarEventSourcingWithEntityFrameworkCorePostgreSQL(connectionString)
+      .AddSingleton<ISqlHelper, PostgresHelper>();
   }
 }

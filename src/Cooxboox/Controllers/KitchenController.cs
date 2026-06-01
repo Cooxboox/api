@@ -1,5 +1,7 @@
 ﻿using Cooxboox.Core.Kitchens;
 using Cooxboox.Core.Kitchens.Models;
+using Cooxboox.Models.Kitchen;
+using Krakenar.Contracts.Search;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,6 +38,14 @@ public class KitchenController : ControllerBase
   {
     CreateOrReplaceKitchenResult result = await _kitchenService.CreateOrReplaceAsync(payload, id, cancellationToken);
     return ToActionResult(result);
+  }
+
+  [HttpGet]
+  public async Task<ActionResult<SearchResults<KitchenModel>>> SearchAsync([FromQuery] SearchKitchensParameters parameters, CancellationToken cancellationToken)
+  {
+    SearchKitchensPayload payload = parameters.ToPayload();
+    SearchResults<KitchenModel> kitchens = await _kitchenService.SearchAsync(payload, cancellationToken);
+    return Ok(kitchens);
   }
 
   [HttpPatch("{id}")]
