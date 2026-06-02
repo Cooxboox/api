@@ -1,5 +1,4 @@
-﻿using Cooxboox.Core;
-using Cooxboox.Core.Identity;
+﻿using Cooxboox.Core.Identity;
 using Cooxboox.Core.Permissions;
 using Cooxboox.Extensions;
 using Cooxboox.Settings;
@@ -35,10 +34,6 @@ internal class ExceptionHandler : IExceptionHandler
     else if (IsForbidden(exception))
     {
       statusCode = StatusCodes.Status403Forbidden;
-    }
-    else if (exception is NotFoundException)
-    {
-      statusCode = StatusCodes.Status404NotFound;
     }
     else if (_errorSettings.ExposeDetail)
     {

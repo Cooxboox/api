@@ -81,7 +81,7 @@ public abstract class IntegrationTests : IAsyncLifetime
   {
     CooxbooxContext cooxboox = ServiceProvider.GetRequiredService<CooxbooxContext>();
     StringBuilder query = new();
-    TableId[] tables = [Infrastructure.Db.Kitchens.Table];
+    TableId[] tables = [];
     foreach (TableId table in tables)
     {
       query.Append(new PostgresDeleteBuilder(table).Build().Text).Append(';').AppendLine();
