@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Cooxboox.Core.Kitchens;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Cooxboox.Core.Permissions;
 
@@ -16,10 +17,12 @@ internal class PermissionService : IPermissionService
   }
 
   private readonly IContext _context;
+  private readonly IKitchenQuerier _kitchenQuerier;
 
-  public PermissionService(IContext context)
+  public PermissionService(IContext context, IKitchenQuerier kitchenQuerier)
   {
     _context = context;
+    _kitchenQuerier = kitchenQuerier;
   }
 
   public async Task CheckAsync(string action, CancellationToken cancellationToken)
@@ -35,6 +38,11 @@ internal class PermissionService : IPermissionService
     {
       isAllowed = await IsAllowedAsync(action, cancellationToken);
     }
+    else if (resource is Kitchen kitchen)
+    {
+      entity = kitchen.Entity;
+      isAllowed = IsAllowed(action, kitchen);
+    }
 
     if (!isAllowed)
     {
@@ -46,7 +54,18 @@ internal class PermissionService : IPermissionService
   {
     if (action == Actions.CreateKitchen)
     {
-      return true; // TODO(fpion): implement
+      int count = await _kitchenQuerier.CountAsync(cancellationToken);
+      return count < 1;
+    }
+
+    return false;
+  }
+
+  private bool IsAllowed(string action, Kitchen kitchen)
+  {
+    if (action == Actions.Update)
+    {
+      return kitchen.OwnerId == _context.UserId;
     }
 
     return false;
