@@ -34,6 +34,16 @@
     }
   },
   {
+    "Id": "c41d470d-3d73-4aeb-83dc-7ff33623726f",
+    "UniqueName": "Kitchen",
+    "DisplayName": null,
+    "Description": null,
+    "RelatedContent": {
+      "ContentTypeId": "11b16a18-5429-48df-9295-c29c04d336aa",
+      "IsMultiple": false
+    }
+  },
+  {
     "Id": "df38c1a0-d21e-4668-889c-8a2803f56aff",
     "UniqueName": "MetaDescription",
     "DisplayName": null,

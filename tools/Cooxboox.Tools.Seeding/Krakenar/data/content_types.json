@@ -67,5 +67,62 @@
         "Placeholder": null
       }
     ]
+  },
+  {
+    "Id": "f572f54a-5a49-4248-939d-015d3e53dcc0",
+    "IsInvariant": false,
+    "UniqueName": "IngredientType",
+    "DisplayName": null,
+    "Description": null,
+    "Fields": [
+      {
+        "Id": "eb4de3e6-2a2e-4d4f-84f3-78feeffd9e0a",
+        "FieldType": "Kitchen",
+        "IsInvariant": true,
+        "IsRequired": true,
+        "IsIndexed": false,
+        "IsUnique": false,
+        "UniqueName": "Kitchen",
+        "DisplayName": null,
+        "Description": null,
+        "Placeholder": null
+      },
+      {
+        "Id": "7a922eaa-0048-46bb-b1be-058ce8ccb07a",
+        "FieldType": "Slug",
+        "IsInvariant": false,
+        "IsRequired": false,
+        "IsIndexed": false,
+        "IsUnique": false,
+        "UniqueName": "Slug",
+        "DisplayName": null,
+        "Description": null,
+        "Placeholder": null
+      },
+      {
+        "Id": "fd779de1-6eeb-48ad-811f-a34815a869ab",
+        "FieldType": "MetaDescription",
+        "IsInvariant": false,
+        "IsRequired": false,
+        "IsIndexed": false,
+        "IsUnique": false,
+        "UniqueName": "MetaDescription",
+        "DisplayName": null,
+        "Description": null,
+        "Placeholder": null
+      },
+      {
+        "Id": "d2193fec-3087-408c-a068-4c169f38a06f",
+        "FieldType": "HtmlContent",
+        "IsInvariant": false,
+        "IsRequired": false,
+        "IsIndexed": false,
+        "IsUnique": false,
+        "UniqueName": "HtmlContent",
+        "DisplayName": null,
+        "Description": null,
+        "Placeholder": null
+      }
+    ]
   }
 ]
