@@ -1,5 +1,6 @@
 ﻿using Cooxboox.Core.Identity;
 using Cooxboox.Core.Kitchens.Events;
+using Cooxboox.Core.Seo;
 using Logitar.EventSourcing;
 
 namespace Cooxboox.Core.Kitchens;
@@ -18,6 +19,8 @@ public class Kitchen : AggregateRoot
 
   private Name? _name = null;
   public Name Name => _name ?? throw new InvalidOperationException("The name was not initialized.");
+
+  public Slug? Slug { get; private set; }
 
   public Kitchen() : base()
   {

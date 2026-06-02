@@ -95,7 +95,7 @@ internal static class ValidationExtensions
 
   public static IRuleBuilderOptions<T, string> Slug<T>(this IRuleBuilder<T, string> ruleBuilder)
   {
-    return ruleBuilder.NotEmpty().MaximumLength(100).SetValidator(new SlugValidator<T>());
+    return ruleBuilder.NotEmpty().MaximumLength(Seo.Slug.MaximumLength).SetValidator(new SlugValidator<T>());
   }
 
   public static IRuleBuilderOptions<T, string> TimeZone<T>(this IRuleBuilder<T, string> ruleBuilder)
