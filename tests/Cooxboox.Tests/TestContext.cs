@@ -20,17 +20,6 @@ public class TestContext : IContext
   public User? User { get; set; }
 
   public ActorId? ActorId => User is null ? null : new Actor(User).ToActorId();
-  public UserId UserId
-  {
-    get
-    {
-      if (User is null)
-      {
-        throw new InvalidOperationException("An authenticated user is required.");
-      }
-      return new UserId(User);
-    }
-  }
 
   public IReadOnlyCollection<CustomAttribute> GetSessionCustomAttributes()
   {
