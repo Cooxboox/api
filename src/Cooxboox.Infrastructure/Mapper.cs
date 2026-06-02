@@ -1,4 +1,5 @@
-﻿using Cooxboox.Infrastructure.Entities;
+﻿using Cooxboox.Core.Kitchens.Models;
+using Cooxboox.Infrastructure.Entities;
 using Krakenar.Contracts;
 using Krakenar.Contracts.Actors;
 using Logitar;
@@ -21,6 +22,22 @@ internal class Mapper
     {
       _actors[actor.Key] = actor.Value;
     }
+  }
+
+  public KitchenModel ToKitchen(KitchenEntity source)
+  {
+    KitchenModel destination = new()
+    {
+      Id = source.UniqueId,
+      Owner = FindActor(source.OwnerId),
+      Confidentiality = source.Confidentiality,
+      Name = source.Name,
+      Slug = source.Slug
+    };
+
+    MapAggregate(source, destination);
+
+    return destination;
   }
 
   private void MapAggregate(AggregateEntity source, Aggregate destination)

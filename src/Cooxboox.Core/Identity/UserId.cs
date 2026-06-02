@@ -1,0 +1,60 @@
+﻿using Cooxboox.Core.Actors;
+using Krakenar.Contracts.Actors;
+using Krakenar.Contracts.Users;
+using Logitar.EventSourcing;
+
+namespace Cooxboox.Core.Identity;
+
+public readonly struct UserId
+{
+  public ActorId ActorId { get; }
+  public string Value => ActorId.Value;
+
+  public Guid? RealmId { get; }
+  public Guid EntityId { get; }
+
+  public UserId(ActorId actorId)
+  {
+    Actor actor = actorId.ToActor();
+    if (actor.Type != ActorType.User)
+    {
+      throw new ArgumentException("The actor must be a User.", nameof(actorId));
+    }
+
+    ActorId = actorId;
+
+    RealmId = actor.RealmId;
+    EntityId = actor.Id;
+  }
+
+  public UserId(string value) : this(new ActorId(value))
+  {
+  }
+
+  public UserId(Guid entityId, Guid? realmId = null)
+  {
+    Actor actor = new()
+    {
+      RealmId = realmId,
+      Type = ActorType.User,
+      Id = entityId
+    };
+    ActorId = actor.ToActorId();
+
+    RealmId = realmId;
+    EntityId = entityId;
+  }
+
+  public UserId(User user) : this(user.Id, user.Realm?.Id)
+  {
+  }
+
+  public static UserId NewId(Guid? realmId = null) => new(Guid.NewGuid(), realmId);
+
+  public static bool operator ==(UserId left, UserId right) => left.Equals(right);
+  public static bool operator !=(UserId left, UserId right) => !left.Equals(right);
+
+  public override bool Equals([NotNullWhen(true)] object? obj) => obj is UserId id && id.Value == Value;
+  public override int GetHashCode() => Value.GetHashCode();
+  public override string ToString() => Value;
+}
