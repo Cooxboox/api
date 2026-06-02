@@ -13,7 +13,5 @@ public class KitchenModel : Aggregate
 
   public string? Slug { get; set; }
 
-  // TODO(fpion): Locales
-
   public override string ToString() => $"{Name} | {base.ToString()}";
 }
