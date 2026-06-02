@@ -1,5 +1,6 @@
 ﻿using Cooxboox.Core;
 using Cooxboox.Core.Actors;
+using Cooxboox.Core.Identity;
 using Cooxboox.Extensions;
 using Krakenar.Contracts;
 using Krakenar.Contracts.Actors;

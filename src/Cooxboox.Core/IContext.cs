@@ -1,4 +1,5 @@
-﻿using Krakenar.Contracts;
+﻿using Cooxboox.Core.Identity;
+using Krakenar.Contracts;
 using Logitar.EventSourcing;
 
 namespace Cooxboox.Core;

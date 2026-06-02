@@ -3,7 +3,7 @@ using Krakenar.Contracts.Actors;
 using Krakenar.Contracts.Users;
 using Logitar.EventSourcing;
 
-namespace Cooxboox.Core;
+namespace Cooxboox.Core.Identity;
 
 public readonly struct UserId
 {
@@ -48,6 +48,8 @@ public readonly struct UserId
   public UserId(User user) : this(user.Id, user.Realm?.Id)
   {
   }
+
+  public static UserId NewId(Guid? realmId = null) => new(Guid.NewGuid(), realmId);
 
   public static bool operator ==(UserId left, UserId right) => left.Equals(right);
   public static bool operator !=(UserId left, UserId right) => !left.Equals(right);

@@ -1,4 +1,5 @@
-﻿using Logitar.EventSourcing;
+﻿using Cooxboox.Core.Identity;
+using Logitar.EventSourcing;
 
 namespace Cooxboox.Core.Kitchens.Events;
 

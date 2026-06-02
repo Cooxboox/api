@@ -1,6 +1,7 @@
 ﻿using Bogus;
 using Cooxboox.Core;
 using Cooxboox.Core.Actors;
+using Cooxboox.Core.Identity;
 using Krakenar.Contracts;
 using Krakenar.Contracts.Actors;
 using Krakenar.Contracts.Users;
