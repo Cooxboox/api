@@ -1,10 +1,8 @@
 ﻿using Cooxboox.Core.Actors;
 using Cooxboox.Core.Caching;
-using Cooxboox.Core.Contents;
 using Cooxboox.Core.Identity;
 using Cooxboox.Infrastructure.Actors;
 using Cooxboox.Infrastructure.Caching;
-using Cooxboox.Infrastructure.Contents;
 using Cooxboox.Infrastructure.Identity;
 using Cooxboox.Infrastructure.Settings;
 using Logitar.CQRS;
@@ -20,7 +18,6 @@ public static class DependencyInjectionExtensions
   public static IServiceCollection AddCooxbooxInfrastructure(this IServiceCollection services)
   {
     return services
-      .AddContentGateways()
       .AddEventHandlers()
       .AddIdentityGateways()
       .AddLogitarEventSourcingWithEntityFrameworkCoreRelational()
@@ -35,11 +32,6 @@ public static class DependencyInjectionExtensions
       .AddScoped<IActorService, ActorService>()
       .AddScoped<IEventBus, EventBus>()
       .AddTransient<ICommandHandler<MigrateDatabaseCommand, Unit>, MigrateDatabaseCommandHandler>();
-  }
-
-  private static IServiceCollection AddContentGateways(this IServiceCollection services)
-  {
-    return services.AddSingleton<IContentGateway, ContentGateway>();
   }
 
   private static IServiceCollection AddEventHandlers(this IServiceCollection services)
