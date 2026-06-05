@@ -16,7 +16,10 @@ public static class DependencyInjectionExtensions
     {
       throw new InvalidOperationException("The PostgreSQL connection string was not found.");
     }
-
+    return services.AddCooxbooxPostgreSQL(connectionString);
+  }
+  public static IServiceCollection AddCooxbooxPostgreSQL(this IServiceCollection services, string connectionString)
+  {
     return services
       .AddDbContext<CooxbooxContext>(options => options.UseNpgsql(connectionString, options => options.MigrationsAssembly("Cooxboox.PostgreSQL")))
       .AddLogitarEventSourcingWithEntityFrameworkCorePostgreSQL(connectionString)

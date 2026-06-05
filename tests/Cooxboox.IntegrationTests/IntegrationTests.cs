@@ -7,6 +7,7 @@ using Krakenar.Client.Users;
 using Krakenar.Contracts.Actors;
 using Krakenar.Contracts.Search;
 using Krakenar.Contracts.Users;
+using Logitar;
 using Logitar.CQRS;
 using Logitar.Data;
 using Logitar.Data.PostgreSQL;
@@ -59,7 +60,10 @@ public abstract class IntegrationTests : IAsyncLifetime
 
     services.AddCooxbooxCore();
     services.AddCooxbooxInfrastructure();
-    services.AddCooxbooxPostgreSQL(Configuration);
+
+    string connectionString = (EnvironmentHelper.TryGetString("POSTGRESQLCONNSTR_Cooxboox") ?? Configuration.GetConnectionString("PostgreSQL") ?? string.Empty)
+      .Replace("{Database}", GetType().Name);
+    services.AddCooxbooxPostgreSQL(connectionString);
 
     services.AddSingleton(UserClient.Object);
 
@@ -81,7 +85,7 @@ public abstract class IntegrationTests : IAsyncLifetime
   {
     CooxbooxContext cooxboox = ServiceProvider.GetRequiredService<CooxbooxContext>();
     StringBuilder query = new();
-    TableId[] tables = [];
+    TableId[] tables = [Infrastructure.Db.Kitchens.Table];
     foreach (TableId table in tables)
     {
       query.Append(new PostgresDeleteBuilder(table).Build().Text).Append(';').AppendLine();
