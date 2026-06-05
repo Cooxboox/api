@@ -2,6 +2,11 @@
 
 namespace Cooxboox.Core;
 
+public interface IEntityProvider
+{
+  Entity Entity { get; }
+}
+
 public class Entity
 {
   private const char Separator = ':';
