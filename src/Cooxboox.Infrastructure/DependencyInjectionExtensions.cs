@@ -1,9 +1,13 @@
 ﻿using Cooxboox.Core.Actors;
 using Cooxboox.Core.Caching;
 using Cooxboox.Core.Identity;
+using Cooxboox.Core.Kitchens;
 using Cooxboox.Infrastructure.Actors;
 using Cooxboox.Infrastructure.Caching;
+using Cooxboox.Infrastructure.Handlers;
 using Cooxboox.Infrastructure.Identity;
+using Cooxboox.Infrastructure.Queriers;
+using Cooxboox.Infrastructure.Repositories;
 using Cooxboox.Infrastructure.Settings;
 using Logitar.CQRS;
 using Logitar.EventSourcing.EntityFrameworkCore.Relational;
@@ -36,6 +40,7 @@ public static class DependencyInjectionExtensions
 
   private static IServiceCollection AddEventHandlers(this IServiceCollection services)
   {
+    KitchenEvents.Register(services);
     return services;
   }
 
@@ -53,11 +58,13 @@ public static class DependencyInjectionExtensions
 
   private static IServiceCollection AddQueriers(this IServiceCollection services)
   {
-    return services;
+    return services
+      .AddScoped<IKitchenQuerier, KitchenQuerier>();
   }
 
   private static IServiceCollection AddRepositories(this IServiceCollection services)
   {
-    return services;
+    return services
+      .AddScoped<IKitchenRepository, KitchenRepository>();
   }
 }
