@@ -1,6 +1,7 @@
 ﻿using Cooxboox.Core;
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.Identity;
+using Cooxboox.Core.Kitchens;
 using Cooxboox.Extensions;
 using Krakenar.Contracts;
 using Krakenar.Contracts.Actors;
@@ -44,6 +45,9 @@ internal class HttpApplicationContext : IContext
       return new UserId(user);
     }
   }
+
+  public KitchenId KitchenId => throw new NotImplementedException(); // TODO(fpion): implement
+  public bool IsKitchenOwner => throw new NotImplementedException(); // TODO(fpion): implement
 
   public HttpApplicationContext(IHttpContextAccessor httpContextAccessor)
   {
