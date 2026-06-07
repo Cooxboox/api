@@ -1,4 +1,5 @@
-﻿using Cooxboox.Core.Kitchens;
+﻿using Cooxboox.Core.IngredientTypes;
+using Cooxboox.Core.Kitchens;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Cooxboox.Core.Permissions;
@@ -17,11 +18,13 @@ internal class PermissionService : IPermissionService
   }
 
   private readonly IContext _context;
+  private readonly IIngredientTypeQuerier _ingredientTypeQuerier;
   private readonly IKitchenQuerier _kitchenQuerier;
 
-  public PermissionService(IContext context, IKitchenQuerier kitchenQuerier)
+  public PermissionService(IContext context, IIngredientTypeQuerier ingredientTypeQuerier, IKitchenQuerier kitchenQuerier)
   {
     _context = context;
+    _ingredientTypeQuerier = ingredientTypeQuerier;
     _kitchenQuerier = kitchenQuerier;
   }
 
@@ -43,6 +46,11 @@ internal class PermissionService : IPermissionService
       entity = kitchen.Entity;
       isAllowed = IsAllowed(action, kitchen);
     }
+    else if (resource is IEntityProvider provider)
+    {
+      entity = provider.Entity;
+      isAllowed = IsAllowed(action, entity);
+    }
 
     if (!isAllowed)
     {
@@ -52,10 +60,13 @@ internal class PermissionService : IPermissionService
 
   private async Task<bool> IsAllowedAsync(string action, CancellationToken cancellationToken)
   {
-    if (action == Actions.CreateKitchen)
+    switch (action)
     {
-      int count = await _kitchenQuerier.CountAsync(cancellationToken);
-      return count < 1;
+      case Actions.CreateIngredientType:
+        return _context.IsKitchenOwner;
+      case Actions.CreateKitchen:
+        int count = await _kitchenQuerier.CountAsync(cancellationToken);
+        return count < 1;
     }
 
     return false;
@@ -66,6 +77,16 @@ internal class PermissionService : IPermissionService
     if (action == Actions.Update)
     {
       return kitchen.OwnerId == _context.UserId;
+    }
+
+    return false;
+  }
+
+  private bool IsAllowed(string action, Entity entity)
+  {
+    if (action == Actions.Update)
+    {
+      return _context.IsKitchenOwner && _context.KitchenId.Equals(entity.KitchenId);
     }
 
     return false;

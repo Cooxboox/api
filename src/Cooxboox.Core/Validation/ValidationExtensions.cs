@@ -46,6 +46,11 @@ internal static class ValidationExtensions
     return ruleBuilder.NotEmpty().MaximumLength(Core.Name.MaximumLength);
   }
 
+  public static IRuleBuilderOptions<T, string> Notes<T>(this IRuleBuilder<T, string> ruleBuilder)
+  {
+    return ruleBuilder.NotEmpty();
+  }
+
   public static IRuleBuilderOptions<T, string> Password<T>(this IRuleBuilder<T, string> ruleBuilder, IPasswordSettings settings)
   {
     IRuleBuilderOptions<T, string> options = ruleBuilder.NotEmpty();
