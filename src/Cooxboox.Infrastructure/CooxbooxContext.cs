@@ -9,6 +9,7 @@ public class CooxbooxContext : DbContext
   {
   }
 
+  internal DbSet<IngredientTypeEntity> IngredientTypes => Set<IngredientTypeEntity>();
   internal DbSet<KitchenEntity> Kitchens => Set<KitchenEntity>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
