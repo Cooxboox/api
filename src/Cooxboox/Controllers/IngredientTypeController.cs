@@ -1,5 +1,6 @@
 ﻿using Cooxboox.Core.IngredientTypes;
 using Cooxboox.Core.IngredientTypes.Models;
+using Cooxboox.Filters;
 using Cooxboox.Models.IngredientType;
 using Krakenar.Contracts.Search;
 using Microsoft.AspNetCore.Authorization;
@@ -9,6 +10,7 @@ namespace Cooxboox.Controllers;
 
 [ApiController]
 [Authorize]
+[RequireKitchen]
 [Route("ingredients/types")]
 public class IngredientTypeController : ControllerBase
 {

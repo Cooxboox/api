@@ -43,7 +43,7 @@ internal class BearerAuthenticationHandler : AuthenticationHandler<BearerAuthent
         {
           try
           {
-            User user = await _tokenGateway.ValidateAccessAsync(values[1]);
+            User user = await _tokenGateway.ValidateAccessAsync(values[1]); // TODO(fpion): le Realm ne se trouve pas dans le token, donc l’utilisateur est incorrect.
             Session? session = user.Sessions.Count == 1 ? user.Sessions.Single() : null;
 
             ClaimsPrincipal principal;
