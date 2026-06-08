@@ -1,4 +1,5 @@
-﻿using Cooxboox.Core.Kitchens.Models;
+﻿using Cooxboox.Core.IngredientTypes.Models;
+using Cooxboox.Core.Kitchens.Models;
 using Cooxboox.Infrastructure.Entities;
 using Krakenar.Contracts;
 using Krakenar.Contracts.Actors;
@@ -22,6 +23,20 @@ internal class Mapper
     {
       _actors[actor.Key] = actor.Value;
     }
+  }
+
+  public IngredientTypeModel ToIngredientType(IngredientTypeEntity source)
+  {
+    IngredientTypeModel destination = new()
+    {
+      Id = source.EntityId,
+      Name = source.Name,
+      Notes = source.Notes
+    };
+
+    MapAggregate(source, destination);
+
+    return destination;
   }
 
   public KitchenModel ToKitchen(KitchenEntity source)

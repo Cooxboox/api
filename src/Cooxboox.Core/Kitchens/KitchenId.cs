@@ -16,11 +16,13 @@ public readonly struct KitchenId
     EntityId = Entity.Parse(streamId.Value, Kitchen.EntityKind).Id;
   }
 
-  public KitchenId(string value) : this(new StreamId(value))
+  public KitchenId(string value)
+    : this(new StreamId(value))
   {
   }
 
-  public KitchenId(Guid entityId) : this(new StreamId(new Entity(Kitchen.EntityKind, entityId).ToString()))
+  public KitchenId(Guid entityId)
+    : this(new StreamId(new Entity(Kitchen.EntityKind, entityId).ToString()))
   {
   }
 

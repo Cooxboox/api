@@ -13,7 +13,11 @@ internal class CreateOrReplaceKitchenCommandHandler : ICommandHandler<CreateOrRe
   private readonly IKitchenRepository _kitchenRepository;
   private readonly IPermissionService _permissionService;
 
-  public CreateOrReplaceKitchenCommandHandler(IContext context, IKitchenQuerier kitchenQuerier, IKitchenRepository kitchenRepository, IPermissionService permissionService)
+  public CreateOrReplaceKitchenCommandHandler(
+    IContext context,
+    IKitchenQuerier kitchenQuerier,
+    IKitchenRepository kitchenRepository,
+    IPermissionService permissionService)
   {
     _context = context;
     _kitchenQuerier = kitchenQuerier;

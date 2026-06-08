@@ -16,6 +16,8 @@ internal class KitchenEntity : AggregateEntity
   public string? Slug { get; private set; }
   public string? Notes { get; private set; }
 
+  public List<IngredientTypeEntity> IngredientTypes { get; private set; } = [];
+
   public KitchenEntity(KitchenCreated @event) : base(@event)
   {
     EntityId = new KitchenId(@event.StreamId).EntityId;

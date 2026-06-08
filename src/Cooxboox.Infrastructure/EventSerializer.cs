@@ -8,8 +8,10 @@ internal class EventSerializer : Logitar.EventSourcing.Infrastructure.EventSeria
   {
     base.RegisterConverters();
 
+    SerializerOptions.Converters.Add(new IngredientTypeIdConverter());
     SerializerOptions.Converters.Add(new KitchenIdConverter());
     SerializerOptions.Converters.Add(new NameConverter());
+    SerializerOptions.Converters.Add(new NotesConverter());
     SerializerOptions.Converters.Add(new UserIdConverter());
   }
 }

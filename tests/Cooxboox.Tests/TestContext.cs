@@ -2,6 +2,7 @@
 using Cooxboox.Core;
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.Identity;
+using Cooxboox.Core.Kitchens;
 using Krakenar.Contracts;
 using Krakenar.Contracts.Actors;
 using Krakenar.Contracts.Users;
@@ -32,6 +33,10 @@ public class TestContext : IContext
       return new UserId(User);
     }
   }
+
+  public Kitchen? Kitchen { get; set; }
+  public KitchenId KitchenId => Kitchen?.Id ?? throw new InvalidOperationException("A kitchen is required.");
+  public bool IsKitchenOwner => Kitchen is not null && Kitchen.OwnerId == UserId;
 
   public IReadOnlyCollection<CustomAttribute> GetSessionCustomAttributes()
   {

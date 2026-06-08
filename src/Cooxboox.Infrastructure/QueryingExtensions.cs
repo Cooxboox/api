@@ -1,4 +1,5 @@
-﻿using Krakenar.Contracts.Search;
+﻿using Cooxboox.Core.Kitchens;
+using Krakenar.Contracts.Search;
 using Logitar.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,12 @@ internal static class QueryingExtensions
     }
 
     return query.Where(column, Operators.IsIn(ids.Distinct().Select(id => (object)id).ToArray()));
+  }
+
+  public static IQueryBuilder ApplyKitchenFilter(this IQueryBuilder query, ColumnId column, KitchenId kitchenId)
+  {
+    OperatorCondition condition = new(Db.Kitchens.StreamId, Operators.IsEqualTo(kitchenId.Value));
+    return query.Join(Db.Kitchens.KitchenId, column, condition);
   }
 
   public static IQueryable<T> ApplyPaging<T>(this IQueryable<T> query, SearchPayload payload)
