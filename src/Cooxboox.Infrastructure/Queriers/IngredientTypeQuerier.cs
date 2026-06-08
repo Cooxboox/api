@@ -15,35 +15,35 @@ internal class IngredientTypeQuerier : IIngredientTypeQuerier
 {
   private readonly IActorService _actorService;
   private readonly IContext _context;
-  private readonly DbSet<IngredientTypeEntity> _ingredienttypes;
+  private readonly DbSet<IngredientTypeEntity> _ingredientTypes;
   private readonly ISqlHelper _sqlHelper;
 
   public IngredientTypeQuerier(IActorService actorService, IContext context, CooxbooxContext cooxboox, ISqlHelper sqlHelper)
   {
     _actorService = actorService;
     _context = context;
-    _ingredienttypes = cooxboox.IngredientTypes;
+    _ingredientTypes = cooxboox.IngredientTypes;
     _sqlHelper = sqlHelper;
   }
 
-  public async Task<IngredientTypeModel> ReadAsync(IngredientType ingredienttype, CancellationToken cancellationToken)
+  public async Task<IngredientTypeModel> ReadAsync(IngredientType ingredientType, CancellationToken cancellationToken)
   {
-    return await ReadAsync(ingredienttype.Id, cancellationToken)
-      ?? throw new InvalidOperationException($"The ingredienttype entity 'StreamId={ingredienttype.Id}' was not found.");
+    return await ReadAsync(ingredientType.Id, cancellationToken)
+      ?? throw new InvalidOperationException($"The ingredient type entity 'StreamId={ingredientType.Id}' was not found.");
   }
   public async Task<IngredientTypeModel?> ReadAsync(IngredientTypeId id, CancellationToken cancellationToken)
   {
-    IngredientTypeEntity? ingredienttype = await _ingredienttypes.AsNoTracking()
+    IngredientTypeEntity? ingredientType = await _ingredientTypes.AsNoTracking()
       .Where(x => x.StreamId == id.Value && x.Kitchen!.StreamId == _context.KitchenId.Value)
       .SingleOrDefaultAsync(cancellationToken);
-    return ingredienttype is null ? null : await MapAsync(ingredienttype, cancellationToken);
+    return ingredientType is null ? null : await MapAsync(ingredientType, cancellationToken);
   }
   public async Task<IngredientTypeModel?> ReadAsync(Guid id, CancellationToken cancellationToken)
   {
-    IngredientTypeEntity? ingredienttype = await _ingredienttypes.AsNoTracking()
+    IngredientTypeEntity? ingredientType = await _ingredientTypes.AsNoTracking()
       .Where(x => x.EntityId == id && x.Kitchen!.StreamId == _context.KitchenId.Value)
       .SingleOrDefaultAsync(cancellationToken);
-    return ingredienttype is null ? null : await MapAsync(ingredienttype, cancellationToken);
+    return ingredientType is null ? null : await MapAsync(ingredientType, cancellationToken);
   }
 
   public async Task<SearchResults<IngredientTypeModel>> SearchAsync(SearchIngredientTypesPayload payload, CancellationToken cancellationToken)
@@ -53,7 +53,7 @@ internal class IngredientTypeQuerier : IIngredientTypeQuerier
       .ApplyKitchenFilter(Db.IngredientTypes.KitchenId, _context.KitchenId);
     _sqlHelper.ApplyTextSearch(builder, payload.Search, Db.IngredientTypes.Name);
 
-    IQueryable<IngredientTypeEntity> query = _ingredienttypes.FromQuery(builder).AsNoTracking();
+    IQueryable<IngredientTypeEntity> query = _ingredientTypes.FromQuery(builder).AsNoTracking();
 
     long total = await query.LongCountAsync(cancellationToken);
 
@@ -84,21 +84,21 @@ internal class IngredientTypeQuerier : IIngredientTypeQuerier
     query = query.ApplyPaging(payload);
 
     IngredientTypeEntity[] entities = await query.ToArrayAsync(cancellationToken);
-    IReadOnlyCollection<IngredientTypeModel> ingredienttypes = await MapAsync(entities, cancellationToken);
+    IReadOnlyCollection<IngredientTypeModel> ingredientTypes = await MapAsync(entities, cancellationToken);
 
-    return new SearchResults<IngredientTypeModel>(ingredienttypes, total);
+    return new SearchResults<IngredientTypeModel>(ingredientTypes, total);
   }
 
-  private async Task<IngredientTypeModel> MapAsync(IngredientTypeEntity ingredienttype, CancellationToken cancellationToken)
+  private async Task<IngredientTypeModel> MapAsync(IngredientTypeEntity ingredientType, CancellationToken cancellationToken)
   {
-    return (await MapAsync([ingredienttype], cancellationToken)).Single();
+    return (await MapAsync([ingredientType], cancellationToken)).Single();
   }
-  private async Task<IReadOnlyCollection<IngredientTypeModel>> MapAsync(IEnumerable<IngredientTypeEntity> ingredienttypes, CancellationToken cancellationToken)
+  private async Task<IReadOnlyCollection<IngredientTypeModel>> MapAsync(IEnumerable<IngredientTypeEntity> ingredientTypes, CancellationToken cancellationToken)
   {
-    IEnumerable<ActorId> actorIds = ingredienttypes.SelectMany(ingredienttype => ingredienttype.GetActorIds());
+    IEnumerable<ActorId> actorIds = ingredientTypes.SelectMany(ingredientType => ingredientType.GetActorIds());
     IReadOnlyDictionary<ActorId, Actor> actors = await _actorService.FindAsync(actorIds, cancellationToken);
     Mapper mapper = new(actors);
 
-    return ingredienttypes.Select(mapper.ToIngredientType).ToList().AsReadOnly();
+    return ingredientTypes.Select(mapper.ToIngredientType).ToList().AsReadOnly();
   }
 }

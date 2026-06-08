@@ -9,7 +9,7 @@ public class IngredientType : AggregateRoot, IEntityProvider
   public const string EntityKind = "IngredientType";
 
   public new IngredientTypeId Id => new(base.Id);
-  public Entity Entity => new(EntityKind, Id.EntityId);
+  public Entity Entity => new(EntityKind, Id.EntityId, Id.KitchenId);
 
   private Name? _name = null;
   public Name Name => _name ?? throw new InvalidOperationException("The name was not initialized.");

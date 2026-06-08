@@ -1,6 +1,7 @@
 ﻿using Bogus;
 using Cooxboox.Builders;
 using Cooxboox.Core;
+using Cooxboox.Core.Kitchens;
 using Cooxboox.Infrastructure;
 using Cooxboox.PostgreSQL;
 using Krakenar.Client.Users;
@@ -107,6 +108,10 @@ public abstract class IntegrationTests : IAsyncLifetime
       It.Is<SearchUsersPayload>(p => p.HasPassword == null && p.IsDisabled == null && p.IsConfirmed == null && p.HasAuthenticated == null && p.RoleId == null
         && p.Ids.Single() == Context.User.Id && p.Search.Terms.Count == 0 && p.Skip == 0 && p.Limit == 0),
       It.IsAny<CancellationToken>())).ReturnsAsync(new SearchResults<User>([Context.User]));
+
+    Context.Kitchen = new KitchenBuilder(Faker).WithOwner(Context.User).Build();
+    IKitchenRepository kitchenRepository = ServiceProvider.GetRequiredService<IKitchenRepository>();
+    await kitchenRepository.SaveAsync(Context.Kitchen);
   }
 
   public virtual Task DisposeAsync() => Task.CompletedTask;
