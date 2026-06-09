@@ -7,12 +7,18 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Cooxboox.Infrastructure.Handlers;
 
-internal class IngredientTypeEvents : IEventHandler<IngredientTypeCreated>, IEventHandler<IngredientTypeDeleted>, IEventHandler<IngredientTypeUpdated>
+internal class IngredientTypeEvents : IEventHandler<IngredientTypeCreated>,
+  IEventHandler<IngredientTypeDeleted>,
+  IEventHandler<IngredientTypeLocaleChanged>,
+  IEventHandler<IngredientTypeLocaleRemoved>,
+  IEventHandler<IngredientTypeUpdated>
 {
   public static void Register(IServiceCollection services)
   {
     services.AddTransient<IEventHandler<IngredientTypeCreated>, IngredientTypeEvents>();
     services.AddTransient<IEventHandler<IngredientTypeDeleted>, IngredientTypeEvents>();
+    services.AddTransient<IEventHandler<IngredientTypeLocaleChanged>, IngredientTypeEvents>();
+    services.AddTransient<IEventHandler<IngredientTypeLocaleRemoved>, IngredientTypeEvents>();
     services.AddTransient<IEventHandler<IngredientTypeUpdated>, IngredientTypeEvents>();
   }
 
@@ -46,6 +52,36 @@ internal class IngredientTypeEvents : IEventHandler<IngredientTypeCreated>, IEve
     if (ingredientType is not null)
     {
       _cooxboox.IngredientTypes.Remove(ingredientType);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
+  }
+
+  public async Task HandleAsync(IngredientTypeLocaleChanged @event, CancellationToken cancellationToken)
+  {
+    IngredientTypeEntity? ingredientType = await _cooxboox.IngredientTypes
+      .Include(x => x.Locales)
+      .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (ingredientType is not null && ingredientType.Version == (@event.Version - 1))
+    {
+      ingredientType.SetLocale(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
+  }
+
+  public async Task HandleAsync(IngredientTypeLocaleRemoved @event, CancellationToken cancellationToken)
+  {
+    IngredientTypeEntity? ingredientType = await _cooxboox.IngredientTypes
+      .Include(x => x.Locales)
+      .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (ingredientType is not null && ingredientType.Version == (@event.Version - 1))
+    {
+      IngredientTypeLocaleEntity? locale = ingredientType.RemoveLocale(@event);
+      if (locale is not null)
+      {
+        _cooxboox.IngredientTypeLocales.Remove(locale);
+      }
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
     }

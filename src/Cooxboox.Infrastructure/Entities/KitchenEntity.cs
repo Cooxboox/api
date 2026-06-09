@@ -17,6 +17,7 @@ internal class KitchenEntity : AggregateEntity
   public string? Notes { get; private set; }
 
   public List<IngredientTypeEntity> IngredientTypes { get; private set; } = [];
+  public List<IngredientTypeLocaleEntity> IngredientTypeLocales { get; private set; } = [];
 
   public KitchenEntity(KitchenCreated @event) : base(@event)
   {
