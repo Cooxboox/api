@@ -42,6 +42,13 @@ public class IngredientTypeController : ControllerBase
     return ToActionResult(result);
   }
 
+  [HttpPut("{id}/locales/{language}")]
+  public async Task<ActionResult<IngredientTypeModel>> SaveLocaleAsync(Guid id, string language, [FromBody] SaveIngredientTypeLocalePayload payload, CancellationToken cancellationToken)
+  {
+    IngredientTypeModel? ingredientType = await _ingredientTypeService.SaveLocaleAsync(id, language, payload, cancellationToken);
+    return ingredientType is null ? NotFound() : Ok(ingredientType);
+  }
+
   [HttpGet]
   public async Task<ActionResult<SearchResults<IngredientTypeModel>>> SearchAsync([FromQuery] SearchIngredientTypesParameters parameters, CancellationToken cancellationToken)
   {
@@ -54,6 +61,13 @@ public class IngredientTypeController : ControllerBase
   public async Task<ActionResult<IngredientTypeModel>> UpdateAsync(Guid id, [FromBody] UpdateIngredientTypePayload payload, CancellationToken cancellationToken)
   {
     IngredientTypeModel? ingredientType = await _ingredientTypeService.UpdateAsync(id, payload, cancellationToken);
+    return ingredientType is null ? NotFound() : Ok(ingredientType);
+  }
+
+  [HttpPatch("{id}/locales/{language}")]
+  public async Task<ActionResult<IngredientTypeModel>> UpdateLocaleAsync(Guid id, string language, [FromBody] UpdateIngredientTypeLocalePayload payload, CancellationToken cancellationToken)
+  {
+    IngredientTypeModel? ingredientType = await _ingredientTypeService.UpdateLocaleAsync(id, language, payload, cancellationToken);
     return ingredientType is null ? NotFound() : Ok(ingredientType);
   }
 

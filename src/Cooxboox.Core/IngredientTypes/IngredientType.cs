@@ -1,5 +1,6 @@
 ﻿using Cooxboox.Core.IngredientTypes.Events;
 using Cooxboox.Core.Kitchens;
+using Cooxboox.Core.Localization;
 using Logitar.EventSourcing;
 
 namespace Cooxboox.Core.IngredientTypes;
@@ -14,6 +15,8 @@ public class IngredientType : AggregateRoot, IEntityProvider
   private Name? _name = null;
   public Name Name => _name ?? throw new InvalidOperationException("The name was not initialized.");
   public Notes? Notes { get; private set; }
+
+  private readonly Dictionary<Language, IngredientTypeLocale> _locales = [];
 
   public IngredientType() : base()
   {
@@ -41,6 +44,37 @@ public class IngredientType : AggregateRoot, IEntityProvider
       Raise(new IngredientTypeDeleted(), actorId);
     }
   }
+
+  public IngredientTypeLocale FindLocale(Language language) => TryGetLocale(language) ?? throw new LocaleNotFoundException(this, language);
+
+  public bool HasLocale(Language language) => _locales.ContainsKey(language);
+
+  public void RemoveLocale(Language language, ActorId? actorId = null)
+  {
+    if (HasLocale(language))
+    {
+      Raise(new IngredientTypeLocaleRemoved(language), actorId);
+    }
+  }
+  protected virtual void Handle(IngredientTypeLocaleRemoved @event)
+  {
+    _locales.Remove(@event.Language);
+  }
+
+  public void SetLocale(Language language, IngredientTypeLocale locale, ActorId? actorId = null)
+  {
+    IngredientTypeLocale? existingLocale = TryGetLocale(language);
+    if (existingLocale is null || !existingLocale.Equals(locale))
+    {
+      Raise(new IngredientTypeLocaleChanged(language, locale), actorId);
+    }
+  }
+  protected virtual void Handle(IngredientTypeLocaleChanged @event)
+  {
+    _locales[@event.Language] = @event.Locale;
+  }
+
+  public IngredientTypeLocale? TryGetLocale(Language language) => _locales.TryGetValue(language, out IngredientTypeLocale? locale) ? locale : null;
 
   public void Update(Name name, Notes? notes, ActorId? actorId = null)
   {

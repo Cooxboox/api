@@ -38,7 +38,7 @@ internal static class ValidationExtensions
 
   public static IRuleBuilderOptions<T, string> MetaDescription<T>(this IRuleBuilder<T, string> ruleBuilder)
   {
-    return ruleBuilder.NotEmpty().MaximumLength(160);
+    return ruleBuilder.NotEmpty().MaximumLength(Seo.MetaDescription.MaximumLength);
   }
 
   public static IRuleBuilderOptions<T, string> Name<T>(this IRuleBuilder<T, string> ruleBuilder)
