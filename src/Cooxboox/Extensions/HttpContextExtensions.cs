@@ -1,4 +1,5 @@
 ﻿using Cooxboox.Constants;
+using Cooxboox.Core.Kitchens.Models;
 using Cooxboox.Settings;
 using Krakenar.Contracts;
 using Krakenar.Contracts.ApiKeys;
@@ -12,10 +13,10 @@ namespace Cooxboox.Extensions;
 internal static class HttpContextExtensions
 {
   private const string ApiKeyKey = "ApiKey";
+  private const string KitchenKey = "Kitchen";
   private const string SessionIdKey = "SessionId";
   private const string SessionKey = "Session";
   private const string UserKey = "User";
-  // TODO(fpion): private const string WorldKey = "World";
 
   public static Uri GetBaseUri(this HttpContext context) => new($"{context.Request.Scheme}://{context.Request.Host}", UriKind.Absolute);
   public static string GetBaseUrl(this HttpContext context) => context.GetBaseUri().ToString();
@@ -84,14 +85,18 @@ internal static class HttpContextExtensions
   }
 
   public static ApiKey? GetApiKey(this HttpContext context) => context.GetItem<ApiKey>(ApiKeyKey);
+  public static KitchenModel? GetKitchen(this HttpContext context) => context.GetItem<KitchenModel>(KitchenKey);
   public static Session? GetSession(this HttpContext context) => context.GetItem<Session>(SessionKey);
   public static User? GetUser(this HttpContext context) => context.GetItem<User>(UserKey);
-  // TODO(fpion): public static WorldModel? GetWorld(this HttpContext context) => context.GetItem<WorldModel>(WorldKey);
   public static T? GetItem<T>(this HttpContext context, object key) => context.Items.TryGetValue(key, out object? value) ? (T?)value : default;
 
   public static void SetApiKey(this HttpContext context, ApiKey? apiKey)
   {
     context.SetItem(ApiKeyKey, apiKey);
+  }
+  public static void SetKitchen(this HttpContext context, KitchenModel? kitchen)
+  {
+    context.SetItem(KitchenKey, kitchen);
   }
   public static void SetSession(this HttpContext context, Session? session)
   {
@@ -101,10 +106,6 @@ internal static class HttpContextExtensions
   {
     context.SetItem(UserKey, user);
   }
-  // TODO(fpion): public static void SetWorld(this HttpContext context, WorldModel? world)
-  //{
-  //  context.SetItem(UserKey, world);
-  //}
   public static void SetItem<T>(this HttpContext context, object key, T? value)
   {
     if (value is null)

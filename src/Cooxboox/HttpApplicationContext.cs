@@ -2,6 +2,7 @@
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.Identity;
 using Cooxboox.Core.Kitchens;
+using Cooxboox.Core.Kitchens.Models;
 using Cooxboox.Extensions;
 using Krakenar.Contracts;
 using Krakenar.Contracts.Actors;
@@ -46,8 +47,23 @@ internal class HttpApplicationContext : IContext
     }
   }
 
-  public KitchenId KitchenId => throw new NotImplementedException(); // TODO(fpion): implement
-  public bool IsKitchenOwner => throw new NotImplementedException(); // TODO(fpion): implement
+  public KitchenId KitchenId
+  {
+    get
+    {
+      KitchenModel kitchen = Context.GetKitchen() ?? throw new InvalidOperationException("A kitchen is required.");
+      return new KitchenId(kitchen.Id);
+    }
+  }
+  public bool IsKitchenOwner
+  {
+    get
+    {
+      KitchenModel? kitchen = Context.GetKitchen();
+      User? user = Context.GetUser();
+      return kitchen is not null && user is not null && kitchen.Owner.ToActorId() == new Actor(user).ToActorId();
+    }
+  }
 
   public HttpApplicationContext(IHttpContextAccessor httpContextAccessor)
   {

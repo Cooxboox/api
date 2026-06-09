@@ -41,7 +41,7 @@ internal class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthent
           ClaimsPrincipal principal = new(apiKey.CreateClaimsIdentity(Scheme.Name));
           AuthenticationTicket ticket = new(principal, Scheme.Name);
 
-          return AuthenticateResult.Success(ticket);
+          return AuthenticateResult.Success(ticket); // TODO(fpion): a user should always be required!
         }
         catch (Exception exception)
         {

@@ -112,7 +112,7 @@ internal class Startup : StartupBase
     application.UseMiddleware<RenewSession>();
     application.UseAuthentication();
     application.UseAuthorization();
-    // TODO(fpion): application.UseMiddleware<ResolveWorld>();
+    application.UseMiddleware<ResolveKitchen>();
 
     application.MapControllers();
   }
