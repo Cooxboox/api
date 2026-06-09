@@ -54,7 +54,7 @@ internal class BasicAuthenticationHandler : AuthenticationHandler<BasicAuthentic
             string password = credentials[(index + 1)..];
             User user = await _userGateway.AuthenticateAsync(uniqueName, password);
 
-            Context.SetUser(user);
+            Context.SetUser(user); // TODO(fpion): we should not bypass Multi-Factor Authentication.
 
             ClaimsPrincipal principal = new(user.CreateClaimsIdentity(Scheme.Name));
             AuthenticationTicket ticket = new(principal, Scheme.Name);
