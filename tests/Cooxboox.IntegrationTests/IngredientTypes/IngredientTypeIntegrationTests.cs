@@ -3,6 +3,8 @@ using Cooxboox.Core;
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.IngredientTypes;
 using Cooxboox.Core.IngredientTypes.Models;
+using Cooxboox.Core.Kitchens;
+using Cooxboox.Core.Localization;
 using Cooxboox.Core.Permissions;
 using Krakenar.Contracts.Search;
 using Logitar;
@@ -35,7 +37,7 @@ public class IngredientTypeIntegrationTests : IntegrationTests
   [Theory(DisplayName = "It should create a new ingredient type.")]
   [InlineData(false)]
   [InlineData(true)]
-  public async Task Given_NotExists_When_CreateOrReplace_ThenCreated(bool withId)
+  public async Task Given_NotExists_When_CreateOrReplace_Then_Created(bool withId)
   {
     CreateOrReplaceIngredientTypePayload payload = new()
     {
@@ -105,11 +107,27 @@ public class IngredientTypeIntegrationTests : IntegrationTests
     Assert.Empty(results.Items);
   }
 
-  [Fact(DisplayName = "It should return null when the ingredient type does not exist.")]
+  [Fact(DisplayName = "It It should return null when the ingredient type does not exist (SaveLocale).")]
+  public async Task Given_NotExist_When_SaveLocale_Then_NullReturned()
+  {
+    Language language = Faker.Language();
+    SaveIngredientTypeLocalePayload payload = new("Fruits et légumes");
+    Assert.Null(await _ingredientTypeService.SaveLocaleAsync(Guid.Empty, language.Code, payload));
+  }
+
+  [Fact(DisplayName = "It should return null when the ingredient type does not exist (Update).")]
   public async Task Given_NotExist_When_Update_Then_NullReturned()
   {
     UpdateIngredientTypePayload payload = new();
     Assert.Null(await _ingredientTypeService.UpdateAsync(Guid.Empty, payload));
+  }
+
+  [Fact(DisplayName = "It should return null when the ingredient type does not exist (UpdateLocale).")]
+  public async Task Given_NotExist_When_UpdateLocale_Then_NullReturned()
+  {
+    Language language = Faker.Language();
+    UpdateIngredientTypeLocalePayload payload = new();
+    Assert.Null(await _ingredientTypeService.UpdateLocaleAsync(Guid.Empty, language.Code, payload));
   }
 
   [Fact(DisplayName = "It should return null when the user does not own the kitchen.")]
@@ -138,7 +156,64 @@ public class IngredientTypeIntegrationTests : IntegrationTests
     Assert.Equal(_ingredientType.Entity.Id, ingredientType.Id);
   }
 
-  [Fact(DisplayName = "It should throw PermissionDeniedException when creating a new kitchen.")]
+  [Theory(DisplayName = "It should save an ingredient type locale.")]
+  [InlineData(false)]
+  [InlineData(true)]
+  public async Task Given_IngredientType_When_SaveLocale_Then_Saved(bool exists)
+  {
+    Language language = Faker.Language();
+    if (exists)
+    {
+      _ingredientType.SetLocale(language, new IngredientTypeLocale(_ingredientType.Name, null, null, null, null), Actor.ToActorId());
+      await _ingredientTypeRepository.SaveAsync(_ingredientType);
+    }
+
+    SaveIngredientTypeLocalePayload payload = new()
+    {
+      Name = " Fruits et légumes ",
+      Slug = "fruits-et-legumes",
+      MetaDescription = "   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse sit amet velit venenatis, placerat lacus non, scelerisque metus. Vestibulum a ut.   ",
+      HtmlContent = "  Dans le langage courant, il désigne généralement une plante cultivée au jardin ou dans les champs. Un fruit peut donc bien être un légume.  ",
+      Notes = "    "
+    };
+
+    IngredientTypeModel? ingredientType = await _ingredientTypeService.SaveLocaleAsync(_ingredientType.Entity.Id, language.Code, payload);
+    Assert.NotNull(ingredientType);
+
+    Assert.Equal(_ingredientType.Entity.Id, ingredientType.Id);
+    Assert.Equal(_ingredientType.Version + 1, ingredientType.Version);
+    Assert.Equal(_ingredientType.CreatedOn.AsUniversalTime(), ingredientType.CreatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(_ingredientType.CreatedBy, ingredientType.CreatedBy.ToActorId());
+    Assert.Equal(DateTime.UtcNow, ingredientType.UpdatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(Actor, ingredientType.UpdatedBy);
+
+    IngredientTypeLocaleModel locale = Assert.Single(ingredientType.Locales);
+    Assert.Equal(language.Code, locale.Language.Code);
+    Assert.Equal(payload.Name.Trim(), locale.Name);
+    Assert.Equal(payload.Slug, locale.Slug);
+    Assert.Equal(payload.MetaDescription.Trim(), locale.MetaDescription);
+    Assert.Equal(payload.HtmlContent.Trim(), locale.HtmlContent);
+    Assert.Null(locale.Notes);
+
+    Assert.Equal(ingredientType.Version, locale.Version);
+    Assert.Equal(Actor, locale.CreatedBy);
+    Assert.Equal(locale.CreatedBy, locale.UpdatedBy);
+    Assert.Equal(DateTime.UtcNow, locale.CreatedOn, TimeSpan.FromSeconds(10));
+    if (exists)
+    {
+      Assert.True(locale.CreatedOn < locale.UpdatedOn);
+    }
+    else
+    {
+      Assert.Equal(locale.CreatedOn, locale.UpdatedOn);
+    }
+    Assert.Equal(ContentStatus.Unpublished, locale.Status);
+    Assert.Null(locale.PublishedVersion);
+    Assert.Null(locale.PublishedBy);
+    Assert.Null(locale.PublishedOn);
+  }
+
+  [Fact(DisplayName = "It should throw PermissionDeniedException when creating a new ingredient type.")]
   public async Task Given_NotExist_When_CreateOrReplace_Then_PermissionDeniedException()
   {
     Context.User = new UserBuilder().Build();
@@ -151,7 +226,7 @@ public class IngredientTypeIntegrationTests : IntegrationTests
     Assert.Null(exception.Resource);
   }
 
-  [Fact(DisplayName = "It should throw PermissionDeniedException when replacing an existing kitchen.")]
+  [Fact(DisplayName = "It should throw PermissionDeniedException when replacing an existing ingredient type.")]
   public async Task Given_Exists_When_CreateOrReplace_Then_PermissionDeniedException()
   {
     Context.User = new UserBuilder().Build();
@@ -164,7 +239,21 @@ public class IngredientTypeIntegrationTests : IntegrationTests
     Assert.Equal(new Entity(IngredientType.EntityKind, _ingredientType.Entity.Id, Context.Kitchen?.Id).ToString(), exception.Resource);
   }
 
-  [Fact(DisplayName = "It should throw PermissionDeniedException when updating an existing kitchen.")]
+  [Fact(DisplayName = "It should throw PermissionDeniedException when saving an ingredient type locale.")]
+  public async Task Given_Exists_When_SaveLocale_Then_PermissionDeniedException()
+  {
+    Context.User = new UserBuilder().Build();
+
+    Language language = Faker.Language();
+    SaveIngredientTypeLocalePayload payload = new("Fruits et légumes");
+
+    var exception = await Assert.ThrowsAsync<PermissionDeniedException>(async () => await _ingredientTypeService.SaveLocaleAsync(_ingredientType.Entity.Id, language.Code, payload));
+    Assert.Equal(Actor.ToActorId().Value, exception.ActorId);
+    Assert.Equal(Actions.Update, exception.Action);
+    Assert.Equal(new Entity(IngredientType.EntityKind, _ingredientType.Entity.Id, Context.Kitchen?.Id).ToString(), exception.Resource);
+  }
+
+  [Fact(DisplayName = "It should throw PermissionDeniedException when updating an existing ingredient type.")]
   public async Task Given_Exists_When_Update_Then_PermissionDeniedException()
   {
     Context.User = new UserBuilder().Build();
@@ -175,6 +264,33 @@ public class IngredientTypeIntegrationTests : IntegrationTests
     Assert.Equal(Actor.ToActorId().Value, exception.ActorId);
     Assert.Equal(Actions.Update, exception.Action);
     Assert.Equal(new Entity(IngredientType.EntityKind, _ingredientType.Entity.Id, Context.Kitchen?.Id).ToString(), exception.Resource);
+  }
+
+  [Fact(DisplayName = "It should throw PermissionDeniedException when updating an ingredient type locale.")]
+  public async Task Given_Exists_When_UpdateLocale_Then_PermissionDeniedException()
+  {
+    Context.User = new UserBuilder().Build();
+
+    Language language = Faker.Language();
+    UpdateIngredientTypeLocalePayload payload = new();
+
+    var exception = await Assert.ThrowsAsync<PermissionDeniedException>(async () => await _ingredientTypeService.UpdateLocaleAsync(_ingredientType.Entity.Id, language.Code, payload));
+    Assert.Equal(Actor.ToActorId().Value, exception.ActorId);
+    Assert.Equal(Actions.Update, exception.Action);
+    Assert.Equal(new Entity(IngredientType.EntityKind, _ingredientType.Entity.Id, Context.Kitchen?.Id).ToString(), exception.Resource);
+  }
+
+  [Fact(DisplayName = "It should throw LocaleNotFoundException when the ingredient type locale was not found.")]
+  public async Task Given_LocaleNotFound_When_UpdateLocale_Then_LocaleNotFoundException()
+  {
+    Language language = Faker.Language();
+    UpdateIngredientTypeLocalePayload payload = new();
+
+    var exception = await Assert.ThrowsAsync<LocaleNotFoundException>(async () => await _ingredientTypeService.UpdateLocaleAsync(_ingredientType.Entity.Id, language.Code, payload));
+    Assert.Equal(language.ToString(), exception.Language);
+
+    Entity entity = new(exception.EntityKind, exception.EntityId, exception.KitchenId.HasValue ? new KitchenId(exception.KitchenId.Value) : null);
+    Assert.Equal(_ingredientType.Entity, entity);
   }
 
   [Fact(DisplayName = "It should update an existing ingredient type.")]
@@ -197,5 +313,49 @@ public class IngredientTypeIntegrationTests : IntegrationTests
 
     Assert.Equal(_ingredientType.Name.Value, ingredientType.Name);
     Assert.Equal(payload.Notes.Value?.Trim(), ingredientType.Notes);
+  }
+
+  [Fact(DisplayName = "It should update an ingredient type locale.")]
+  public async Task Given_LocaleFound_When_UpdateLocale_Then_Updated()
+  {
+    Language language = Faker.Language();
+    _ingredientType.SetLocale(language, new IngredientTypeLocale(_ingredientType.Name, null, null, null, null), Actor.ToActorId());
+    await _ingredientTypeRepository.SaveAsync(_ingredientType);
+
+    UpdateIngredientTypeLocalePayload payload = new()
+    {
+      Slug = new Optional<string>("fruits-et-legumes"),
+      MetaDescription = new Optional<string>("   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse sit amet velit venenatis, placerat lacus non, scelerisque metus. Vestibulum a ut.   "),
+      HtmlContent = new Optional<string>("  Dans le langage courant, il désigne généralement une plante cultivée au jardin ou dans les champs. Un fruit peut donc bien être un légume.  "),
+      Notes = new Optional<string>("    ")
+    };
+
+    IngredientTypeModel? ingredientType = await _ingredientTypeService.UpdateLocaleAsync(_ingredientType.Entity.Id, language.Code, payload);
+    Assert.NotNull(ingredientType);
+
+    Assert.Equal(_ingredientType.Entity.Id, ingredientType.Id);
+    Assert.Equal(_ingredientType.Version + 1, ingredientType.Version);
+    Assert.Equal(_ingredientType.CreatedOn.AsUniversalTime(), ingredientType.CreatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(_ingredientType.CreatedBy, ingredientType.CreatedBy.ToActorId());
+    Assert.Equal(DateTime.UtcNow, ingredientType.UpdatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(Actor, ingredientType.UpdatedBy);
+
+    IngredientTypeLocaleModel locale = Assert.Single(ingredientType.Locales);
+    Assert.Equal(language.Code, locale.Language.Code);
+    Assert.Equal(_ingredientType.Name.Value, locale.Name);
+    Assert.Equal(payload.Slug.Value, locale.Slug);
+    Assert.Equal(payload.MetaDescription.Value?.Trim(), locale.MetaDescription);
+    Assert.Equal(payload.HtmlContent.Value?.Trim(), locale.HtmlContent);
+    Assert.Null(locale.Notes);
+
+    Assert.Equal(ingredientType.Version, locale.Version);
+    Assert.Equal(Actor, locale.CreatedBy);
+    Assert.Equal(locale.CreatedBy, locale.UpdatedBy);
+    Assert.Equal(DateTime.UtcNow, locale.CreatedOn, TimeSpan.FromSeconds(10));
+    Assert.True(locale.CreatedOn < locale.UpdatedOn);
+    Assert.Equal(ContentStatus.Unpublished, locale.Status);
+    Assert.Null(locale.PublishedVersion);
+    Assert.Null(locale.PublishedBy);
+    Assert.Null(locale.PublishedOn);
   }
 }
