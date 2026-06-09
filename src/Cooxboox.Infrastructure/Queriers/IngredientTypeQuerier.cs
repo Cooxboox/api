@@ -35,6 +35,7 @@ internal class IngredientTypeQuerier : IIngredientTypeQuerier
   {
     IngredientTypeEntity? ingredientType = await _ingredientTypes.AsNoTracking()
       .Where(x => x.StreamId == id.Value && x.Kitchen!.StreamId == _context.KitchenId.Value)
+      .Include(x => x.Locales)
       .SingleOrDefaultAsync(cancellationToken);
     return ingredientType is null ? null : await MapAsync(ingredientType, cancellationToken);
   }
@@ -42,6 +43,7 @@ internal class IngredientTypeQuerier : IIngredientTypeQuerier
   {
     IngredientTypeEntity? ingredientType = await _ingredientTypes.AsNoTracking()
       .Where(x => x.EntityId == id && x.Kitchen!.StreamId == _context.KitchenId.Value)
+      .Include(x => x.Locales)
       .SingleOrDefaultAsync(cancellationToken);
     return ingredientType is null ? null : await MapAsync(ingredientType, cancellationToken);
   }

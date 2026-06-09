@@ -3,6 +3,7 @@ using Cooxboox.Core.Kitchens.Models;
 using Cooxboox.Infrastructure.Entities;
 using Krakenar.Contracts;
 using Krakenar.Contracts.Actors;
+using Krakenar.Contracts.Localization;
 using Logitar;
 using Logitar.EventSourcing;
 
@@ -34,10 +35,33 @@ internal class Mapper
       Notes = source.Notes
     };
 
+    foreach (IngredientTypeLocaleEntity locale in source.Locales)
+    {
+      destination.Locales.Add(ToIngredientTypeLocale(locale));
+    }
+
     MapAggregate(source, destination);
 
     return destination;
   }
+  private IngredientTypeLocaleModel ToIngredientTypeLocale(IngredientTypeLocaleEntity source) => new()
+  {
+    Language = new Locale(source.Language),
+    Name = source.Name,
+    Slug = source.Slug,
+    MetaDescription = source.MetaDescription,
+    HtmlContent = source.HtmlContent,
+    Notes = source.Notes,
+    Version = source.Version,
+    CreatedBy = FindActor(source.CreatedBy),
+    CreatedOn = source.CreatedOn.AsUniversalTime(),
+    UpdatedBy = FindActor(source.UpdatedBy),
+    UpdatedOn = source.UpdatedOn.AsUniversalTime(),
+    Status = source.Status,
+    PublishedVersion = source.PublishedVersion,
+    PublishedBy = TryGetActor(source.PublishedBy),
+    PublishedOn = source.PublishedOn?.AsUniversalTime()
+  };
 
   public KitchenModel ToKitchen(KitchenEntity source)
   {
