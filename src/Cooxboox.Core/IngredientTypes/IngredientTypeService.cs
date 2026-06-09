@@ -10,6 +10,8 @@ namespace Cooxboox.Core.IngredientTypes;
 public interface IIngredientTypeService
 {
   Task<CreateOrReplaceIngredientTypeResult> CreateOrReplaceAsync(CreateOrReplaceIngredientTypePayload payload, Guid? id = null, CancellationToken cancellationToken = default);
+  Task<IngredientTypeModel?> PublishAllAsync(Guid id, CancellationToken cancellationToken = default);
+  Task<IngredientTypeModel?> PublishAsync(Guid id, string? language = null, CancellationToken cancellationToken = default);
   Task<IngredientTypeModel?> ReadAsync(Guid id, CancellationToken cancellationToken = default);
   Task<IngredientTypeModel?> SaveLocaleAsync(Guid id, string language, SaveIngredientTypeLocalePayload payload, CancellationToken cancellationToken = default);
   Task<SearchResults<IngredientTypeModel>> SearchAsync(SearchIngredientTypesPayload payload, CancellationToken cancellationToken = default);
@@ -42,6 +44,20 @@ internal class IngredientTypeService : IIngredientTypeService
   public async Task<CreateOrReplaceIngredientTypeResult> CreateOrReplaceAsync(CreateOrReplaceIngredientTypePayload payload, Guid? id, CancellationToken cancellationToken)
   {
     CreateOrReplaceIngredientTypeCommand command = new(payload, id);
+    return await _commandBus.ExecuteAsync(command, cancellationToken);
+  }
+
+  public async Task<IngredientTypeModel?> PublishAllAsync(Guid id, CancellationToken cancellationToken)
+  {
+    PublishIngredientTypeCommand command = PublishIngredientTypeCommand.All(id);
+    return await _commandBus.ExecuteAsync(command, cancellationToken);
+  }
+
+  public async Task<IngredientTypeModel?> PublishAsync(Guid id, string? language, CancellationToken cancellationToken)
+  {
+    PublishIngredientTypeCommand command = string.IsNullOrWhiteSpace(language)
+      ? PublishIngredientTypeCommand.Invariant(id)
+      : PublishIngredientTypeCommand.Locale(id, language);
     return await _commandBus.ExecuteAsync(command, cancellationToken);
   }
 

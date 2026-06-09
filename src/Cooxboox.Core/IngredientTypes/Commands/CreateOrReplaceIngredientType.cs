@@ -14,7 +14,11 @@ internal class CreateOrReplaceIngredientTypeCommandHandler : ICommandHandler<Cre
   private readonly IIngredientTypeRepository _ingredientTypeRepository;
   private readonly IPermissionService _permissionService;
 
-  public CreateOrReplaceIngredientTypeCommandHandler(IContext context, IIngredientTypeQuerier ingredientTypeQuerier, IIngredientTypeRepository ingredientTypeRepository, IPermissionService permissionService)
+  public CreateOrReplaceIngredientTypeCommandHandler(
+    IContext context,
+    IIngredientTypeQuerier ingredientTypeQuerier,
+    IIngredientTypeRepository ingredientTypeRepository,
+    IPermissionService permissionService)
   {
     _context = context;
     _ingredientTypeQuerier = ingredientTypeQuerier;

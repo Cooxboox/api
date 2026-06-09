@@ -28,6 +28,20 @@ public class IngredientTypeController : ControllerBase
     return ToActionResult(result);
   }
 
+  [HttpPatch("{id}/publish/all")]
+  public async Task<ActionResult<IngredientTypeModel>> PublishAllAsync(Guid id, CancellationToken cancellationToken)
+  {
+    IngredientTypeModel? ingredientType = await _ingredientTypeService.PublishAllAsync(id, cancellationToken);
+    return ingredientType is null ? NotFound() : Ok(ingredientType);
+  }
+
+  [HttpPatch("{id}/publish")]
+  public async Task<ActionResult<IngredientTypeModel>> PublishAsync(Guid id, string? language, CancellationToken cancellationToken)
+  {
+    IngredientTypeModel? ingredientType = await _ingredientTypeService.PublishAsync(id, language, cancellationToken);
+    return ingredientType is null ? NotFound() : Ok(ingredientType);
+  }
+
   [HttpGet("{id}")]
   public async Task<ActionResult<IngredientTypeModel>> ReadAsync(Guid id, CancellationToken cancellationToken)
   {

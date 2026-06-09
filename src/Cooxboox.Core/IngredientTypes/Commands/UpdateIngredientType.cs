@@ -13,7 +13,11 @@ internal class UpdateIngredientTypeCommandHandler : ICommandHandler<UpdateIngred
   private readonly IIngredientTypeRepository _ingredientTypeRepository;
   private readonly IPermissionService _permissionService;
 
-  public UpdateIngredientTypeCommandHandler(IContext context, IIngredientTypeQuerier ingredientTypeQuerier, IIngredientTypeRepository ingredientTypeRepository, IPermissionService permissionService)
+  public UpdateIngredientTypeCommandHandler(
+    IContext context,
+    IIngredientTypeQuerier ingredientTypeQuerier,
+    IIngredientTypeRepository ingredientTypeRepository,
+    IPermissionService permissionService)
   {
     _context = context;
     _ingredientTypeQuerier = ingredientTypeQuerier;
