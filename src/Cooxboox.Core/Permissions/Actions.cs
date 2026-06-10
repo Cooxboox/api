@@ -6,6 +6,7 @@ internal static class Actions
   public const string CreateIngredientCategory = "CreateIngredientCategory";
   public const string CreateIngredientType = "CreateIngredientType";
   public const string CreateKitchen = "CreateKitchen";
+  public const string CreateRecipe = "CreateRecipe";
   public const string CreateRecipeCategory = "CreateRecipeCategory";
   public const string CreateRecipeType = "CreateRecipeType";
   public const string Publish = "Publish";
