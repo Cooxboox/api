@@ -1,4 +1,5 @@
-﻿using Cooxboox.Core.IngredientTypes;
+﻿using Cooxboox.Core;
+using Cooxboox.Core.IngredientTypes;
 using Cooxboox.Core.IngredientTypes.Events;
 using Cooxboox.Core.Localization;
 using Logitar;
@@ -16,6 +17,11 @@ internal class IngredientTypeEntity : AggregateEntity
 
   public string Name { get; private set; } = string.Empty;
   public string? Notes { get; private set; }
+
+  public ContentStatus Status { get; private set; }
+  public long? PublishedVersion { get; private set; }
+  public string? PublishedBy { get; private set; }
+  public DateTime? PublishedOn { get; private set; }
 
   public List<IngredientTypeLocaleEntity> Locales { get; private set; } = [];
 
@@ -35,11 +41,33 @@ internal class IngredientTypeEntity : AggregateEntity
   public override IReadOnlyCollection<ActorId> GetActorIds()
   {
     HashSet<ActorId> actorIds = base.GetActorIds().ToHashSet();
+    if (PublishedBy is not null)
+    {
+      actorIds.Add(new ActorId(PublishedBy));
+    }
     foreach (IngredientTypeLocaleEntity locale in Locales)
     {
       actorIds.AddRange(locale.GetActorIds());
     }
     return actorIds;
+  }
+
+  public void Publish(IngredientTypePublished @event)
+  {
+    base.Update(@event);
+
+    if (@event.Language is null)
+    {
+      Status = ContentStatus.Latest;
+      PublishedVersion = Version;
+      PublishedBy = @event.ActorId?.Value;
+      PublishedOn = @event.OccurredOn.AsUniversalTime();
+    }
+    else
+    {
+      IngredientTypeLocaleEntity locale = FindLocale(@event.Language);
+      locale.Publish(@event);
+    }
   }
 
   public IngredientTypeLocaleEntity? RemoveLocale(IngredientTypeLocaleRemoved @event)
@@ -79,6 +107,8 @@ internal class IngredientTypeEntity : AggregateEntity
     }
   }
 
+  private IngredientTypeLocaleEntity FindLocale(Language language) => TryGetLocale(language)
+    ?? throw new InvalidOperationException($"The ingredient type '{this}' locale '{language}' was not found.");
   private IngredientTypeLocaleEntity? TryGetLocale(Language language) => Locales.SingleOrDefault(locale => locale.Language == language.Code);
 
   public override string ToString() => $"{Name} | {base.ToString()}";
