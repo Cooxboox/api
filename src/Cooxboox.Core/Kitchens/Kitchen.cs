@@ -18,7 +18,8 @@ public class Kitchen : AggregateRoot, IEntityProvider
 
   private Name? _name = null;
   public Name Name => _name ?? throw new InvalidOperationException("The name was not initialized.");
-  public Slug? Slug { get; }
+  public Slug? Slug { get; private set; }
+  public Notes? Notes { get; private set; }
 
   private readonly Dictionary<Language, KitchenLocale> _locales = [];
 
@@ -39,6 +40,18 @@ public class Kitchen : AggregateRoot, IEntityProvider
     OwnerId = @event.OwnerId;
 
     _name = @event.Name;
+  }
+
+  public void Annotate(Notes? notes, ActorId? actorId = null)
+  {
+    if (!Equals(Notes, notes))
+    {
+      Raise(new KitchenAnnotated(notes), actorId);
+    }
+  }
+  protected virtual void Handle(KitchenAnnotated @event)
+  {
+    Notes = @event.Notes;
   }
 
   public void Delete(ActorId? actorId = null)
@@ -96,6 +109,18 @@ public class Kitchen : AggregateRoot, IEntityProvider
     }
   }
 
+  public void SetSlug(Slug? slug, ActorId? actorId = null)
+  {
+    if (!Equals(Slug, slug))
+    {
+      Raise(new KitchenSlugChanged(slug), actorId);
+    }
+  }
+  protected virtual void Handle(KitchenSlugChanged @event)
+  {
+    Slug = @event.Slug;
+  }
+
   public void Unpublish(ActorId? actorId = null)
   {
     UnpublishInvariant(actorId);
@@ -148,6 +173,18 @@ public class Kitchen : AggregateRoot, IEntityProvider
     _statuses.Remove(@event.Language);
   }
 
+  public void Rename(Name name, ActorId? actorId = null)
+  {
+    if (!Name.Equals(name))
+    {
+      Raise(new KitchenRenamed(name), actorId);
+    }
+  }
+  protected virtual void Handle(KitchenRenamed @event)
+  {
+    _name = @event.Name;
+  }
+
   public void SetLocale(Language language, KitchenLocale locale, ActorId? actorId = null)
   {
     KitchenLocale? existingLocale = TryGetLocale(language);
@@ -171,26 +208,6 @@ public class Kitchen : AggregateRoot, IEntityProvider
   }
 
   public KitchenLocale? TryGetLocale(Language language) => _locales.TryGetValue(language, out KitchenLocale? locale) ? locale : null;
-
-  public void Update(Name name, ActorId? actorId = null)
-  {
-    if (!Name.Equals(name))
-    {
-      Raise(new KitchenUpdated(name), actorId);
-    }
-  }
-  protected virtual void Handle(KitchenUpdated @event)
-  {
-    if (@event.Name is not null)
-    {
-      _name = @event.Name;
-    }
-
-    if (_status == ContentStatus.Latest)
-    {
-      _status = ContentStatus.Published;
-    }
-  }
 
   public override string ToString() => $"{Name} | {base.ToString()}";
 }

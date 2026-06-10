@@ -51,6 +51,13 @@ internal class KitchenEntity : AggregateEntity
   {
   }
 
+  public void Annotate(KitchenAnnotated @event)
+  {
+    base.Update(@event);
+
+    Notes = @event.Notes?.Value;
+  }
+
   public override IReadOnlyCollection<ActorId> GetActorIds()
   {
     HashSet<ActorId> actorIds = base.GetActorIds().ToHashSet();
@@ -84,29 +91,18 @@ internal class KitchenEntity : AggregateEntity
     }
   }
 
-  public void Unpublish(KitchenUnpublished @event)
-  {
-    base.Update(@event);
-
-    if (@event.Language is null)
-    {
-      Status = ContentStatus.Unpublished;
-      PublishedVersion = null;
-      PublishedBy = null;
-      PublishedOn = null;
-    }
-    else
-    {
-      KitchenLocaleEntity locale = FindLocale(@event.Language);
-      locale.Unpublish(@event);
-    }
-  }
-
   public KitchenLocaleEntity? RemoveLocale(KitchenLocaleRemoved @event)
   {
     base.Update(@event);
 
     return TryGetLocale(@event.Language);
+  }
+
+  public void Rename(KitchenRenamed @event)
+  {
+    base.Update(@event);
+
+    Name = @event.Name.Value;
   }
 
   public void SetLocale(KitchenLocaleChanged @event)
@@ -125,13 +121,28 @@ internal class KitchenEntity : AggregateEntity
     }
   }
 
-  public void Update(KitchenUpdated @event)
+  public void SetSlug(KitchenSlugChanged @event)
   {
     base.Update(@event);
 
-    if (@event.Name is not null)
+    Slug = @event.Slug?.Value;
+  }
+
+  public void Unpublish(KitchenUnpublished @event)
+  {
+    base.Update(@event);
+
+    if (@event.Language is null)
     {
-      Name = @event.Name.Value;
+      Status = ContentStatus.Unpublished;
+      PublishedVersion = null;
+      PublishedBy = null;
+      PublishedOn = null;
+    }
+    else
+    {
+      KitchenLocaleEntity locale = FindLocale(@event.Language);
+      locale.Unpublish(@event);
     }
   }
 
