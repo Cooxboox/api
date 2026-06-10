@@ -1,4 +1,4 @@
-﻿using Cooxboox.Builders;
+using Cooxboox.Builders;
 using Cooxboox.Core;
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.Kitchens;
@@ -64,74 +64,97 @@ public class RecipeIntegrationTests : IntegrationTests
     Assert.Equal(payload.Notes.Trim(), recipe.Notes);
   }
 
-  [Theory(DisplayName = "It should publish a recipe.")]
-  [InlineData(true, false)]
-  [InlineData(false, true)]
-  [InlineData(true, true)]
-  public async Task Given_Recipe_When_Publish_Then_Published(bool publishInvariant, bool publishLocale)
+  [Fact(DisplayName = "It should publish a recipe.")]
+  public async Task Given_Recipe_When_PublishAll_Then_AllPublished()
   {
     Language language = Faker.Language();
     _recipe.SetLocale(language, new RecipeLocale(_recipe.Name, null, null, null, null), Actor.ToActorId());
     await _recipeRepository.SaveAsync(_recipe);
 
-    RecipeModel? recipe = null;
-    long version = _recipe.Version;
-    if (publishInvariant && publishLocale)
-    {
-      recipe = await _recipeService.PublishAllAsync(_recipe.Entity.Id);
-      version += 2;
-    }
-    else if (publishInvariant)
-    {
-      recipe = await _recipeService.PublishAsync(_recipe.Entity.Id);
-      version++;
-    }
-    else if (publishLocale)
-    {
-      recipe = await _recipeService.PublishAsync(_recipe.Entity.Id, language.Code);
-      version++;
-    }
+    RecipeModel? recipe = await _recipeService.PublishAllAsync(_recipe.Entity.Id);
     Assert.NotNull(recipe);
 
     Assert.Equal(_recipe.Entity.Id, recipe.Id);
-    Assert.Equal(version, recipe.Version);
+    Assert.Equal(_recipe.Version + 2, recipe.Version);
     Assert.Equal(_recipe.CreatedBy, recipe.CreatedBy.ToActorId());
     Assert.Equal(_recipe.CreatedOn.AsUniversalTime(), recipe.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(Actor, recipe.UpdatedBy);
     Assert.Equal(DateTime.UtcNow, recipe.UpdatedOn, TimeSpan.FromSeconds(10));
 
-    if (publishInvariant)
-    {
-      Assert.Equal(ContentStatus.Latest, recipe.Status);
-      Assert.Equal(recipe.Version - (publishLocale ? 1 : 0), recipe.PublishedVersion);
-      Assert.Equal(Actor, recipe.PublishedBy);
-      Assert.True(recipe.PublishedOn.HasValue);
-      Assert.Equal(DateTime.UtcNow, recipe.PublishedOn.Value, TimeSpan.FromSeconds(10));
-    }
-    else
-    {
-      Assert.Equal(ContentStatus.Unpublished, recipe.Status);
-      Assert.Null(recipe.PublishedVersion);
-      Assert.Null(recipe.PublishedBy);
-      Assert.Null(recipe.PublishedOn);
-    }
+    Assert.Equal(ContentStatus.Latest, recipe.Status);
+    Assert.Equal(recipe.Version - 1, recipe.PublishedVersion);
+    Assert.Equal(Actor, recipe.PublishedBy);
+    Assert.True(recipe.PublishedOn.HasValue);
+    Assert.Equal(DateTime.UtcNow, recipe.PublishedOn.Value, TimeSpan.FromSeconds(10));
 
     RecipeLocaleModel locale = Assert.Single(recipe.Locales);
-    if (publishLocale)
-    {
-      Assert.Equal(ContentStatus.Latest, locale.Status);
-      Assert.Equal(locale.Version, locale.PublishedVersion);
-      Assert.Equal(Actor, locale.PublishedBy);
-      Assert.True(locale.PublishedOn.HasValue);
-      Assert.Equal(DateTime.UtcNow, locale.PublishedOn.Value, TimeSpan.FromSeconds(10));
-    }
-    else
-    {
-      Assert.Equal(ContentStatus.Unpublished, locale.Status);
-      Assert.Null(locale.PublishedVersion);
-      Assert.Null(locale.PublishedBy);
-      Assert.Null(locale.PublishedOn);
-    }
+    Assert.Equal(ContentStatus.Latest, locale.Status);
+    Assert.Equal(locale.Version, locale.PublishedVersion);
+    Assert.Equal(Actor, locale.PublishedBy);
+    Assert.True(locale.PublishedOn.HasValue);
+    Assert.Equal(DateTime.UtcNow, locale.PublishedOn.Value, TimeSpan.FromSeconds(10));
+  }
+
+  [Fact(DisplayName = "It should publish a recipe invariant.")]
+  public async Task Given_Recipe_When_PublishInvariant_Then_InvariantPublished()
+  {
+    Language language = Faker.Language();
+    _recipe.SetLocale(language, new RecipeLocale(_recipe.Name, null, null, null, null), Actor.ToActorId());
+    await _recipeRepository.SaveAsync(_recipe);
+
+    RecipeModel? recipe = await _recipeService.PublishAsync(_recipe.Entity.Id);
+    Assert.NotNull(recipe);
+
+    Assert.Equal(_recipe.Entity.Id, recipe.Id);
+    Assert.Equal(_recipe.Version + 1, recipe.Version);
+    Assert.Equal(_recipe.CreatedBy, recipe.CreatedBy.ToActorId());
+    Assert.Equal(_recipe.CreatedOn.AsUniversalTime(), recipe.CreatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(Actor, recipe.UpdatedBy);
+    Assert.Equal(DateTime.UtcNow, recipe.UpdatedOn, TimeSpan.FromSeconds(10));
+
+    Assert.Equal(ContentStatus.Latest, recipe.Status);
+    Assert.Equal(recipe.Version, recipe.PublishedVersion);
+    Assert.Equal(Actor, recipe.PublishedBy);
+    Assert.True(recipe.PublishedOn.HasValue);
+    Assert.Equal(DateTime.UtcNow, recipe.PublishedOn.Value, TimeSpan.FromSeconds(10));
+
+    RecipeLocaleModel locale = Assert.Single(recipe.Locales);
+    Assert.Equal(ContentStatus.Unpublished, locale.Status);
+    Assert.Null(locale.PublishedVersion);
+    Assert.Null(locale.PublishedBy);
+    Assert.Null(locale.PublishedOn);
+  }
+
+  [Fact(DisplayName = "It should publish a recipe locale.")]
+  public async Task Given_Recipe_When_PublishLocale_Then_LocalePublished()
+  {
+    Language language = Faker.Language();
+    _recipe.PublishInvariant(Actor.ToActorId());
+    _recipe.SetLocale(language, new RecipeLocale(_recipe.Name, null, null, null, null), Actor.ToActorId());
+    await _recipeRepository.SaveAsync(_recipe);
+
+    RecipeModel? recipe = await _recipeService.PublishAsync(_recipe.Entity.Id, language.Code);
+    Assert.NotNull(recipe);
+
+    Assert.Equal(_recipe.Entity.Id, recipe.Id);
+    Assert.Equal(_recipe.Version + 1, recipe.Version);
+    Assert.Equal(_recipe.CreatedBy, recipe.CreatedBy.ToActorId());
+    Assert.Equal(_recipe.CreatedOn.AsUniversalTime(), recipe.CreatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(Actor, recipe.UpdatedBy);
+    Assert.Equal(DateTime.UtcNow, recipe.UpdatedOn, TimeSpan.FromSeconds(10));
+
+    Assert.Equal(ContentStatus.Latest, recipe.Status);
+    Assert.Equal(recipe.Version - 2, recipe.PublishedVersion);
+    Assert.Equal(Actor, recipe.PublishedBy);
+    Assert.True(recipe.PublishedOn.HasValue);
+    Assert.Equal(DateTime.UtcNow, recipe.PublishedOn.Value, TimeSpan.FromSeconds(10));
+
+    RecipeLocaleModel locale = Assert.Single(recipe.Locales);
+    Assert.Equal(ContentStatus.Latest, locale.Status);
+    Assert.Equal(locale.Version, locale.PublishedVersion);
+    Assert.Equal(Actor, locale.PublishedBy);
+    Assert.True(locale.PublishedOn.HasValue);
+    Assert.Equal(DateTime.UtcNow, locale.PublishedOn.Value, TimeSpan.FromSeconds(10));
   }
 
   [Theory(DisplayName = "It should unpublish a recipe.")]
@@ -360,6 +383,18 @@ public class RecipeIntegrationTests : IntegrationTests
     Assert.Null(locale.PublishedVersion);
     Assert.Null(locale.PublishedBy);
     Assert.Null(locale.PublishedOn);
+  }
+
+  [Fact(DisplayName = "It should throw InvariantNotPublishedException when the invariant is not published.")]
+  public async Task Given_UnpublishedInvariant_When_PublishLocale_Then_InvariantNotPublishedException()
+  {
+    Language language = Faker.Language();
+    _recipe.SetLocale(language, new RecipeLocale(_recipe.Name, null, null, null, null), Actor.ToActorId());
+    await _recipeRepository.SaveAsync(_recipe);
+
+    var exception = await Assert.ThrowsAsync<InvariantNotPublishedException>(async () => await _recipeService.PublishAsync(_recipe.Entity.Id, language.Code));
+    Entity entity = new(exception.EntityKind, exception.EntityId, exception.KitchenId.HasValue ? new KitchenId(exception.KitchenId.Value) : null);
+    Assert.Equal(_recipe.Entity, entity);
   }
 
   [Fact(DisplayName = "It should throw PermissionDeniedException when creating a new recipe.")]

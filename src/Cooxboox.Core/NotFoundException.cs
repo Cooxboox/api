@@ -1,6 +1,6 @@
 ﻿using Krakenar.Contracts;
 
-namespace Cooxboox.Core.Localization;
+namespace Cooxboox.Core;
 
 public abstract class NotFoundException : ErrorException
 {

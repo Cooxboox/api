@@ -1,4 +1,4 @@
-﻿using Cooxboox.Builders;
+using Cooxboox.Builders;
 using Cooxboox.Core;
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.Kitchens;
@@ -203,74 +203,97 @@ public class KitchenIntegrationTests : IntegrationTests
     Assert.Equal(_kitchen.Slug?.Value, kitchen.Slug);
   }
 
-  [Theory(DisplayName = "It should publish a kitchen.")]
-  [InlineData(true, false)]
-  [InlineData(false, true)]
-  [InlineData(true, true)]
-  public async Task Given_Kitchen_When_Publish_Then_Published(bool publishInvariant, bool publishLocale)
+  [Fact(DisplayName = "It should publish a kitchen.")]
+  public async Task Given_Kitchen_When_PublishAll_Then_AllPublished()
   {
     Language language = Faker.Language();
     _kitchen.SetLocale(language, new KitchenLocale(null, null, null), Actor.ToActorId());
     await _kitchenRepository.SaveAsync(_kitchen);
 
-    KitchenModel? kitchen = null;
-    long version = _kitchen.Version;
-    if (publishInvariant && publishLocale)
-    {
-      kitchen = await _kitchenService.PublishAllAsync(_kitchen.Entity.Id);
-      version += 2;
-    }
-    else if (publishInvariant)
-    {
-      kitchen = await _kitchenService.PublishAsync(_kitchen.Entity.Id);
-      version++;
-    }
-    else if (publishLocale)
-    {
-      kitchen = await _kitchenService.PublishAsync(_kitchen.Entity.Id, language.Code);
-      version++;
-    }
+    KitchenModel? kitchen = await _kitchenService.PublishAllAsync(_kitchen.Entity.Id);
     Assert.NotNull(kitchen);
 
     Assert.Equal(_kitchen.Entity.Id, kitchen.Id);
-    Assert.Equal(version, kitchen.Version);
+    Assert.Equal(_kitchen.Version + 2, kitchen.Version);
     Assert.Equal(_kitchen.CreatedBy, kitchen.CreatedBy.ToActorId());
     Assert.Equal(_kitchen.CreatedOn.AsUniversalTime(), kitchen.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(Actor, kitchen.UpdatedBy);
     Assert.Equal(DateTime.UtcNow, kitchen.UpdatedOn, TimeSpan.FromSeconds(10));
 
-    if (publishInvariant)
-    {
-      Assert.Equal(ContentStatus.Latest, kitchen.Status);
-      Assert.Equal(kitchen.Version - (publishLocale ? 1 : 0), kitchen.PublishedVersion);
-      Assert.Equal(Actor, kitchen.PublishedBy);
-      Assert.True(kitchen.PublishedOn.HasValue);
-      Assert.Equal(DateTime.UtcNow, kitchen.PublishedOn.Value, TimeSpan.FromSeconds(10));
-    }
-    else
-    {
-      Assert.Equal(ContentStatus.Unpublished, kitchen.Status);
-      Assert.Null(kitchen.PublishedVersion);
-      Assert.Null(kitchen.PublishedBy);
-      Assert.Null(kitchen.PublishedOn);
-    }
+    Assert.Equal(ContentStatus.Latest, kitchen.Status);
+    Assert.Equal(kitchen.Version - 1, kitchen.PublishedVersion);
+    Assert.Equal(Actor, kitchen.PublishedBy);
+    Assert.True(kitchen.PublishedOn.HasValue);
+    Assert.Equal(DateTime.UtcNow, kitchen.PublishedOn.Value, TimeSpan.FromSeconds(10));
 
     KitchenLocaleModel locale = Assert.Single(kitchen.Locales);
-    if (publishLocale)
-    {
-      Assert.Equal(ContentStatus.Latest, locale.Status);
-      Assert.Equal(locale.Version, locale.PublishedVersion);
-      Assert.Equal(Actor, locale.PublishedBy);
-      Assert.True(locale.PublishedOn.HasValue);
-      Assert.Equal(DateTime.UtcNow, locale.PublishedOn.Value, TimeSpan.FromSeconds(10));
-    }
-    else
-    {
-      Assert.Equal(ContentStatus.Unpublished, locale.Status);
-      Assert.Null(locale.PublishedVersion);
-      Assert.Null(locale.PublishedBy);
-      Assert.Null(locale.PublishedOn);
-    }
+    Assert.Equal(ContentStatus.Latest, locale.Status);
+    Assert.Equal(locale.Version, locale.PublishedVersion);
+    Assert.Equal(Actor, locale.PublishedBy);
+    Assert.True(locale.PublishedOn.HasValue);
+    Assert.Equal(DateTime.UtcNow, locale.PublishedOn.Value, TimeSpan.FromSeconds(10));
+  }
+
+  [Fact(DisplayName = "It should publish a kitchen invariant.")]
+  public async Task Given_Kitchen_When_PublishInvariant_Then_InvariantPublished()
+  {
+    Language language = Faker.Language();
+    _kitchen.SetLocale(language, new KitchenLocale(null, null, null), Actor.ToActorId());
+    await _kitchenRepository.SaveAsync(_kitchen);
+
+    KitchenModel? kitchen = await _kitchenService.PublishAsync(_kitchen.Entity.Id);
+    Assert.NotNull(kitchen);
+
+    Assert.Equal(_kitchen.Entity.Id, kitchen.Id);
+    Assert.Equal(_kitchen.Version + 1, kitchen.Version);
+    Assert.Equal(_kitchen.CreatedBy, kitchen.CreatedBy.ToActorId());
+    Assert.Equal(_kitchen.CreatedOn.AsUniversalTime(), kitchen.CreatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(Actor, kitchen.UpdatedBy);
+    Assert.Equal(DateTime.UtcNow, kitchen.UpdatedOn, TimeSpan.FromSeconds(10));
+
+    Assert.Equal(ContentStatus.Latest, kitchen.Status);
+    Assert.Equal(kitchen.Version, kitchen.PublishedVersion);
+    Assert.Equal(Actor, kitchen.PublishedBy);
+    Assert.True(kitchen.PublishedOn.HasValue);
+    Assert.Equal(DateTime.UtcNow, kitchen.PublishedOn.Value, TimeSpan.FromSeconds(10));
+
+    KitchenLocaleModel locale = Assert.Single(kitchen.Locales);
+    Assert.Equal(ContentStatus.Unpublished, locale.Status);
+    Assert.Null(locale.PublishedVersion);
+    Assert.Null(locale.PublishedBy);
+    Assert.Null(locale.PublishedOn);
+  }
+
+  [Fact(DisplayName = "It should publish a kitchen locale.")]
+  public async Task Given_Kitchen_When_PublishLocale_Then_LocalePublished()
+  {
+    Language language = Faker.Language();
+    _kitchen.PublishInvariant(Actor.ToActorId());
+    _kitchen.SetLocale(language, new KitchenLocale(null, null, null), Actor.ToActorId());
+    await _kitchenRepository.SaveAsync(_kitchen);
+
+    KitchenModel? kitchen = await _kitchenService.PublishAsync(_kitchen.Entity.Id, language.Code);
+    Assert.NotNull(kitchen);
+
+    Assert.Equal(_kitchen.Entity.Id, kitchen.Id);
+    Assert.Equal(_kitchen.Version + 1, kitchen.Version);
+    Assert.Equal(_kitchen.CreatedBy, kitchen.CreatedBy.ToActorId());
+    Assert.Equal(_kitchen.CreatedOn.AsUniversalTime(), kitchen.CreatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(Actor, kitchen.UpdatedBy);
+    Assert.Equal(DateTime.UtcNow, kitchen.UpdatedOn, TimeSpan.FromSeconds(10));
+
+    Assert.Equal(ContentStatus.Latest, kitchen.Status);
+    Assert.Equal(kitchen.Version - 2, kitchen.PublishedVersion);
+    Assert.Equal(Actor, kitchen.PublishedBy);
+    Assert.True(kitchen.PublishedOn.HasValue);
+    Assert.Equal(DateTime.UtcNow, kitchen.PublishedOn.Value, TimeSpan.FromSeconds(10));
+
+    KitchenLocaleModel locale = Assert.Single(kitchen.Locales);
+    Assert.Equal(ContentStatus.Latest, locale.Status);
+    Assert.Equal(locale.Version, locale.PublishedVersion);
+    Assert.Equal(Actor, locale.PublishedBy);
+    Assert.True(locale.PublishedOn.HasValue);
+    Assert.Equal(DateTime.UtcNow, locale.PublishedOn.Value, TimeSpan.FromSeconds(10));
   }
 
   [Theory(DisplayName = "It should unpublish a kitchen.")]
@@ -419,6 +442,18 @@ public class KitchenIntegrationTests : IntegrationTests
     Assert.Null(locale.PublishedVersion);
     Assert.Null(locale.PublishedBy);
     Assert.Null(locale.PublishedOn);
+  }
+
+  [Fact(DisplayName = "It should throw InvariantNotPublishedException when the invariant is not published.")]
+  public async Task Given_UnpublishedInvariant_When_PublishLocale_Then_InvariantNotPublishedException()
+  {
+    Language language = Faker.Language();
+    _kitchen.SetLocale(language, new KitchenLocale(null, null, null), Actor.ToActorId());
+    await _kitchenRepository.SaveAsync(_kitchen);
+
+    var exception = await Assert.ThrowsAsync<InvariantNotPublishedException>(async () => await _kitchenService.PublishAsync(_kitchen.Entity.Id, language.Code));
+    Entity entity = new(exception.EntityKind, exception.EntityId, exception.KitchenId.HasValue ? new KitchenId(exception.KitchenId.Value) : null);
+    Assert.Equal(_kitchen.Entity, entity);
   }
 
   [Fact(DisplayName = "It should throw PermissionDeniedException when publishing a kitchen.")]

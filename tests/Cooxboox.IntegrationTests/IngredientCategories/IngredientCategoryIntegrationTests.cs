@@ -64,74 +64,97 @@ public class IngredientCategoryIntegrationTests : IntegrationTests
     Assert.Equal(payload.Notes.Trim(), ingredientCategory.Notes);
   }
 
-  [Theory(DisplayName = "It should publish an ingredient category.")]
-  [InlineData(true, false)]
-  [InlineData(false, true)]
-  [InlineData(true, true)]
-  public async Task Given_IngredientCategory_When_Publish_Then_Published(bool publishInvariant, bool publishLocale)
+  [Fact(DisplayName = "It should publish an ingredient category.")]
+  public async Task Given_IngredientCategory_When_PublishAll_Then_AllPublished()
   {
     Language language = Faker.Language();
     _ingredientCategory.SetLocale(language, new IngredientCategoryLocale(_ingredientCategory.Name, null, null, null, null), Actor.ToActorId());
     await _ingredientCategoryRepository.SaveAsync(_ingredientCategory);
 
-    IngredientCategoryModel? ingredientCategory = null;
-    long version = _ingredientCategory.Version;
-    if (publishInvariant && publishLocale)
-    {
-      ingredientCategory = await _ingredientCategoryService.PublishAllAsync(_ingredientCategory.Entity.Id);
-      version += 2;
-    }
-    else if (publishInvariant)
-    {
-      ingredientCategory = await _ingredientCategoryService.PublishAsync(_ingredientCategory.Entity.Id);
-      version++;
-    }
-    else if (publishLocale)
-    {
-      ingredientCategory = await _ingredientCategoryService.PublishAsync(_ingredientCategory.Entity.Id, language.Code);
-      version++;
-    }
+    IngredientCategoryModel? ingredientCategory = await _ingredientCategoryService.PublishAllAsync(_ingredientCategory.Entity.Id);
     Assert.NotNull(ingredientCategory);
 
     Assert.Equal(_ingredientCategory.Entity.Id, ingredientCategory.Id);
-    Assert.Equal(version, ingredientCategory.Version);
+    Assert.Equal(_ingredientCategory.Version + 2, ingredientCategory.Version);
     Assert.Equal(_ingredientCategory.CreatedBy, ingredientCategory.CreatedBy.ToActorId());
     Assert.Equal(_ingredientCategory.CreatedOn.AsUniversalTime(), ingredientCategory.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(Actor, ingredientCategory.UpdatedBy);
     Assert.Equal(DateTime.UtcNow, ingredientCategory.UpdatedOn, TimeSpan.FromSeconds(10));
 
-    if (publishInvariant)
-    {
-      Assert.Equal(ContentStatus.Latest, ingredientCategory.Status);
-      Assert.Equal(ingredientCategory.Version - (publishLocale ? 1 : 0), ingredientCategory.PublishedVersion);
-      Assert.Equal(Actor, ingredientCategory.PublishedBy);
-      Assert.True(ingredientCategory.PublishedOn.HasValue);
-      Assert.Equal(DateTime.UtcNow, ingredientCategory.PublishedOn.Value, TimeSpan.FromSeconds(10));
-    }
-    else
-    {
-      Assert.Equal(ContentStatus.Unpublished, ingredientCategory.Status);
-      Assert.Null(ingredientCategory.PublishedVersion);
-      Assert.Null(ingredientCategory.PublishedBy);
-      Assert.Null(ingredientCategory.PublishedOn);
-    }
+    Assert.Equal(ContentStatus.Latest, ingredientCategory.Status);
+    Assert.Equal(ingredientCategory.Version - 1, ingredientCategory.PublishedVersion);
+    Assert.Equal(Actor, ingredientCategory.PublishedBy);
+    Assert.True(ingredientCategory.PublishedOn.HasValue);
+    Assert.Equal(DateTime.UtcNow, ingredientCategory.PublishedOn.Value, TimeSpan.FromSeconds(10));
 
     IngredientCategoryLocaleModel locale = Assert.Single(ingredientCategory.Locales);
-    if (publishLocale)
-    {
-      Assert.Equal(ContentStatus.Latest, locale.Status);
-      Assert.Equal(locale.Version, locale.PublishedVersion);
-      Assert.Equal(Actor, locale.PublishedBy);
-      Assert.True(locale.PublishedOn.HasValue);
-      Assert.Equal(DateTime.UtcNow, locale.PublishedOn.Value, TimeSpan.FromSeconds(10));
-    }
-    else
-    {
-      Assert.Equal(ContentStatus.Unpublished, locale.Status);
-      Assert.Null(locale.PublishedVersion);
-      Assert.Null(locale.PublishedBy);
-      Assert.Null(locale.PublishedOn);
-    }
+    Assert.Equal(ContentStatus.Latest, locale.Status);
+    Assert.Equal(locale.Version, locale.PublishedVersion);
+    Assert.Equal(Actor, locale.PublishedBy);
+    Assert.True(locale.PublishedOn.HasValue);
+    Assert.Equal(DateTime.UtcNow, locale.PublishedOn.Value, TimeSpan.FromSeconds(10));
+  }
+
+  [Fact(DisplayName = "It should publish an ingredient category invariant.")]
+  public async Task Given_IngredientCategory_When_PublishInvariant_Then_InvariantPublished()
+  {
+    Language language = Faker.Language();
+    _ingredientCategory.SetLocale(language, new IngredientCategoryLocale(_ingredientCategory.Name, null, null, null, null), Actor.ToActorId());
+    await _ingredientCategoryRepository.SaveAsync(_ingredientCategory);
+
+    IngredientCategoryModel? ingredientCategory = await _ingredientCategoryService.PublishAsync(_ingredientCategory.Entity.Id);
+    Assert.NotNull(ingredientCategory);
+
+    Assert.Equal(_ingredientCategory.Entity.Id, ingredientCategory.Id);
+    Assert.Equal(_ingredientCategory.Version + 1, ingredientCategory.Version);
+    Assert.Equal(_ingredientCategory.CreatedBy, ingredientCategory.CreatedBy.ToActorId());
+    Assert.Equal(_ingredientCategory.CreatedOn.AsUniversalTime(), ingredientCategory.CreatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(Actor, ingredientCategory.UpdatedBy);
+    Assert.Equal(DateTime.UtcNow, ingredientCategory.UpdatedOn, TimeSpan.FromSeconds(10));
+
+    Assert.Equal(ContentStatus.Latest, ingredientCategory.Status);
+    Assert.Equal(ingredientCategory.Version, ingredientCategory.PublishedVersion);
+    Assert.Equal(Actor, ingredientCategory.PublishedBy);
+    Assert.True(ingredientCategory.PublishedOn.HasValue);
+    Assert.Equal(DateTime.UtcNow, ingredientCategory.PublishedOn.Value, TimeSpan.FromSeconds(10));
+
+    IngredientCategoryLocaleModel locale = Assert.Single(ingredientCategory.Locales);
+    Assert.Equal(ContentStatus.Unpublished, locale.Status);
+    Assert.Null(locale.PublishedVersion);
+    Assert.Null(locale.PublishedBy);
+    Assert.Null(locale.PublishedOn);
+  }
+
+  [Fact(DisplayName = "It should publish an ingredient category locale.")]
+  public async Task Given_IngredientCategory_When_PublishLocale_Then_LocalePublished()
+  {
+    Language language = Faker.Language();
+    _ingredientCategory.PublishInvariant(Actor.ToActorId());
+    _ingredientCategory.SetLocale(language, new IngredientCategoryLocale(_ingredientCategory.Name, null, null, null, null), Actor.ToActorId());
+    await _ingredientCategoryRepository.SaveAsync(_ingredientCategory);
+
+    IngredientCategoryModel? ingredientCategory = await _ingredientCategoryService.PublishAsync(_ingredientCategory.Entity.Id, language.Code);
+    Assert.NotNull(ingredientCategory);
+
+    Assert.Equal(_ingredientCategory.Entity.Id, ingredientCategory.Id);
+    Assert.Equal(_ingredientCategory.Version + 1, ingredientCategory.Version);
+    Assert.Equal(_ingredientCategory.CreatedBy, ingredientCategory.CreatedBy.ToActorId());
+    Assert.Equal(_ingredientCategory.CreatedOn.AsUniversalTime(), ingredientCategory.CreatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(Actor, ingredientCategory.UpdatedBy);
+    Assert.Equal(DateTime.UtcNow, ingredientCategory.UpdatedOn, TimeSpan.FromSeconds(10));
+
+    Assert.Equal(ContentStatus.Latest, ingredientCategory.Status);
+    Assert.Equal(ingredientCategory.Version - 2, ingredientCategory.PublishedVersion);
+    Assert.Equal(Actor, ingredientCategory.PublishedBy);
+    Assert.True(ingredientCategory.PublishedOn.HasValue);
+    Assert.Equal(DateTime.UtcNow, ingredientCategory.PublishedOn.Value, TimeSpan.FromSeconds(10));
+
+    IngredientCategoryLocaleModel locale = Assert.Single(ingredientCategory.Locales);
+    Assert.Equal(ContentStatus.Latest, locale.Status);
+    Assert.Equal(locale.Version, locale.PublishedVersion);
+    Assert.Equal(Actor, locale.PublishedBy);
+    Assert.True(locale.PublishedOn.HasValue);
+    Assert.Equal(DateTime.UtcNow, locale.PublishedOn.Value, TimeSpan.FromSeconds(10));
   }
 
   [Theory(DisplayName = "It should unpublish an ingredient category.")]
@@ -360,6 +383,18 @@ public class IngredientCategoryIntegrationTests : IntegrationTests
     Assert.Null(locale.PublishedVersion);
     Assert.Null(locale.PublishedBy);
     Assert.Null(locale.PublishedOn);
+  }
+
+  [Fact(DisplayName = "It should throw InvariantNotPublishedException when the invariant is not published.")]
+  public async Task Given_UnpublishedInvariant_When_PublishLocale_Then_InvariantNotPublishedException()
+  {
+    Language language = Faker.Language();
+    _ingredientCategory.SetLocale(language, new IngredientCategoryLocale(_ingredientCategory.Name, null, null, null, null), Actor.ToActorId());
+    await _ingredientCategoryRepository.SaveAsync(_ingredientCategory);
+
+    var exception = await Assert.ThrowsAsync<InvariantNotPublishedException>(async () => await _ingredientCategoryService.PublishAsync(_ingredientCategory.Entity.Id, language.Code));
+    Entity entity = new(exception.EntityKind, exception.EntityId, exception.KitchenId.HasValue ? new KitchenId(exception.KitchenId.Value) : null);
+    Assert.Equal(_ingredientCategory.Entity, entity);
   }
 
   [Fact(DisplayName = "It should throw PermissionDeniedException when creating a new ingredient category.")]

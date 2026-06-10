@@ -70,9 +70,11 @@ public class IngredientType : AggregateRoot, IEntityProvider
   }
   public void PublishLocale(Language language, ActorId? actorId = null)
   {
-    // TODO(fpion): can we publish a locale if the invariant is not published?
-
-    if (!_statuses.TryGetValue(language, out ContentStatus status))
+    if (_status == ContentStatus.Unpublished)
+    {
+      throw new InvariantNotPublishedException(this);
+    }
+    else if (!_statuses.TryGetValue(language, out ContentStatus status))
     {
       throw new LocaleNotFoundException(this, language);
     }
