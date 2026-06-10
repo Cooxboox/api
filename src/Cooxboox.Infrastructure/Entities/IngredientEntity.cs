@@ -1,4 +1,4 @@
-using Cooxboox.Core;
+﻿using Cooxboox.Core;
 using Cooxboox.Core.Ingredients;
 using Cooxboox.Core.Ingredients.Events;
 using Cooxboox.Core.Localization;
@@ -38,6 +38,15 @@ internal class IngredientEntity : AggregateEntity
   {
   }
 
+  public void Annotate(IngredientAnnotated @event)
+  {
+    base.Update(@event);
+
+    Notes = @event.Notes?.Value;
+
+    // TODO(fpion): invariant status
+  }
+
   public override IReadOnlyCollection<ActorId> GetActorIds()
   {
     HashSet<ActorId> actorIds = base.GetActorIds().ToHashSet();
@@ -70,24 +79,6 @@ internal class IngredientEntity : AggregateEntity
     }
   }
 
-  public void Unpublish(IngredientUnpublished @event)
-  {
-    base.Update(@event);
-
-    if (@event.Language is null)
-    {
-      Status = ContentStatus.Unpublished;
-      PublishedVersion = null;
-      PublishedBy = null;
-      PublishedOn = null;
-    }
-    else
-    {
-      IngredientLocaleEntity locale = FindLocale(@event.Language);
-      locale.Unpublish(@event);
-    }
-  }
-
   public IngredientLocaleEntity? RemoveLocale(IngredientLocaleRemoved @event)
   {
     base.Update(@event);
@@ -111,17 +102,30 @@ internal class IngredientEntity : AggregateEntity
     }
   }
 
-  public void Update(IngredientUpdated @event)
+  public void Rename(IngredientRenamed @event)
   {
     base.Update(@event);
 
-    if (@event.Name is not null)
+    Name = @event.Name.Value;
+
+    // TODO(fpion): invariant status
+  }
+
+  public void Unpublish(IngredientUnpublished @event)
+  {
+    base.Update(@event);
+
+    if (@event.Language is null)
     {
-      Name = @event.Name.Value;
+      Status = ContentStatus.Unpublished;
+      PublishedVersion = null;
+      PublishedBy = null;
+      PublishedOn = null;
     }
-    if (@event.Notes is not null)
+    else
     {
-      Notes = @event.Notes.Value?.Value;
+      IngredientLocaleEntity locale = FindLocale(@event.Language);
+      locale.Unpublish(@event);
     }
   }
 

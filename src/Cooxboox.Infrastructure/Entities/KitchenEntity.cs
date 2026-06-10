@@ -56,6 +56,8 @@ internal class KitchenEntity : AggregateEntity
     base.Update(@event);
 
     Notes = @event.Notes?.Value;
+
+    // TODO(fpion): invariant status
   }
 
   public override IReadOnlyCollection<ActorId> GetActorIds()
@@ -103,6 +105,8 @@ internal class KitchenEntity : AggregateEntity
     base.Update(@event);
 
     Name = @event.Name.Value;
+
+    // TODO(fpion): invariant status
   }
 
   public void SetLocale(KitchenLocaleChanged @event)
@@ -126,6 +130,8 @@ internal class KitchenEntity : AggregateEntity
     base.Update(@event);
 
     Slug = @event.Slug?.Value;
+
+    // TODO(fpion): invariant status
   }
 
   public void Unpublish(KitchenUnpublished @event)
