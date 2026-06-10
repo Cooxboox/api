@@ -93,6 +93,45 @@ public class IngredientType : AggregateRoot, IEntityProvider
     }
   }
 
+  public void Unpublish(ActorId? actorId = null)
+  {
+    UnpublishInvariant(actorId);
+
+    foreach (Language language in _locales.Keys)
+    {
+      UnpublishLocale(language, actorId);
+    }
+  }
+  public void UnpublishInvariant(ActorId? actorId = null)
+  {
+    if (_status != ContentStatus.Unpublished)
+    {
+      Raise(new IngredientTypeUnpublished(Language: null), actorId);
+    }
+  }
+  public void UnpublishLocale(Language language, ActorId? actorId = null)
+  {
+    if (!_statuses.TryGetValue(language, out ContentStatus status))
+    {
+      throw new LocaleNotFoundException(this, language);
+    }
+    else if (status != ContentStatus.Unpublished)
+    {
+      Raise(new IngredientTypeUnpublished(language), actorId);
+    }
+  }
+  protected virtual void Handle(IngredientTypeUnpublished @event)
+  {
+    if (@event.Language is null)
+    {
+      _status = ContentStatus.Unpublished;
+    }
+    else
+    {
+      _statuses[@event.Language] = ContentStatus.Unpublished;
+    }
+  }
+
   public void RemoveLocale(Language language, ActorId? actorId = null)
   {
     if (HasLocale(language))

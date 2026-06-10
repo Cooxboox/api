@@ -70,6 +70,24 @@ internal class IngredientTypeEntity : AggregateEntity
     }
   }
 
+  public void Unpublish(IngredientTypeUnpublished @event)
+  {
+    base.Update(@event);
+
+    if (@event.Language is null)
+    {
+      Status = ContentStatus.Unpublished;
+      PublishedVersion = null;
+      PublishedBy = null;
+      PublishedOn = null;
+    }
+    else
+    {
+      IngredientTypeLocaleEntity locale = FindLocale(@event.Language);
+      locale.Unpublish(@event);
+    }
+  }
+
   public IngredientTypeLocaleEntity? RemoveLocale(IngredientTypeLocaleRemoved @event)
   {
     base.Update(@event);

@@ -15,6 +15,8 @@ public interface IIngredientTypeService
   Task<IngredientTypeModel?> ReadAsync(Guid id, CancellationToken cancellationToken = default);
   Task<IngredientTypeModel?> SaveLocaleAsync(Guid id, string language, SaveIngredientTypeLocalePayload payload, CancellationToken cancellationToken = default);
   Task<SearchResults<IngredientTypeModel>> SearchAsync(SearchIngredientTypesPayload payload, CancellationToken cancellationToken = default);
+  Task<IngredientTypeModel?> UnpublishAllAsync(Guid id, CancellationToken cancellationToken = default);
+  Task<IngredientTypeModel?> UnpublishAsync(Guid id, string? language = null, CancellationToken cancellationToken = default);
   Task<IngredientTypeModel?> UpdateAsync(Guid id, UpdateIngredientTypePayload payload, CancellationToken cancellationToken = default);
   Task<IngredientTypeModel?> UpdateLocaleAsync(Guid id, string language, UpdateIngredientTypeLocalePayload payload, CancellationToken cancellationToken = default);
 }
@@ -27,6 +29,7 @@ internal class IngredientTypeService : IIngredientTypeService
     services.AddTransient<ICommandHandler<CreateOrReplaceIngredientTypeCommand, CreateOrReplaceIngredientTypeResult>, CreateOrReplaceIngredientTypeCommandHandler>();
     services.AddTransient<ICommandHandler<SaveIngredientTypeLocaleCommand, IngredientTypeModel?>, SaveIngredientTypeLocaleCommandHandler>();
     services.AddTransient<ICommandHandler<PublishIngredientTypeCommand, IngredientTypeModel?>, PublishIngredientTypeCommandHandler>();
+    services.AddTransient<ICommandHandler<UnpublishIngredientTypeCommand, IngredientTypeModel?>, UnpublishIngredientTypeCommandHandler>();
     services.AddTransient<ICommandHandler<UpdateIngredientTypeCommand, IngredientTypeModel?>, UpdateIngredientTypeCommandHandler>();
     services.AddTransient<ICommandHandler<UpdateIngredientTypeLocaleCommand, IngredientTypeModel?>, UpdateIngredientTypeLocaleCommandHandler>();
     services.AddTransient<IQueryHandler<ReadIngredientTypeQuery, IngredientTypeModel?>, ReadIngredientTypeQueryHandler>();
@@ -78,6 +81,20 @@ internal class IngredientTypeService : IIngredientTypeService
   {
     SearchIngredientTypesQuery query = new(payload);
     return await _queryBus.ExecuteAsync(query, cancellationToken);
+  }
+
+  public async Task<IngredientTypeModel?> UnpublishAllAsync(Guid id, CancellationToken cancellationToken)
+  {
+    UnpublishIngredientTypeCommand command = UnpublishIngredientTypeCommand.All(id);
+    return await _commandBus.ExecuteAsync(command, cancellationToken);
+  }
+
+  public async Task<IngredientTypeModel?> UnpublishAsync(Guid id, string? language, CancellationToken cancellationToken)
+  {
+    UnpublishIngredientTypeCommand command = string.IsNullOrWhiteSpace(language)
+      ? UnpublishIngredientTypeCommand.Invariant(id)
+      : UnpublishIngredientTypeCommand.Locale(id, language);
+    return await _commandBus.ExecuteAsync(command, cancellationToken);
   }
 
   public async Task<IngredientTypeModel?> UpdateAsync(Guid id, UpdateIngredientTypePayload payload, CancellationToken cancellationToken)

@@ -71,6 +71,20 @@ public class IngredientTypeController : ControllerBase
     return Ok(ingredientTypes);
   }
 
+  [HttpPatch("{id}/unpublish/all")]
+  public async Task<ActionResult<IngredientTypeModel>> UnpublishAllAsync(Guid id, CancellationToken cancellationToken)
+  {
+    IngredientTypeModel? ingredientType = await _ingredientTypeService.UnpublishAllAsync(id, cancellationToken);
+    return ingredientType is null ? NotFound() : Ok(ingredientType);
+  }
+
+  [HttpPatch("{id}/unpublish")]
+  public async Task<ActionResult<IngredientTypeModel>> UnpublishAsync(Guid id, string? language, CancellationToken cancellationToken)
+  {
+    IngredientTypeModel? ingredientType = await _ingredientTypeService.UnpublishAsync(id, language, cancellationToken);
+    return ingredientType is null ? NotFound() : Ok(ingredientType);
+  }
+
   [HttpPatch("{id}")]
   public async Task<ActionResult<IngredientTypeModel>> UpdateAsync(Guid id, [FromBody] UpdateIngredientTypePayload payload, CancellationToken cancellationToken)
   {

@@ -87,6 +87,7 @@ internal class PermissionService : IPermissionService
     switch (action)
     {
       case Actions.Publish:
+      case Actions.Unpublish:
       case Actions.Update:
         return _context.IsKitchenOwner && _context.KitchenId.Equals(entity.KitchenId);
     }

@@ -77,6 +77,14 @@ internal class IngredientTypeLocaleEntity
     PublishedOn = @event.OccurredOn.AsUniversalTime();
   }
 
+  public void Unpublish(IngredientTypeUnpublished @event)
+  {
+    Status = ContentStatus.Unpublished;
+    PublishedVersion = null;
+    PublishedBy = null;
+    PublishedOn = null;
+  }
+
   public void Update(IngredientTypeLocaleChanged @event)
   {
     IngredientTypeLocale locale = @event.Locale;
