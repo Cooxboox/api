@@ -9,6 +9,7 @@ internal class EventSerializer : Logitar.EventSourcing.Infrastructure.EventSeria
     base.RegisterConverters();
 
     SerializerOptions.Converters.Add(new HtmlContentConverter());
+    SerializerOptions.Converters.Add(new IngredientCategoryIdConverter());
     SerializerOptions.Converters.Add(new IngredientTypeIdConverter());
     SerializerOptions.Converters.Add(new KitchenIdConverter());
     SerializerOptions.Converters.Add(new LanguageConverter());

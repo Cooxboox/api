@@ -20,4 +20,8 @@ internal static class IngredientTypes
   public static readonly ColumnId KitchenId = new(nameof(IngredientTypeEntity.KitchenId), Table);
   public static readonly ColumnId Name = new(nameof(IngredientTypeEntity.Name), Table);
   public static readonly ColumnId Notes = new(nameof(IngredientTypeEntity.Notes), Table);
+  public static readonly ColumnId PublishedBy = new(nameof(IngredientTypeEntity.PublishedBy), Table);
+  public static readonly ColumnId PublishedOn = new(nameof(IngredientTypeEntity.PublishedOn), Table);
+  public static readonly ColumnId PublishedVersion = new(nameof(IngredientTypeEntity.PublishedVersion), Table);
+  public static readonly ColumnId Status = new(nameof(IngredientTypeEntity.Status), Table);
 }

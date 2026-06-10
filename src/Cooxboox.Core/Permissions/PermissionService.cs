@@ -62,6 +62,7 @@ internal class PermissionService : IPermissionService
   {
     switch (action)
     {
+      case Actions.CreateIngredientCategory:
       case Actions.CreateIngredientType:
         return _context.IsKitchenOwner;
       case Actions.CreateKitchen:
