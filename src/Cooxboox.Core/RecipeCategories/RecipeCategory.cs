@@ -40,6 +40,20 @@ public class RecipeCategory : AggregateRoot, IEntityProvider
     _name = @event.Name;
   }
 
+  public void Annotate(Notes? notes, ActorId? actorId = null)
+  {
+    if (!Equals(Notes, notes))
+    {
+      Raise(new RecipeCategoryAnnotated(notes), actorId);
+    }
+  }
+  protected virtual void Handle(RecipeCategoryAnnotated @event)
+  {
+    Notes = @event.Notes;
+
+    // TODO(fpion): invariant status
+  }
+
   public void Delete(ActorId? actorId = null)
   {
     if (!IsDeleted)
@@ -95,6 +109,57 @@ public class RecipeCategory : AggregateRoot, IEntityProvider
     }
   }
 
+  public void RemoveLocale(Language language, ActorId? actorId = null)
+  {
+    if (HasLocale(language))
+    {
+      Raise(new RecipeCategoryLocaleRemoved(language), actorId);
+    }
+  }
+  protected virtual void Handle(RecipeCategoryLocaleRemoved @event)
+  {
+    _locales.Remove(@event.Language);
+    _statuses.Remove(@event.Language);
+  }
+
+  public void Rename(Name name, ActorId? actorId = null)
+  {
+    if (!Name.Equals(name))
+    {
+      Raise(new RecipeCategoryRenamed(name), actorId);
+    }
+  }
+  protected virtual void Handle(RecipeCategoryRenamed @event)
+  {
+    _name = @event.Name;
+
+    // TODO(fpion): invariant status
+  }
+
+  public void SetLocale(Language language, RecipeCategoryLocale locale, ActorId? actorId = null)
+  {
+    RecipeCategoryLocale? existingLocale = TryGetLocale(language);
+    if (existingLocale is null || !existingLocale.Equals(locale))
+    {
+      Raise(new RecipeCategoryLocaleChanged(language, locale), actorId);
+    }
+  }
+  protected virtual void Handle(RecipeCategoryLocaleChanged @event)
+  {
+    _locales[@event.Language] = @event.Locale;
+
+    if (!_statuses.TryGetValue(@event.Language, out ContentStatus status))
+    {
+      _statuses[@event.Language] = ContentStatus.Unpublished;
+    }
+    else if (status == ContentStatus.Latest)
+    {
+      _statuses[@event.Language] = ContentStatus.Published;
+    }
+  }
+
+  public RecipeCategoryLocale? TryGetLocale(Language language) => _locales.TryGetValue(language, out RecipeCategoryLocale? locale) ? locale : null;
+
   public void Unpublish(ActorId? actorId = null)
   {
     UnpublishInvariant(actorId);
@@ -134,70 +199,6 @@ public class RecipeCategory : AggregateRoot, IEntityProvider
     }
   }
 
-  public void RemoveLocale(Language language, ActorId? actorId = null)
-  {
-    if (HasLocale(language))
-    {
-      Raise(new RecipeCategoryLocaleRemoved(language), actorId);
-    }
-  }
-  protected virtual void Handle(RecipeCategoryLocaleRemoved @event)
-  {
-    _locales.Remove(@event.Language);
-    _statuses.Remove(@event.Language);
-  }
-
-  public void SetLocale(Language language, RecipeCategoryLocale locale, ActorId? actorId = null)
-  {
-    RecipeCategoryLocale? existingLocale = TryGetLocale(language);
-    if (existingLocale is null || !existingLocale.Equals(locale))
-    {
-      Raise(new RecipeCategoryLocaleChanged(language, locale), actorId);
-    }
-  }
-  protected virtual void Handle(RecipeCategoryLocaleChanged @event)
-  {
-    _locales[@event.Language] = @event.Locale;
-
-    if (!_statuses.TryGetValue(@event.Language, out ContentStatus status))
-    {
-      _statuses[@event.Language] = ContentStatus.Unpublished;
-    }
-    else if (status == ContentStatus.Latest)
-    {
-      _statuses[@event.Language] = ContentStatus.Published;
-    }
-  }
-
-  public RecipeCategoryLocale? TryGetLocale(Language language) => _locales.TryGetValue(language, out RecipeCategoryLocale? locale) ? locale : null;
-
-  public void Update(Name name, Notes? notes, ActorId? actorId = null)
-  {
-    RecipeCategoryUpdated @event = new(
-      Name.Equals(name) ? null : name,
-      Equals(Notes, notes) ? null : new Optional<Notes>(notes));
-
-    if (@event.Name is not null || @event.Notes is not null)
-    {
-      Raise(@event, actorId);
-    }
-  }
-  protected virtual void Handle(RecipeCategoryUpdated @event)
-  {
-    if (@event.Name is not null)
-    {
-      _name = @event.Name;
-    }
-    if (@event.Notes is not null)
-    {
-      Notes = @event.Notes.Value;
-    }
-
-    if (_status == ContentStatus.Latest)
-    {
-      _status = ContentStatus.Published;
-    }
-  }
 
   public override string ToString() => $"{Name} | {base.ToString()}";
 }
