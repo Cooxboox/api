@@ -1,5 +1,5 @@
-﻿using Cooxboox.Core.Identity;
-using Cooxboox.Core.Localization;
+﻿using Cooxboox.Core;
+using Cooxboox.Core.Identity;
 using Cooxboox.Core.Permissions;
 using Cooxboox.Extensions;
 using Cooxboox.Settings;
