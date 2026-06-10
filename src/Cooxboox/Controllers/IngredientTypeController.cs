@@ -28,6 +28,20 @@ public class IngredientTypeController : ControllerBase
     return ToActionResult(result);
   }
 
+  [HttpPatch("{id}/publish/all")]
+  public async Task<ActionResult<IngredientTypeModel>> PublishAllAsync(Guid id, CancellationToken cancellationToken)
+  {
+    IngredientTypeModel? ingredientType = await _ingredientTypeService.PublishAllAsync(id, cancellationToken);
+    return ingredientType is null ? NotFound() : Ok(ingredientType);
+  }
+
+  [HttpPatch("{id}/publish")]
+  public async Task<ActionResult<IngredientTypeModel>> PublishAsync(Guid id, string? language, CancellationToken cancellationToken)
+  {
+    IngredientTypeModel? ingredientType = await _ingredientTypeService.PublishAsync(id, language, cancellationToken);
+    return ingredientType is null ? NotFound() : Ok(ingredientType);
+  }
+
   [HttpGet("{id}")]
   public async Task<ActionResult<IngredientTypeModel>> ReadAsync(Guid id, CancellationToken cancellationToken)
   {
@@ -55,6 +69,20 @@ public class IngredientTypeController : ControllerBase
     SearchIngredientTypesPayload payload = parameters.ToPayload();
     SearchResults<IngredientTypeModel> ingredientTypes = await _ingredientTypeService.SearchAsync(payload, cancellationToken);
     return Ok(ingredientTypes);
+  }
+
+  [HttpPatch("{id}/unpublish/all")]
+  public async Task<ActionResult<IngredientTypeModel>> UnpublishAllAsync(Guid id, CancellationToken cancellationToken)
+  {
+    IngredientTypeModel? ingredientType = await _ingredientTypeService.UnpublishAllAsync(id, cancellationToken);
+    return ingredientType is null ? NotFound() : Ok(ingredientType);
+  }
+
+  [HttpPatch("{id}/unpublish")]
+  public async Task<ActionResult<IngredientTypeModel>> UnpublishAsync(Guid id, string? language, CancellationToken cancellationToken)
+  {
+    IngredientTypeModel? ingredientType = await _ingredientTypeService.UnpublishAsync(id, language, cancellationToken);
+    return ingredientType is null ? NotFound() : Ok(ingredientType);
   }
 
   [HttpPatch("{id}")]

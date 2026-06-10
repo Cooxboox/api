@@ -69,6 +69,22 @@ internal class IngredientTypeLocaleEntity
     return actorIds;
   }
 
+  public void Publish(IngredientTypePublished @event)
+  {
+    Status = ContentStatus.Latest;
+    PublishedVersion = Version;
+    PublishedBy = @event.ActorId?.Value;
+    PublishedOn = @event.OccurredOn.AsUniversalTime();
+  }
+
+  public void Unpublish(IngredientTypeUnpublished @event)
+  {
+    Status = ContentStatus.Unpublished;
+    PublishedVersion = null;
+    PublishedBy = null;
+    PublishedOn = null;
+  }
+
   public void Update(IngredientTypeLocaleChanged @event)
   {
     IngredientTypeLocale locale = @event.Locale;

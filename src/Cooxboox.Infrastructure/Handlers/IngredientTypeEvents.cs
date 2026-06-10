@@ -11,6 +11,8 @@ internal class IngredientTypeEvents : IEventHandler<IngredientTypeCreated>,
   IEventHandler<IngredientTypeDeleted>,
   IEventHandler<IngredientTypeLocaleChanged>,
   IEventHandler<IngredientTypeLocaleRemoved>,
+  IEventHandler<IngredientTypePublished>,
+  IEventHandler<IngredientTypeUnpublished>,
   IEventHandler<IngredientTypeUpdated>
 {
   public static void Register(IServiceCollection services)
@@ -19,6 +21,8 @@ internal class IngredientTypeEvents : IEventHandler<IngredientTypeCreated>,
     services.AddTransient<IEventHandler<IngredientTypeDeleted>, IngredientTypeEvents>();
     services.AddTransient<IEventHandler<IngredientTypeLocaleChanged>, IngredientTypeEvents>();
     services.AddTransient<IEventHandler<IngredientTypeLocaleRemoved>, IngredientTypeEvents>();
+    services.AddTransient<IEventHandler<IngredientTypePublished>, IngredientTypeEvents>();
+    services.AddTransient<IEventHandler<IngredientTypeUnpublished>, IngredientTypeEvents>();
     services.AddTransient<IEventHandler<IngredientTypeUpdated>, IngredientTypeEvents>();
   }
 
@@ -82,6 +86,32 @@ internal class IngredientTypeEvents : IEventHandler<IngredientTypeCreated>,
       {
         _cooxboox.IngredientTypeLocales.Remove(locale);
       }
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
+  }
+
+  public async Task HandleAsync(IngredientTypePublished @event, CancellationToken cancellationToken)
+  {
+    IngredientTypeEntity? ingredientType = await _cooxboox.IngredientTypes
+      .Include(x => x.Locales)
+      .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (ingredientType is not null && ingredientType.Version == (@event.Version - 1))
+    {
+      ingredientType.Publish(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
+  }
+
+  public async Task HandleAsync(IngredientTypeUnpublished @event, CancellationToken cancellationToken)
+  {
+    IngredientTypeEntity? ingredientType = await _cooxboox.IngredientTypes
+      .Include(x => x.Locales)
+      .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (ingredientType is not null && ingredientType.Version == (@event.Version - 1))
+    {
+      ingredientType.Unpublish(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
     }
