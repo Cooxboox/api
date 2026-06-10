@@ -1,6 +1,8 @@
 ﻿using Cooxboox.Core.Kitchens.Models;
 using Cooxboox.Core.Permissions;
+using Cooxboox.Core.Seo;
 using Logitar.CQRS;
+using Logitar.EventSourcing;
 
 namespace Cooxboox.Core.Kitchens.Commands;
 
@@ -39,6 +41,7 @@ internal class CreateOrReplaceKitchenCommandHandler : ICommandHandler<CreateOrRe
     }
 
     Name name = new(payload.Name);
+    ActorId? actorId = _context.ActorId;
 
     bool created = false;
     if (kitchen is null)
@@ -52,8 +55,11 @@ internal class CreateOrReplaceKitchenCommandHandler : ICommandHandler<CreateOrRe
     {
       await _permissionService.CheckAsync(Actions.Update, kitchen, cancellationToken);
 
-      kitchen.Update(name, _context.ActorId);
+      kitchen.Rename(name, actorId);
     }
+
+    kitchen.SetSlug(Slug.TryCreate(payload.Slug), actorId);
+    kitchen.Annotate(Notes.TryCreate(payload.Notes), actorId);
 
     await _kitchenRepository.SaveAsync(kitchen, cancellationToken);
 

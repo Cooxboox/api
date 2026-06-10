@@ -6,23 +6,27 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Cooxboox.Infrastructure.Handlers;
 
-internal class KitchenEvents : IEventHandler<KitchenCreated>,
+internal class KitchenEvents : IEventHandler<KitchenAnnotated>,
+  IEventHandler<KitchenCreated>,
   IEventHandler<KitchenDeleted>,
   IEventHandler<KitchenLocaleChanged>,
   IEventHandler<KitchenLocaleRemoved>,
   IEventHandler<KitchenPublished>,
-  IEventHandler<KitchenUnpublished>,
-  IEventHandler<KitchenUpdated>
+  IEventHandler<KitchenRenamed>,
+  IEventHandler<KitchenSlugChanged>,
+  IEventHandler<KitchenUnpublished>
 {
   public static void Register(IServiceCollection services)
   {
+    services.AddTransient<IEventHandler<KitchenAnnotated>, KitchenEvents>();
     services.AddTransient<IEventHandler<KitchenCreated>, KitchenEvents>();
     services.AddTransient<IEventHandler<KitchenDeleted>, KitchenEvents>();
     services.AddTransient<IEventHandler<KitchenLocaleChanged>, KitchenEvents>();
     services.AddTransient<IEventHandler<KitchenLocaleRemoved>, KitchenEvents>();
     services.AddTransient<IEventHandler<KitchenPublished>, KitchenEvents>();
+    services.AddTransient<IEventHandler<KitchenRenamed>, KitchenEvents>();
+    services.AddTransient<IEventHandler<KitchenSlugChanged>, KitchenEvents>();
     services.AddTransient<IEventHandler<KitchenUnpublished>, KitchenEvents>();
-    services.AddTransient<IEventHandler<KitchenUpdated>, KitchenEvents>();
   }
 
   private readonly CooxbooxContext _cooxboox;
@@ -30,6 +34,17 @@ internal class KitchenEvents : IEventHandler<KitchenCreated>,
   public KitchenEvents(CooxbooxContext cooxboox)
   {
     _cooxboox = cooxboox;
+  }
+
+  public async Task HandleAsync(KitchenAnnotated @event, CancellationToken cancellationToken)
+  {
+    KitchenEntity? kitchen = await _cooxboox.Kitchens.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (kitchen is not null && kitchen.Version == (@event.Version - 1))
+    {
+      kitchen.Annotate(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
   }
 
   public async Task HandleAsync(KitchenCreated @event, CancellationToken cancellationToken)
@@ -99,6 +114,28 @@ internal class KitchenEvents : IEventHandler<KitchenCreated>,
     }
   }
 
+  public async Task HandleAsync(KitchenRenamed @event, CancellationToken cancellationToken)
+  {
+    KitchenEntity? kitchen = await _cooxboox.Kitchens.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (kitchen is not null && kitchen.Version == (@event.Version - 1))
+    {
+      kitchen.Rename(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
+  }
+
+  public async Task HandleAsync(KitchenSlugChanged @event, CancellationToken cancellationToken)
+  {
+    KitchenEntity? kitchen = await _cooxboox.Kitchens.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (kitchen is not null && kitchen.Version == (@event.Version - 1))
+    {
+      kitchen.SetSlug(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
+  }
+
   public async Task HandleAsync(KitchenUnpublished @event, CancellationToken cancellationToken)
   {
     KitchenEntity? kitchen = await _cooxboox.Kitchens
@@ -107,17 +144,6 @@ internal class KitchenEvents : IEventHandler<KitchenCreated>,
     if (kitchen is not null && kitchen.Version == (@event.Version - 1))
     {
       kitchen.Unpublish(@event);
-
-      await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
-
-  public async Task HandleAsync(KitchenUpdated @event, CancellationToken cancellationToken)
-  {
-    KitchenEntity? kitchen = await _cooxboox.Kitchens.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (kitchen is not null && kitchen.Version == (@event.Version - 1))
-    {
-      kitchen.Update(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
     }

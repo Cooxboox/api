@@ -1,6 +1,8 @@
 ﻿using Cooxboox.Core.Kitchens.Models;
 using Cooxboox.Core.Permissions;
+using Cooxboox.Core.Seo;
 using Logitar.CQRS;
+using Logitar.EventSourcing;
 
 namespace Cooxboox.Core.Kitchens.Commands;
 
@@ -38,9 +40,20 @@ internal class UpdateKitchenCommandHandler : ICommandHandler<UpdateKitchenComman
     }
     await _permissionService.CheckAsync(Actions.Update, kitchen, cancellationToken);
 
-    Name name = Name.TryCreate(payload.Name) ?? kitchen.Name;
+    ActorId? actorId = _context.ActorId;
 
-    kitchen.Update(name, _context.ActorId);
+    if (!string.IsNullOrWhiteSpace(payload.Name))
+    {
+      kitchen.Rename(new Name(payload.Name), actorId);
+    }
+    if (payload.Slug is not null)
+    {
+      kitchen.SetSlug(Slug.TryCreate(payload.Slug.Value), actorId);
+    }
+    if (payload.Notes is not null)
+    {
+      kitchen.Annotate(Notes.TryCreate(payload.Notes.Value), actorId);
+    }
 
     await _kitchenRepository.SaveAsync(kitchen, cancellationToken);
 

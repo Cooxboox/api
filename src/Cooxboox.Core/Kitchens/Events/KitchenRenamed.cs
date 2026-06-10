@@ -2,4 +2,4 @@
 
 namespace Cooxboox.Core.Kitchens.Events;
 
-public record KitchenUpdated(Name? Name) : DomainEvent;
+public record KitchenRenamed(Name Name) : DomainEvent;

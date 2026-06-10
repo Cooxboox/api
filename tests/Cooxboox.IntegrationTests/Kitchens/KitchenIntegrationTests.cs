@@ -1,4 +1,4 @@
-using Cooxboox.Builders;
+﻿using Cooxboox.Builders;
 using Cooxboox.Core;
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.Kitchens;
@@ -184,14 +184,15 @@ public class KitchenIntegrationTests : IntegrationTests
   {
     UpdateKitchenPayload payload = new()
     {
-      Name = $"  {Faker.Company.CompanyName()}  "
+      Slug = new Optional<string>("my-new-kitchen"),
+      Notes = new Optional<string>(" Lorem ipsum dolor sit amet, consectetur adipiscing elit. Mauris non facilisis sapien. Proin vivamus.\r\n\r\n ")
     };
 
     KitchenModel? kitchen = await _kitchenService.UpdateAsync(_kitchen.Entity.Id, payload);
     Assert.NotNull(kitchen);
 
     Assert.Equal(_kitchen.Entity.Id, kitchen.Id);
-    Assert.Equal(_kitchen.Version + 1, kitchen.Version);
+    Assert.Equal(_kitchen.Version + 2, kitchen.Version);
     Assert.Equal(_kitchen.CreatedBy, kitchen.CreatedBy.ToActorId());
     Assert.Equal(_kitchen.CreatedOn.AsUniversalTime(), kitchen.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(Actor, kitchen.UpdatedBy);
@@ -199,8 +200,9 @@ public class KitchenIntegrationTests : IntegrationTests
 
     Assert.Equal(_kitchen.OwnerId.Value, kitchen.Owner.ToActorId().Value);
     Assert.Equal(_kitchen.Confidentiality, kitchen.Confidentiality);
-    Assert.Equal(payload.Name.Trim(), kitchen.Name);
-    Assert.Equal(_kitchen.Slug?.Value, kitchen.Slug);
+    Assert.Equal(_kitchen.Name.Value, kitchen.Name);
+    Assert.Equal(payload.Slug.Value, kitchen.Slug);
+    Assert.Equal(payload.Notes.Value?.Trim(), kitchen.Notes);
   }
 
   [Fact(DisplayName = "It should publish a kitchen.")]
