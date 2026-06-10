@@ -286,13 +286,38 @@ internal class Mapper
       Confidentiality = source.Confidentiality,
       Name = source.Name,
       Slug = source.Slug,
-      Notes = source.Notes
+      Notes = source.Notes,
+      Status = source.Status,
+      PublishedVersion = source.PublishedVersion,
+      PublishedBy = TryGetActor(source.PublishedBy),
+      PublishedOn = source.PublishedOn?.AsUniversalTime()
     };
+
+    foreach (KitchenLocaleEntity locale in source.Locales)
+    {
+      destination.Locales.Add(ToKitchenLocale(locale));
+    }
 
     MapAggregate(source, destination);
 
     return destination;
   }
+  private KitchenLocaleModel ToKitchenLocale(KitchenLocaleEntity source) => new()
+  {
+    Language = new Locale(source.Language),
+    MetaDescription = source.MetaDescription,
+    HtmlContent = source.HtmlContent,
+    Notes = source.Notes,
+    Version = source.Version,
+    CreatedBy = FindActor(source.CreatedBy),
+    CreatedOn = source.CreatedOn.AsUniversalTime(),
+    UpdatedBy = FindActor(source.UpdatedBy),
+    UpdatedOn = source.UpdatedOn.AsUniversalTime(),
+    Status = source.Status,
+    PublishedVersion = source.PublishedVersion,
+    PublishedBy = TryGetActor(source.PublishedBy),
+    PublishedOn = source.PublishedOn?.AsUniversalTime()
+  };
 
   private void MapAggregate(AggregateEntity source, Aggregate destination)
   {

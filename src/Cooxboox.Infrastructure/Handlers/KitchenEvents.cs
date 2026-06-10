@@ -6,12 +6,22 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Cooxboox.Infrastructure.Handlers;
 
-internal class KitchenEvents : IEventHandler<KitchenCreated>, IEventHandler<KitchenDeleted>, IEventHandler<KitchenUpdated>
+internal class KitchenEvents : IEventHandler<KitchenCreated>,
+  IEventHandler<KitchenDeleted>,
+  IEventHandler<KitchenLocaleChanged>,
+  IEventHandler<KitchenLocaleRemoved>,
+  IEventHandler<KitchenPublished>,
+  IEventHandler<KitchenUnpublished>,
+  IEventHandler<KitchenUpdated>
 {
   public static void Register(IServiceCollection services)
   {
     services.AddTransient<IEventHandler<KitchenCreated>, KitchenEvents>();
     services.AddTransient<IEventHandler<KitchenDeleted>, KitchenEvents>();
+    services.AddTransient<IEventHandler<KitchenLocaleChanged>, KitchenEvents>();
+    services.AddTransient<IEventHandler<KitchenLocaleRemoved>, KitchenEvents>();
+    services.AddTransient<IEventHandler<KitchenPublished>, KitchenEvents>();
+    services.AddTransient<IEventHandler<KitchenUnpublished>, KitchenEvents>();
     services.AddTransient<IEventHandler<KitchenUpdated>, KitchenEvents>();
   }
 
@@ -41,6 +51,62 @@ internal class KitchenEvents : IEventHandler<KitchenCreated>, IEventHandler<Kitc
     if (kitchen is not null)
     {
       _cooxboox.Kitchens.Remove(kitchen);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
+  }
+
+  public async Task HandleAsync(KitchenLocaleChanged @event, CancellationToken cancellationToken)
+  {
+    KitchenEntity? kitchen = await _cooxboox.Kitchens
+      .Include(x => x.Locales)
+      .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (kitchen is not null && kitchen.Version == (@event.Version - 1))
+    {
+      kitchen.SetLocale(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
+  }
+
+  public async Task HandleAsync(KitchenLocaleRemoved @event, CancellationToken cancellationToken)
+  {
+    KitchenEntity? kitchen = await _cooxboox.Kitchens
+      .Include(x => x.Locales)
+      .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (kitchen is not null && kitchen.Version == (@event.Version - 1))
+    {
+      KitchenLocaleEntity? locale = kitchen.RemoveLocale(@event);
+      if (locale is not null)
+      {
+        _cooxboox.KitchenLocales.Remove(locale);
+      }
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
+  }
+
+  public async Task HandleAsync(KitchenPublished @event, CancellationToken cancellationToken)
+  {
+    KitchenEntity? kitchen = await _cooxboox.Kitchens
+      .Include(x => x.Locales)
+      .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (kitchen is not null && kitchen.Version == (@event.Version - 1))
+    {
+      kitchen.Publish(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
+  }
+
+  public async Task HandleAsync(KitchenUnpublished @event, CancellationToken cancellationToken)
+  {
+    KitchenEntity? kitchen = await _cooxboox.Kitchens
+      .Include(x => x.Locales)
+      .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (kitchen is not null && kitchen.Version == (@event.Version - 1))
+    {
+      kitchen.Unpublish(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
     }

@@ -3,6 +3,7 @@ using Cooxboox.Core;
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.Kitchens;
 using Cooxboox.Core.Kitchens.Models;
+using Cooxboox.Core.Localization;
 using Cooxboox.Core.Permissions;
 using Krakenar.Contracts.Actors;
 using Krakenar.Contracts.Search;
@@ -200,5 +201,327 @@ public class KitchenIntegrationTests : IntegrationTests
     Assert.Equal(_kitchen.Confidentiality, kitchen.Confidentiality);
     Assert.Equal(payload.Name.Trim(), kitchen.Name);
     Assert.Equal(_kitchen.Slug?.Value, kitchen.Slug);
+  }
+
+  [Theory(DisplayName = "It should publish a kitchen.")]
+  [InlineData(true, false)]
+  [InlineData(false, true)]
+  [InlineData(true, true)]
+  public async Task Given_Kitchen_When_Publish_Then_Published(bool publishInvariant, bool publishLocale)
+  {
+    Language language = Faker.Language();
+    _kitchen.SetLocale(language, new KitchenLocale(null, null, null), Actor.ToActorId());
+    await _kitchenRepository.SaveAsync(_kitchen);
+
+    KitchenModel? kitchen = null;
+    long version = _kitchen.Version;
+    if (publishInvariant && publishLocale)
+    {
+      kitchen = await _kitchenService.PublishAllAsync(_kitchen.Entity.Id);
+      version += 2;
+    }
+    else if (publishInvariant)
+    {
+      kitchen = await _kitchenService.PublishAsync(_kitchen.Entity.Id);
+      version++;
+    }
+    else if (publishLocale)
+    {
+      kitchen = await _kitchenService.PublishAsync(_kitchen.Entity.Id, language.Code);
+      version++;
+    }
+    Assert.NotNull(kitchen);
+
+    Assert.Equal(_kitchen.Entity.Id, kitchen.Id);
+    Assert.Equal(version, kitchen.Version);
+    Assert.Equal(_kitchen.CreatedBy, kitchen.CreatedBy.ToActorId());
+    Assert.Equal(_kitchen.CreatedOn.AsUniversalTime(), kitchen.CreatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(Actor, kitchen.UpdatedBy);
+    Assert.Equal(DateTime.UtcNow, kitchen.UpdatedOn, TimeSpan.FromSeconds(10));
+
+    if (publishInvariant)
+    {
+      Assert.Equal(ContentStatus.Latest, kitchen.Status);
+      Assert.Equal(kitchen.Version - (publishLocale ? 1 : 0), kitchen.PublishedVersion);
+      Assert.Equal(Actor, kitchen.PublishedBy);
+      Assert.True(kitchen.PublishedOn.HasValue);
+      Assert.Equal(DateTime.UtcNow, kitchen.PublishedOn.Value, TimeSpan.FromSeconds(10));
+    }
+    else
+    {
+      Assert.Equal(ContentStatus.Unpublished, kitchen.Status);
+      Assert.Null(kitchen.PublishedVersion);
+      Assert.Null(kitchen.PublishedBy);
+      Assert.Null(kitchen.PublishedOn);
+    }
+
+    KitchenLocaleModel locale = Assert.Single(kitchen.Locales);
+    if (publishLocale)
+    {
+      Assert.Equal(ContentStatus.Latest, locale.Status);
+      Assert.Equal(locale.Version, locale.PublishedVersion);
+      Assert.Equal(Actor, locale.PublishedBy);
+      Assert.True(locale.PublishedOn.HasValue);
+      Assert.Equal(DateTime.UtcNow, locale.PublishedOn.Value, TimeSpan.FromSeconds(10));
+    }
+    else
+    {
+      Assert.Equal(ContentStatus.Unpublished, locale.Status);
+      Assert.Null(locale.PublishedVersion);
+      Assert.Null(locale.PublishedBy);
+      Assert.Null(locale.PublishedOn);
+    }
+  }
+
+  [Theory(DisplayName = "It should unpublish a kitchen.")]
+  [InlineData(true, false)]
+  [InlineData(false, true)]
+  [InlineData(true, true)]
+  public async Task Given_Kitchen_When_Unpublish_Then_Unpublished(bool unpublishInvariant, bool unpublishLocale)
+  {
+    Language language = Faker.Language();
+    _kitchen.SetLocale(language, new KitchenLocale(null, null, null), Actor.ToActorId());
+    _kitchen.Publish(Actor.ToActorId());
+    await _kitchenRepository.SaveAsync(_kitchen);
+
+    KitchenModel? kitchen = null;
+    long version = _kitchen.Version;
+    if (unpublishInvariant && unpublishLocale)
+    {
+      kitchen = await _kitchenService.UnpublishAllAsync(_kitchen.Entity.Id);
+      version += 2;
+    }
+    else if (unpublishInvariant)
+    {
+      kitchen = await _kitchenService.UnpublishAsync(_kitchen.Entity.Id);
+      version++;
+    }
+    else if (unpublishLocale)
+    {
+      kitchen = await _kitchenService.UnpublishAsync(_kitchen.Entity.Id, language.Code);
+      version++;
+    }
+    Assert.NotNull(kitchen);
+
+    Assert.Equal(_kitchen.Entity.Id, kitchen.Id);
+    Assert.Equal(version, kitchen.Version);
+    Assert.Equal(_kitchen.CreatedBy, kitchen.CreatedBy.ToActorId());
+    Assert.Equal(_kitchen.CreatedOn.AsUniversalTime(), kitchen.CreatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(Actor, kitchen.UpdatedBy);
+    Assert.Equal(DateTime.UtcNow, kitchen.UpdatedOn, TimeSpan.FromSeconds(10));
+
+    if (unpublishInvariant)
+    {
+      Assert.Equal(ContentStatus.Unpublished, kitchen.Status);
+      Assert.Null(kitchen.PublishedVersion);
+      Assert.Null(kitchen.PublishedBy);
+      Assert.Null(kitchen.PublishedOn);
+    }
+    else
+    {
+      Assert.Equal(ContentStatus.Latest, kitchen.Status);
+      Assert.Equal(Actor, kitchen.PublishedBy);
+      Assert.True(kitchen.PublishedOn.HasValue);
+    }
+
+    KitchenLocaleModel locale = Assert.Single(kitchen.Locales);
+    if (unpublishLocale)
+    {
+      Assert.Equal(ContentStatus.Unpublished, locale.Status);
+      Assert.Null(locale.PublishedVersion);
+      Assert.Null(locale.PublishedBy);
+      Assert.Null(locale.PublishedOn);
+    }
+    else
+    {
+      Assert.Equal(ContentStatus.Latest, locale.Status);
+      Assert.Equal(Actor, locale.PublishedBy);
+      Assert.True(locale.PublishedOn.HasValue);
+    }
+  }
+
+  [Fact(DisplayName = "It should return null when the kitchen does not exist (Publish).")]
+  public async Task Given_NotExist_When_Publish_Then_NullReturned()
+  {
+    Assert.Null(await _kitchenService.PublishAsync(Guid.Empty));
+  }
+
+  [Fact(DisplayName = "It should return null when the kitchen does not exist (SaveLocale).")]
+  public async Task Given_NotExist_When_SaveLocale_Then_NullReturned()
+  {
+    Language language = Faker.Language();
+    SaveKitchenLocalePayload payload = new();
+    Assert.Null(await _kitchenService.SaveLocaleAsync(Guid.Empty, language.Code, payload));
+  }
+
+  [Fact(DisplayName = "It should return null when the kitchen does not exist (Unpublish).")]
+  public async Task Given_NotExist_When_Unpublish_Then_NullReturned()
+  {
+    Assert.Null(await _kitchenService.UnpublishAsync(Guid.Empty));
+  }
+
+  [Fact(DisplayName = "It should return null when the kitchen does not exist (UpdateLocale).")]
+  public async Task Given_NotExist_When_UpdateLocale_Then_NullReturned()
+  {
+    Language language = Faker.Language();
+    UpdateKitchenLocalePayload payload = new();
+    Assert.Null(await _kitchenService.UpdateLocaleAsync(Guid.Empty, language.Code, payload));
+  }
+
+  [Theory(DisplayName = "It should save a kitchen locale.")]
+  [InlineData(false)]
+  [InlineData(true)]
+  public async Task Given_Kitchen_When_SaveLocale_Then_Saved(bool exists)
+  {
+    Language language = Faker.Language();
+    if (exists)
+    {
+      _kitchen.SetLocale(language, new KitchenLocale(null, null, null), Actor.ToActorId());
+      await _kitchenRepository.SaveAsync(_kitchen);
+    }
+
+    SaveKitchenLocalePayload payload = new()
+    {
+      MetaDescription = "   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse sit amet velit venenatis, placerat lacus non, scelerisque metus. Vestibulum a ut.   ",
+      HtmlContent = "  La cuisine est l'espace où sont préparés et partagés les repas de la maison.  ",
+      Notes = "    "
+    };
+
+    KitchenModel? kitchen = await _kitchenService.SaveLocaleAsync(_kitchen.Entity.Id, language.Code, payload);
+    Assert.NotNull(kitchen);
+
+    Assert.Equal(_kitchen.Entity.Id, kitchen.Id);
+    Assert.Equal(_kitchen.Version + 1, kitchen.Version);
+    Assert.Equal(_kitchen.CreatedOn.AsUniversalTime(), kitchen.CreatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(_kitchen.CreatedBy, kitchen.CreatedBy.ToActorId());
+    Assert.Equal(DateTime.UtcNow, kitchen.UpdatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(Actor, kitchen.UpdatedBy);
+
+    KitchenLocaleModel locale = Assert.Single(kitchen.Locales);
+    Assert.Equal(language.Code, locale.Language.Code);
+    Assert.Equal(payload.MetaDescription.Trim(), locale.MetaDescription);
+    Assert.Equal(payload.HtmlContent.Trim(), locale.HtmlContent);
+    Assert.Null(locale.Notes);
+
+    Assert.Equal(kitchen.Version, locale.Version);
+    Assert.Equal(Actor, locale.CreatedBy);
+    Assert.Equal(locale.CreatedBy, locale.UpdatedBy);
+    Assert.Equal(DateTime.UtcNow, locale.CreatedOn, TimeSpan.FromSeconds(10));
+    if (exists)
+    {
+      Assert.True(locale.CreatedOn < locale.UpdatedOn);
+    }
+    else
+    {
+      Assert.Equal(locale.CreatedOn, locale.UpdatedOn);
+    }
+    Assert.Equal(ContentStatus.Unpublished, locale.Status);
+    Assert.Null(locale.PublishedVersion);
+    Assert.Null(locale.PublishedBy);
+    Assert.Null(locale.PublishedOn);
+  }
+
+  [Fact(DisplayName = "It should throw PermissionDeniedException when publishing a kitchen.")]
+  public async Task Given_Exists_When_Publishing_Then_PermissionDeniedException()
+  {
+    Context.User = new UserBuilder().Build();
+
+    var exception = await Assert.ThrowsAsync<PermissionDeniedException>(async () => await _kitchenService.PublishAsync(_kitchen.Entity.Id));
+    Assert.Equal(Actor.ToActorId().Value, exception.ActorId);
+    Assert.Equal(Actions.Publish, exception.Action);
+    Assert.Equal(new Entity(Kitchen.EntityKind, _kitchen.Entity.Id).ToString(), exception.Resource);
+  }
+
+  [Fact(DisplayName = "It should throw PermissionDeniedException when saving a kitchen locale.")]
+  public async Task Given_Exists_When_SaveLocale_Then_PermissionDeniedException()
+  {
+    Context.User = new UserBuilder().Build();
+
+    Language language = Faker.Language();
+    SaveKitchenLocalePayload payload = new();
+
+    var exception = await Assert.ThrowsAsync<PermissionDeniedException>(async () => await _kitchenService.SaveLocaleAsync(_kitchen.Entity.Id, language.Code, payload));
+    Assert.Equal(Actor.ToActorId().Value, exception.ActorId);
+    Assert.Equal(Actions.Update, exception.Action);
+    Assert.Equal(new Entity(Kitchen.EntityKind, _kitchen.Entity.Id).ToString(), exception.Resource);
+  }
+
+  [Fact(DisplayName = "It should throw PermissionDeniedException when unpublishing a kitchen.")]
+  public async Task Given_Exists_When_Unpublishing_Then_PermissionDeniedException()
+  {
+    Context.User = new UserBuilder().Build();
+
+    var exception = await Assert.ThrowsAsync<PermissionDeniedException>(async () => await _kitchenService.UnpublishAsync(_kitchen.Entity.Id));
+    Assert.Equal(Actor.ToActorId().Value, exception.ActorId);
+    Assert.Equal(Actions.Unpublish, exception.Action);
+    Assert.Equal(new Entity(Kitchen.EntityKind, _kitchen.Entity.Id).ToString(), exception.Resource);
+  }
+
+  [Fact(DisplayName = "It should throw PermissionDeniedException when updating a kitchen locale.")]
+  public async Task Given_Exists_When_UpdateLocale_Then_PermissionDeniedException()
+  {
+    Context.User = new UserBuilder().Build();
+
+    Language language = Faker.Language();
+    UpdateKitchenLocalePayload payload = new();
+
+    var exception = await Assert.ThrowsAsync<PermissionDeniedException>(async () => await _kitchenService.UpdateLocaleAsync(_kitchen.Entity.Id, language.Code, payload));
+    Assert.Equal(Actor.ToActorId().Value, exception.ActorId);
+    Assert.Equal(Actions.Update, exception.Action);
+    Assert.Equal(new Entity(Kitchen.EntityKind, _kitchen.Entity.Id).ToString(), exception.Resource);
+  }
+
+  [Fact(DisplayName = "It should throw LocaleNotFoundException when the kitchen locale was not found.")]
+  public async Task Given_LocaleNotFound_When_UpdateLocale_Then_LocaleNotFoundException()
+  {
+    Language language = Faker.Language();
+    UpdateKitchenLocalePayload payload = new();
+
+    var exception = await Assert.ThrowsAsync<LocaleNotFoundException>(async () => await _kitchenService.UpdateLocaleAsync(_kitchen.Entity.Id, language.Code, payload));
+    Assert.Equal(language.ToString(), exception.Language);
+
+    Entity entity = new(exception.EntityKind, exception.EntityId, exception.KitchenId.HasValue ? new KitchenId(exception.KitchenId.Value) : null);
+    Assert.Equal(_kitchen.Entity, entity);
+  }
+
+  [Fact(DisplayName = "It should update a kitchen locale.")]
+  public async Task Given_LocaleFound_When_UpdateLocale_Then_Updated()
+  {
+    Language language = Faker.Language();
+    _kitchen.SetLocale(language, new KitchenLocale(null, null, null), Actor.ToActorId());
+    await _kitchenRepository.SaveAsync(_kitchen);
+
+    UpdateKitchenLocalePayload payload = new()
+    {
+      MetaDescription = new Optional<string>("   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse sit amet velit venenatis, placerat lacus non, scelerisque metus. Vestibulum a ut.   "),
+      HtmlContent = new Optional<string>("  La cuisine est l'espace où sont préparés et partagés les repas de la maison.  "),
+      Notes = new Optional<string>("    ")
+    };
+
+    KitchenModel? kitchen = await _kitchenService.UpdateLocaleAsync(_kitchen.Entity.Id, language.Code, payload);
+    Assert.NotNull(kitchen);
+
+    Assert.Equal(_kitchen.Entity.Id, kitchen.Id);
+    Assert.Equal(_kitchen.Version + 1, kitchen.Version);
+    Assert.Equal(_kitchen.CreatedOn.AsUniversalTime(), kitchen.CreatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(_kitchen.CreatedBy, kitchen.CreatedBy.ToActorId());
+    Assert.Equal(DateTime.UtcNow, kitchen.UpdatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(Actor, kitchen.UpdatedBy);
+
+    KitchenLocaleModel locale = Assert.Single(kitchen.Locales);
+    Assert.Equal(language.Code, locale.Language.Code);
+    Assert.Equal(payload.MetaDescription.Value?.Trim(), locale.MetaDescription);
+    Assert.Equal(payload.HtmlContent.Value?.Trim(), locale.HtmlContent);
+    Assert.Null(locale.Notes);
+
+    Assert.Equal(kitchen.Version, locale.Version);
+    Assert.Equal(Actor, locale.CreatedBy);
+    Assert.Equal(locale.CreatedBy, locale.UpdatedBy);
+    Assert.Equal(DateTime.UtcNow, locale.CreatedOn, TimeSpan.FromSeconds(10));
+    Assert.True(locale.CreatedOn < locale.UpdatedOn);
+    Assert.Equal(ContentStatus.Unpublished, locale.Status);
+    Assert.Null(locale.PublishedVersion);
+    Assert.Null(locale.PublishedBy);
+    Assert.Null(locale.PublishedOn);
   }
 }
