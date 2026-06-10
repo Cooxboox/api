@@ -9,8 +9,16 @@ namespace Cooxboox.Infrastructure.Caching;
 
 internal class CacheService : ICacheService
 {
+  private const string RealmIdKey = "RealmId";
+
   private readonly IMemoryCache _cache;
   private readonly CachingSettings _settings;
+
+  public Guid RealmId
+  {
+    get => (_cache.TryGetValue(RealmIdKey, out object? value) ? (Guid?)value : null) ?? throw new InvalidOperationException("The realm identifier was not found in the cache.");
+    set => _cache.Set(RealmIdKey, value);
+  }
 
   public CacheService(IMemoryCache cache, CachingSettings settings)
   {

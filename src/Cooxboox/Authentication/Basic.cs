@@ -1,4 +1,5 @@
 ﻿using Cooxboox.Core.Identity;
+using Cooxboox.Core.Identity.Models;
 using Cooxboox.Extensions;
 using Krakenar.Contracts.Constants;
 using Krakenar.Contracts.Users;
@@ -54,7 +55,13 @@ internal class BasicAuthenticationHandler : AuthenticationHandler<BasicAuthentic
             string password = credentials[(index + 1)..];
             User user = await _userGateway.AuthenticateAsync(uniqueName, password);
 
-            Context.SetUser(user); // TODO(fpion): we should not bypass Multi-Factor Authentication.
+            MultiFactorAuthenticationMode mode = user.GetMultiFactorAuthenticationMode();
+            if (mode != MultiFactorAuthenticationMode.None)
+            {
+              return AuthenticateResult.Fail($"The user 'Id={user.Id}' Multi-Factor Authentication mode is '{mode}'.");
+            }
+
+            Context.SetUser(user);
 
             ClaimsPrincipal principal = new(user.CreateClaimsIdentity(Scheme.Name));
             AuthenticationTicket ticket = new(principal, Scheme.Name);

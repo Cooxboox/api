@@ -1,4 +1,7 @@
-﻿using Cooxboox.Infrastructure;
+﻿using Cooxboox.Core.Caching;
+using Cooxboox.Core.Identity;
+using Cooxboox.Infrastructure;
+using Krakenar.Contracts.Realms;
 using Logitar.CQRS;
 
 namespace Cooxboox;
@@ -17,10 +20,25 @@ internal class Program
 
     startup.Configure(application);
 
-    using IServiceScope scope = application.Services.CreateScope();
-    ICommandBus commandBus = scope.ServiceProvider.GetRequiredService<ICommandBus>();
-    await commandBus.ExecuteAsync(new MigrateDatabaseCommand());
+    await MigrateDatabaseAsync(application.Services);
+    await LoadRealmAsync(application.Services);
 
     application.Run();
+  }
+
+  private static async Task MigrateDatabaseAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
+  {
+    using IServiceScope scope = serviceProvider.CreateScope();
+    ICommandBus commandBus = scope.ServiceProvider.GetRequiredService<ICommandBus>();
+    await commandBus.ExecuteAsync(new MigrateDatabaseCommand(), cancellationToken);
+  }
+
+  private static async Task LoadRealmAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
+  {
+    IRealmGateway realmGateway = serviceProvider.GetRequiredService<IRealmGateway>();
+    Realm realm = await realmGateway.FindAsync(cancellationToken);
+
+    ICacheService cacheService = serviceProvider.GetRequiredService<ICacheService>();
+    cacheService.RealmId = realm.Id;
   }
 }
