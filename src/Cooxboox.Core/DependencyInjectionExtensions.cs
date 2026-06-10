@@ -3,6 +3,7 @@ using Cooxboox.Core.IngredientCategories;
 using Cooxboox.Core.IngredientTypes;
 using Cooxboox.Core.Kitchens;
 using Cooxboox.Core.Permissions;
+using Cooxboox.Core.RecipeTypes;
 using Logitar.CQRS;
 using Logitar.EventSourcing;
 using Microsoft.Extensions.Configuration;
@@ -29,6 +30,7 @@ public static class DependencyInjectionExtensions
     IngredientTypeService.Register(services);
     KitchenService.Register(services);
     PermissionService.Register(services);
+    RecipeTypeService.Register(services);
     return services;
   }
 }
