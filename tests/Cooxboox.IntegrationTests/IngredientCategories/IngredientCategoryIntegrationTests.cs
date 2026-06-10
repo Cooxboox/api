@@ -1,4 +1,4 @@
-using Cooxboox.Builders;
+﻿using Cooxboox.Builders;
 using Cooxboox.Core;
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.IngredientCategories;
@@ -41,8 +41,8 @@ public class IngredientCategoryIntegrationTests : IntegrationTests
   {
     CreateOrReplaceIngredientCategoryPayload payload = new()
     {
-      Name = " Fruits et légumes ",
-      Notes = "  Dans le langage courant, il désigne généralement une plante cultivée au jardin ou dans les champs. Un fruit peut donc bien être un légume.  "
+      Name = " Agrumes ",
+      Notes = "  Les agrumes regroupent les fruits des plantes du genre Citrus, comme l’orange, le citron et le pamplemousse.  "
     };
     Guid? id = withId ? Guid.NewGuid() : null;
 
@@ -214,8 +214,8 @@ public class IngredientCategoryIntegrationTests : IntegrationTests
   {
     CreateOrReplaceIngredientCategoryPayload payload = new()
     {
-      Name = " Fruits et légumes ",
-      Notes = "  Dans le langage courant, il désigne généralement une plante cultivée au jardin ou dans les champs. Un fruit peut donc bien être un légume.  "
+      Name = " Agrumes ",
+      Notes = "  Les agrumes regroupent les fruits des plantes du genre Citrus, comme l’orange, le citron et le pamplemousse.  "
     };
 
     CreateOrReplaceIngredientCategoryResult result = await _ingredientCategoryService.CreateOrReplaceAsync(payload, _ingredientCategory.Entity.Id);
@@ -254,7 +254,7 @@ public class IngredientCategoryIntegrationTests : IntegrationTests
   public async Task Given_NotExist_When_SaveLocale_Then_NullReturned()
   {
     Language language = Faker.Language();
-    SaveIngredientCategoryLocalePayload payload = new("Fruits et légumes");
+    SaveIngredientCategoryLocalePayload payload = new("Agrumes");
     Assert.Null(await _ingredientCategoryService.SaveLocaleAsync(Guid.Empty, language.Code, payload));
   }
 
@@ -319,10 +319,10 @@ public class IngredientCategoryIntegrationTests : IntegrationTests
 
     SaveIngredientCategoryLocalePayload payload = new()
     {
-      Name = " Fruits et légumes ",
-      Slug = "fruits-et-legumes",
+      Name = " Agrumes ",
+      Slug = "agrumes",
       MetaDescription = "   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse sit amet velit venenatis, placerat lacus non, scelerisque metus. Vestibulum a ut.   ",
-      HtmlContent = "  Dans le langage courant, il désigne généralement une plante cultivée au jardin ou dans les champs. Un fruit peut donc bien être un légume.  ",
+      HtmlContent = "  Les agrumes regroupent les fruits des plantes du genre Citrus, comme l’orange, le citron et le pamplemousse.  ",
       Notes = "    "
     };
 
@@ -367,7 +367,7 @@ public class IngredientCategoryIntegrationTests : IntegrationTests
   {
     Context.User = new UserBuilder().Build();
 
-    CreateOrReplaceIngredientCategoryPayload payload = new("Fruits et légumes");
+    CreateOrReplaceIngredientCategoryPayload payload = new("Agrumes");
 
     var exception = await Assert.ThrowsAsync<PermissionDeniedException>(async () => await _ingredientCategoryService.CreateOrReplaceAsync(payload));
     Assert.Equal(Actor.ToActorId().Value, exception.ActorId);
@@ -391,7 +391,7 @@ public class IngredientCategoryIntegrationTests : IntegrationTests
   {
     Context.User = new UserBuilder().Build();
 
-    CreateOrReplaceIngredientCategoryPayload payload = new("Fruits et légumes");
+    CreateOrReplaceIngredientCategoryPayload payload = new("Agrumes");
 
     var exception = await Assert.ThrowsAsync<PermissionDeniedException>(async () => await _ingredientCategoryService.CreateOrReplaceAsync(payload, _ingredientCategory.Entity.Id));
     Assert.Equal(Actor.ToActorId().Value, exception.ActorId);
@@ -405,7 +405,7 @@ public class IngredientCategoryIntegrationTests : IntegrationTests
     Context.User = new UserBuilder().Build();
 
     Language language = Faker.Language();
-    SaveIngredientCategoryLocalePayload payload = new("Fruits et légumes");
+    SaveIngredientCategoryLocalePayload payload = new("Agrumes");
 
     var exception = await Assert.ThrowsAsync<PermissionDeniedException>(async () => await _ingredientCategoryService.SaveLocaleAsync(_ingredientCategory.Entity.Id, language.Code, payload));
     Assert.Equal(Actor.ToActorId().Value, exception.ActorId);
@@ -469,7 +469,7 @@ public class IngredientCategoryIntegrationTests : IntegrationTests
   {
     UpdateIngredientCategoryPayload payload = new()
     {
-      Notes = new Optional<string>("  Dans le langage courant, il désigne généralement une plante cultivée au jardin ou dans les champs. Un fruit peut donc bien être un légume.  ")
+      Notes = new Optional<string>("  Les agrumes regroupent les fruits des plantes du genre Citrus, comme l’orange, le citron et le pamplemousse.  ")
     };
 
     IngredientCategoryModel? ingredientCategory = await _ingredientCategoryService.UpdateAsync(_ingredientCategory.Entity.Id, payload);
@@ -495,9 +495,9 @@ public class IngredientCategoryIntegrationTests : IntegrationTests
 
     UpdateIngredientCategoryLocalePayload payload = new()
     {
-      Slug = new Optional<string>("fruits-et-legumes"),
+      Slug = new Optional<string>("agrumes"),
       MetaDescription = new Optional<string>("   Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse sit amet velit venenatis, placerat lacus non, scelerisque metus. Vestibulum a ut.   "),
-      HtmlContent = new Optional<string>("  Dans le langage courant, il désigne généralement une plante cultivée au jardin ou dans les champs. Un fruit peut donc bien être un légume.  "),
+      HtmlContent = new Optional<string>("  Les agrumes regroupent les fruits des plantes du genre Citrus, comme l’orange, le citron et le pamplemousse.  "),
       Notes = new Optional<string>("    ")
     };
 
