@@ -1,5 +1,4 @@
-﻿using Cooxboox.Core.IngredientTypes;
-using Cooxboox.Core.Kitchens;
+﻿using Cooxboox.Core.Kitchens;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Cooxboox.Core.Permissions;
@@ -18,13 +17,11 @@ internal class PermissionService : IPermissionService
   }
 
   private readonly IContext _context;
-  private readonly IIngredientTypeQuerier _ingredientTypeQuerier;
   private readonly IKitchenQuerier _kitchenQuerier;
 
-  public PermissionService(IContext context, IIngredientTypeQuerier ingredientTypeQuerier, IKitchenQuerier kitchenQuerier)
+  public PermissionService(IContext context, IKitchenQuerier kitchenQuerier)
   {
     _context = context;
-    _ingredientTypeQuerier = ingredientTypeQuerier;
     _kitchenQuerier = kitchenQuerier;
   }
 
@@ -64,6 +61,7 @@ internal class PermissionService : IPermissionService
     {
       case Actions.CreateIngredientCategory:
       case Actions.CreateIngredientType:
+      case Actions.CreateRecipeType:
         return _context.IsKitchenOwner;
       case Actions.CreateKitchen:
         int count = await _kitchenQuerier.CountAsync(cancellationToken);
