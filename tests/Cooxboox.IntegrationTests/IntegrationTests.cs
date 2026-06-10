@@ -88,18 +88,17 @@ public abstract class IntegrationTests : IAsyncLifetime
     StringBuilder query = new();
     TableId[] tables =
     [
+      Infrastructure.Db.IngredientCategories.Table,
       Infrastructure.Db.IngredientTypes.Table,
-      Infrastructure.Db.Kitchens.Table
+      Infrastructure.Db.Kitchens.Table,
+      EventDb.Events.Table,
+      EventDb.Streams.Table
     ];
     foreach (TableId table in tables)
     {
       query.Append(new PostgresDeleteBuilder(table).Build().Text).Append(';').AppendLine();
     }
     await cooxboox.Database.ExecuteSqlRawAsync(query.ToString());
-
-    EventContext events = ServiceProvider.GetRequiredService<EventContext>();
-    await events.Events.ExecuteDeleteAsync();
-    await events.Streams.ExecuteDeleteAsync();
   }
   protected virtual async Task InitializeDatabaseAsync()
   {

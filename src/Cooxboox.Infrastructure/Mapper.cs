@@ -1,4 +1,5 @@
-﻿using Cooxboox.Core.IngredientTypes.Models;
+﻿using Cooxboox.Core.IngredientCategories.Models;
+using Cooxboox.Core.IngredientTypes.Models;
 using Cooxboox.Core.Kitchens.Models;
 using Cooxboox.Infrastructure.Entities;
 using Krakenar.Contracts;
@@ -25,6 +26,47 @@ internal class Mapper
       _actors[actor.Key] = actor.Value;
     }
   }
+
+  public IngredientCategoryModel ToIngredientCategory(IngredientCategoryEntity source)
+  {
+    IngredientCategoryModel destination = new()
+    {
+      Id = source.EntityId,
+      Name = source.Name,
+      Notes = source.Notes,
+      Status = source.Status,
+      PublishedVersion = source.PublishedVersion,
+      PublishedBy = TryGetActor(source.PublishedBy),
+      PublishedOn = source.PublishedOn?.AsUniversalTime()
+    };
+
+    foreach (IngredientCategoryLocaleEntity locale in source.Locales)
+    {
+      destination.Locales.Add(ToIngredientCategoryLocale(locale));
+    }
+
+    MapAggregate(source, destination);
+
+    return destination;
+  }
+  private IngredientCategoryLocaleModel ToIngredientCategoryLocale(IngredientCategoryLocaleEntity source) => new()
+  {
+    Language = new Locale(source.Language),
+    Name = source.Name,
+    Slug = source.Slug,
+    MetaDescription = source.MetaDescription,
+    HtmlContent = source.HtmlContent,
+    Notes = source.Notes,
+    Version = source.Version,
+    CreatedBy = FindActor(source.CreatedBy),
+    CreatedOn = source.CreatedOn.AsUniversalTime(),
+    UpdatedBy = FindActor(source.UpdatedBy),
+    UpdatedOn = source.UpdatedOn.AsUniversalTime(),
+    Status = source.Status,
+    PublishedVersion = source.PublishedVersion,
+    PublishedBy = TryGetActor(source.PublishedBy),
+    PublishedOn = source.PublishedOn?.AsUniversalTime()
+  };
 
   public IngredientTypeModel ToIngredientType(IngredientTypeEntity source)
   {
