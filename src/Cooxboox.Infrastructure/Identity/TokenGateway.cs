@@ -1,4 +1,5 @@
-﻿using Cooxboox.Core.Identity;
+﻿using Cooxboox.Core.Caching;
+using Cooxboox.Core.Identity;
 using Cooxboox.Core.Identity.Models;
 using Cooxboox.Infrastructure.Settings;
 using Krakenar.Contracts.Constants;
@@ -19,13 +20,13 @@ internal class TokenGateway : ITokenGateway
   private const string EmailVerificationType = "verify_email+jwt";
   private const string ProfileCompletionType = "profile+jwt";
 
-  private readonly IRealmGateway _realmGateway;
+  private readonly ICacheService _cacheService;
   private readonly TokensSettings _settings;
   private readonly ITokenService _tokenService;
 
-  public TokenGateway(IRealmGateway realmGateway, TokensSettings settings, ITokenService tokenService)
+  public TokenGateway(ICacheService cacheService, TokensSettings settings, ITokenService tokenService)
   {
-    _realmGateway = realmGateway;
+    _cacheService = cacheService;
     _settings = settings;
     _tokenService = tokenService;
   }
@@ -89,7 +90,7 @@ internal class TokenGateway : ITokenGateway
       Id = Guid.Parse(validatedToken.Subject),
       Realm = new Realm
       {
-        Id = await _realmGateway.FindIdCachedAsync(cancellationToken)
+        Id = _cacheService.RealmId
       },
       Email = validatedToken.Email
     };

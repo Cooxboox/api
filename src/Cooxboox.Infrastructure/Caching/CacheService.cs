@@ -14,20 +14,10 @@ internal class CacheService : ICacheService
   private readonly IMemoryCache _cache;
   private readonly CachingSettings _settings;
 
-  public Guid? RealmId
+  public Guid RealmId
   {
-    get => _cache.TryGetValue(RealmIdKey, out object? value) ? (Guid?)value : null;
-    set
-    {
-      if (value.HasValue)
-      {
-        _cache.Set(RealmIdKey, value.Value);
-      }
-      else
-      {
-        _cache.Remove(RealmIdKey);
-      }
-    }
+    get => (_cache.TryGetValue(RealmIdKey, out object? value) ? (Guid?)value : null) ?? throw new InvalidOperationException("The realm identifier was not found in the cache.");
+    set => _cache.Set(RealmIdKey, value);
   }
 
   public CacheService(IMemoryCache cache, CachingSettings settings)
