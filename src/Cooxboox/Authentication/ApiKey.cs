@@ -2,6 +2,7 @@
 using Cooxboox.Extensions;
 using Krakenar.Contracts.ApiKeys;
 using Krakenar.Contracts.Constants;
+using Krakenar.Contracts.Users;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
@@ -13,11 +14,13 @@ internal class ApiKeyAuthenticationOptions : AuthenticationSchemeOptions;
 internal class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthenticationOptions>
 {
   private readonly IApiKeyGateway _apiKeyGateway;
+  private readonly IUserGateway _userGateway;
 
-  public ApiKeyAuthenticationHandler(IApiKeyGateway apiKeyGateway, IOptionsMonitor<ApiKeyAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder)
+  public ApiKeyAuthenticationHandler(IApiKeyGateway apiKeyGateway, IUserGateway userGateway, IOptionsMonitor<ApiKeyAuthenticationOptions> options, ILoggerFactory logger, UrlEncoder encoder)
     : base(options, logger, encoder)
   {
     _apiKeyGateway = apiKeyGateway;
+    _userGateway = userGateway;
   }
 
   protected override async Task<AuthenticateResult> HandleAuthenticateAsync()
@@ -36,12 +39,20 @@ internal class ApiKeyAuthenticationHandler : AuthenticationHandler<ApiKeyAuthent
         {
           ApiKey apiKey = await _apiKeyGateway.AuthenticateAsync(sanitized.Single());
 
-          Context.SetApiKey(apiKey);
+          Guid userId = apiKey.GetUserId();
+          User? user = await _userGateway.FindAsync(userId);
+          if (user is null)
+          {
+            return AuthenticateResult.Fail($"The user 'Id={userId}' was not found.");
+          }
 
-          ClaimsPrincipal principal = new(apiKey.CreateClaimsIdentity(Scheme.Name));
+          Context.SetApiKey(apiKey);
+          Context.SetUser(user);
+
+          ClaimsPrincipal principal = new(user.CreateClaimsIdentity(Scheme.Name));
           AuthenticationTicket ticket = new(principal, Scheme.Name);
 
-          return AuthenticateResult.Success(ticket); // TODO(fpion): a user should always be required!
+          return AuthenticateResult.Success(ticket);
         }
         catch (Exception exception)
         {
