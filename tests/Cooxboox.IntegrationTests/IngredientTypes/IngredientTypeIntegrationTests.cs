@@ -64,6 +64,76 @@ public class IngredientTypeIntegrationTests : IntegrationTests
     Assert.Equal(payload.Notes.Trim(), ingredientType.Notes);
   }
 
+  [Theory(DisplayName = "It should publish an ingredient type.")]
+  [InlineData(true, false)]
+  [InlineData(false, true)]
+  [InlineData(true, true)]
+  public async Task Given_IngredientType_When_Publish_Then_Published(bool publishInvariant, bool publishLocale)
+  {
+    Language language = Faker.Language();
+    _ingredientType.SetLocale(language, new IngredientTypeLocale(_ingredientType.Name, null, null, null, null), Actor.ToActorId());
+    await _ingredientTypeRepository.SaveAsync(_ingredientType);
+
+    IngredientTypeModel? ingredientType = null;
+    long version = _ingredientType.Version;
+    if (publishInvariant && publishLocale)
+    {
+      ingredientType = await _ingredientTypeService.PublishAllAsync(_ingredientType.Entity.Id);
+      version += 2;
+    }
+    else if (publishInvariant)
+    {
+      ingredientType = await _ingredientTypeService.PublishAsync(_ingredientType.Entity.Id);
+      version++;
+    }
+    else if (publishLocale)
+    {
+      ingredientType = await _ingredientTypeService.PublishAsync(_ingredientType.Entity.Id, language.Code);
+      version++;
+    }
+    Assert.NotNull(ingredientType);
+
+    Assert.Equal(_ingredientType.Entity.Id, ingredientType.Id);
+    Assert.Equal(version, ingredientType.Version);
+    Assert.Equal(_ingredientType.CreatedBy, ingredientType.CreatedBy.ToActorId());
+    Assert.Equal(_ingredientType.CreatedOn.AsUniversalTime(), ingredientType.CreatedOn, TimeSpan.FromSeconds(10));
+    Assert.Equal(Actor, ingredientType.UpdatedBy);
+    Assert.Equal(DateTime.UtcNow, ingredientType.UpdatedOn, TimeSpan.FromSeconds(10));
+
+    if (publishInvariant)
+    {
+      Assert.Equal(ContentStatus.Latest, ingredientType.Status);
+      Assert.Equal(ingredientType.Version - (publishLocale ? 1 : 0), ingredientType.PublishedVersion);
+      Assert.Equal(Actor, ingredientType.PublishedBy);
+      Assert.True(ingredientType.PublishedOn.HasValue);
+      Assert.Equal(DateTime.UtcNow, ingredientType.PublishedOn.Value, TimeSpan.FromSeconds(10));
+    }
+    else
+    {
+      Assert.Equal(ContentStatus.Unpublished, ingredientType.Status);
+      Assert.Null(ingredientType.PublishedVersion);
+      Assert.Null(ingredientType.PublishedBy);
+      Assert.Null(ingredientType.PublishedOn);
+    }
+
+    IngredientTypeLocaleModel locale = Assert.Single(ingredientType.Locales);
+    if (publishLocale)
+    {
+      Assert.Equal(ContentStatus.Latest, locale.Status);
+      Assert.Equal(locale.Version, locale.PublishedVersion);
+      Assert.Equal(Actor, locale.PublishedBy);
+      Assert.True(locale.PublishedOn.HasValue);
+      Assert.Equal(DateTime.UtcNow, locale.PublishedOn.Value, TimeSpan.FromSeconds(10));
+    }
+    else
+    {
+      Assert.Equal(ContentStatus.Unpublished, locale.Status);
+      Assert.Null(locale.PublishedVersion);
+      Assert.Null(locale.PublishedBy);
+      Assert.Null(locale.PublishedOn);
+    }
+  }
+
   [Fact(DisplayName = "It should read an ingredient type by ID.")]
   public async Task Given_Id_When_Read_Then_Read()
   {
@@ -105,6 +175,12 @@ public class IngredientTypeIntegrationTests : IntegrationTests
     SearchResults<IngredientTypeModel> results = await _ingredientTypeService.SearchAsync(payload);
     Assert.Equal(0, results.Total);
     Assert.Empty(results.Items);
+  }
+
+  [Fact(DisplayName = "It should return null when the ingredient type does not exist (Publish).")]
+  public async Task Given_NotExist_When_Publish_Then_NullReturned()
+  {
+    Assert.Null(await _ingredientTypeService.PublishAsync(Guid.Empty));
   }
 
   [Fact(DisplayName = "It It should return null when the ingredient type does not exist (SaveLocale).")]
@@ -224,6 +300,17 @@ public class IngredientTypeIntegrationTests : IntegrationTests
     Assert.Equal(Actor.ToActorId().Value, exception.ActorId);
     Assert.Equal(Actions.CreateIngredientType, exception.Action);
     Assert.Null(exception.Resource);
+  }
+
+  [Fact(DisplayName = "It should throw PermissionDeniedException when publishing an ingredient type.")]
+  public async Task Given_Exists_When_Publishing_Then_PermissionDeniedException()
+  {
+    Context.User = new UserBuilder().Build();
+
+    var exception = await Assert.ThrowsAsync<PermissionDeniedException>(async () => await _ingredientTypeService.PublishAsync(_ingredientType.Entity.Id));
+    Assert.Equal(Actor.ToActorId().Value, exception.ActorId);
+    Assert.Equal(Actions.Publish, exception.Action);
+    Assert.Equal(new Entity(IngredientType.EntityKind, _ingredientType.Entity.Id, Context.Kitchen?.Id).ToString(), exception.Resource);
   }
 
   [Fact(DisplayName = "It should throw PermissionDeniedException when replacing an existing ingredient type.")]

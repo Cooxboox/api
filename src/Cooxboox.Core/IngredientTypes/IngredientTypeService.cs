@@ -26,6 +26,7 @@ internal class IngredientTypeService : IIngredientTypeService
     services.AddTransient<IIngredientTypeService, IngredientTypeService>();
     services.AddTransient<ICommandHandler<CreateOrReplaceIngredientTypeCommand, CreateOrReplaceIngredientTypeResult>, CreateOrReplaceIngredientTypeCommandHandler>();
     services.AddTransient<ICommandHandler<SaveIngredientTypeLocaleCommand, IngredientTypeModel?>, SaveIngredientTypeLocaleCommandHandler>();
+    services.AddTransient<ICommandHandler<PublishIngredientTypeCommand, IngredientTypeModel?>, PublishIngredientTypeCommandHandler>();
     services.AddTransient<ICommandHandler<UpdateIngredientTypeCommand, IngredientTypeModel?>, UpdateIngredientTypeCommandHandler>();
     services.AddTransient<ICommandHandler<UpdateIngredientTypeLocaleCommand, IngredientTypeModel?>, UpdateIngredientTypeLocaleCommandHandler>();
     services.AddTransient<IQueryHandler<ReadIngredientTypeQuery, IngredientTypeModel?>, ReadIngredientTypeQueryHandler>();

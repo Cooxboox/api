@@ -117,7 +117,12 @@ public class IngredientType : AggregateRoot, IEntityProvider
   protected virtual void Handle(IngredientTypeLocaleChanged @event)
   {
     _locales[@event.Language] = @event.Locale;
-    if (_statuses[@event.Language] == ContentStatus.Latest)
+
+    if (!_statuses.TryGetValue(@event.Language, out ContentStatus status))
+    {
+      _statuses[@event.Language] = ContentStatus.Unpublished;
+    }
+    else if (status == ContentStatus.Latest)
     {
       _statuses[@event.Language] = ContentStatus.Published;
     }

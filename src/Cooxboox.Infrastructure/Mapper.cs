@@ -32,7 +32,11 @@ internal class Mapper
     {
       Id = source.EntityId,
       Name = source.Name,
-      Notes = source.Notes
+      Notes = source.Notes,
+      Status = source.Status,
+      PublishedVersion = source.PublishedVersion,
+      PublishedBy = TryGetActor(source.PublishedBy),
+      PublishedOn = source.PublishedOn?.AsUniversalTime()
     };
 
     foreach (IngredientTypeLocaleEntity locale in source.Locales)

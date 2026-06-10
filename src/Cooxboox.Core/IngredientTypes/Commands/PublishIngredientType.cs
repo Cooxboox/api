@@ -29,14 +29,14 @@ internal record PublishIngredientTypeCommand : ICommand<IngredientTypeModel?>
   public static PublishIngredientTypeCommand Locale(Guid id, string language) => new(id, language);
 }
 
-internal class PublishIngredientTypeHandler : ICommandHandler<PublishIngredientTypeCommand, IngredientTypeModel?>
+internal class PublishIngredientTypeCommandHandler : ICommandHandler<PublishIngredientTypeCommand, IngredientTypeModel?>
 {
   private readonly IContext _context;
   private readonly IIngredientTypeQuerier _ingredientTypeQuerier;
   private readonly IIngredientTypeRepository _ingredientTypeRepository;
   private readonly IPermissionService _permissionService;
 
-  public PublishIngredientTypeHandler(
+  public PublishIngredientTypeCommandHandler(
     IContext context,
     IIngredientTypeQuerier ingredientTypeQuerier,
     IIngredientTypeRepository ingredientTypeRepository,
