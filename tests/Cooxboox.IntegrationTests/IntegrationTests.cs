@@ -88,6 +88,7 @@ public abstract class IntegrationTests : IAsyncLifetime
     StringBuilder query = new();
     TableId[] tables =
     [
+      Infrastructure.Db.Recipes.Table,
       Infrastructure.Db.RecipeCategories.Table,
       Infrastructure.Db.RecipeTypes.Table,
       Infrastructure.Db.Ingredients.Table,

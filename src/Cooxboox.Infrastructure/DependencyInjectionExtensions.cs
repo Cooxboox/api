@@ -6,6 +6,7 @@ using Cooxboox.Core.Ingredients;
 using Cooxboox.Core.IngredientTypes;
 using Cooxboox.Core.Kitchens;
 using Cooxboox.Core.RecipeCategories;
+using Cooxboox.Core.Recipes;
 using Cooxboox.Core.RecipeTypes;
 using Cooxboox.Infrastructure.Actors;
 using Cooxboox.Infrastructure.Caching;
@@ -50,6 +51,7 @@ public static class DependencyInjectionExtensions
     IngredientTypeEvents.Register(services);
     KitchenEvents.Register(services);
     RecipeCategoryEvents.Register(services);
+    RecipeEvents.Register(services);
     RecipeTypeEvents.Register(services);
     return services;
   }
@@ -74,6 +76,7 @@ public static class DependencyInjectionExtensions
       .AddScoped<IIngredientTypeQuerier, IngredientTypeQuerier>()
       .AddScoped<IKitchenQuerier, KitchenQuerier>()
       .AddScoped<IRecipeCategoryQuerier, RecipeCategoryQuerier>()
+      .AddScoped<IRecipeQuerier, RecipeQuerier>()
       .AddScoped<IRecipeTypeQuerier, RecipeTypeQuerier>();
   }
 
@@ -85,6 +88,7 @@ public static class DependencyInjectionExtensions
       .AddScoped<IIngredientTypeRepository, IngredientTypeRepository>()
       .AddScoped<IKitchenRepository, KitchenRepository>()
       .AddScoped<IRecipeCategoryRepository, RecipeCategoryRepository>()
+      .AddScoped<IRecipeRepository, RecipeRepository>()
       .AddScoped<IRecipeTypeRepository, RecipeTypeRepository>();
   }
 }
