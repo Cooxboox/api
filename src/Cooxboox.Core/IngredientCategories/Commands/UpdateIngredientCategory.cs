@@ -1,6 +1,7 @@
 using Cooxboox.Core.IngredientCategories.Models;
 using Cooxboox.Core.Permissions;
 using Logitar.CQRS;
+using Logitar.EventSourcing;
 
 namespace Cooxboox.Core.IngredientCategories.Commands;
 
@@ -38,10 +39,16 @@ internal class UpdateIngredientCategoryCommandHandler : ICommandHandler<UpdateIn
     }
     await _permissionService.CheckAsync(Actions.Update, ingredientCategory, cancellationToken);
 
-    Name name = Name.TryCreate(payload.Name) ?? ingredientCategory.Name;
-    Notes? notes = payload.Notes is null ? ingredientCategory.Notes : Notes.TryCreate(payload.Notes.Value);
+    ActorId? actorId = _context.ActorId;
 
-    ingredientCategory.Update(name, notes, _context.ActorId);
+    if (!string.IsNullOrWhiteSpace(payload.Name))
+    {
+      ingredientCategory.Rename(new Name(payload.Name), actorId);
+    }
+    if (payload.Notes is not null)
+    {
+      ingredientCategory.Annotate(Notes.TryCreate(payload.Notes.Value), actorId);
+    }
 
     await _ingredientCategoryRepository.SaveAsync(ingredientCategory, cancellationToken);
 

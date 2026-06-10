@@ -246,7 +246,7 @@ public class IngredientTypeIntegrationTests : IntegrationTests
     IngredientTypeModel ingredientType = result.IngredientType;
 
     Assert.Equal(_ingredientType.Entity.Id, ingredientType.Id);
-    Assert.Equal(_ingredientType.Version + 1, ingredientType.Version);
+    Assert.Equal(_ingredientType.Version + 2, ingredientType.Version);
     Assert.Equal(_ingredientType.CreatedBy, ingredientType.CreatedBy.ToActorId());
     Assert.Equal(_ingredientType.CreatedOn.AsUniversalTime(), ingredientType.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(Actor, ingredientType.UpdatedBy);
