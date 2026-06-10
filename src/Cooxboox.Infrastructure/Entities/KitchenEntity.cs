@@ -18,6 +18,8 @@ internal class KitchenEntity : AggregateEntity
 
   public List<IngredientCategoryEntity> IngredientCategories { get; private set; } = [];
   public List<IngredientCategoryLocaleEntity> IngredientCategoryLocales { get; private set; } = [];
+  public List<IngredientEntity> Ingredients { get; private set; } = [];
+  public List<IngredientLocaleEntity> IngredientLocales { get; private set; } = [];
   public List<IngredientTypeEntity> IngredientTypes { get; private set; } = [];
   public List<IngredientTypeLocaleEntity> IngredientTypeLocales { get; private set; } = [];
   public List<RecipeCategoryEntity> RecipeCategories { get; private set; } = [];
