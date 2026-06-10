@@ -90,6 +90,7 @@ public abstract class IntegrationTests : IAsyncLifetime
     [
       Infrastructure.Db.RecipeCategories.Table,
       Infrastructure.Db.RecipeTypes.Table,
+      Infrastructure.Db.Ingredients.Table,
       Infrastructure.Db.IngredientCategories.Table,
       Infrastructure.Db.IngredientTypes.Table,
       Infrastructure.Db.Kitchens.Table,
