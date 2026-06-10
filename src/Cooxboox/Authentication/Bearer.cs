@@ -47,7 +47,7 @@ internal class BearerAuthenticationHandler : AuthenticationHandler<BearerAuthent
             Session? session = user.Sessions.Count == 1 ? user.Sessions.Single() : null;
 
             ClaimsPrincipal principal;
-            Context.SetUser(user); // TODO(fpion): the realm is missing in the token, so the user is not valid.
+            Context.SetUser(user);
             if (session is null)
             {
               principal = new(user.CreateClaimsIdentity(Scheme.Name));

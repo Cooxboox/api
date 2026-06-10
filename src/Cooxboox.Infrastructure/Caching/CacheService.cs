@@ -9,8 +9,26 @@ namespace Cooxboox.Infrastructure.Caching;
 
 internal class CacheService : ICacheService
 {
+  private const string RealmIdKey = "RealmId";
+
   private readonly IMemoryCache _cache;
   private readonly CachingSettings _settings;
+
+  public Guid? RealmId
+  {
+    get => _cache.TryGetValue(RealmIdKey, out object? value) ? (Guid?)value : null;
+    set
+    {
+      if (value.HasValue)
+      {
+        _cache.Set(RealmIdKey, value.Value);
+      }
+      else
+      {
+        _cache.Remove(RealmIdKey);
+      }
+    }
+  }
 
   public CacheService(IMemoryCache cache, CachingSettings settings)
   {
