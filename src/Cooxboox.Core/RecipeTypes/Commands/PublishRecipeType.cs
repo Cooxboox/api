@@ -1,4 +1,4 @@
-﻿using Cooxboox.Core.Localization;
+using Cooxboox.Core.Localization;
 using Cooxboox.Core.Permissions;
 using Cooxboox.Core.RecipeTypes.Models;
 using Logitar.CQRS;
@@ -32,9 +32,9 @@ internal record PublishRecipeTypeCommand : ICommand<RecipeTypeModel?>
 internal class PublishRecipeTypeCommandHandler : ICommandHandler<PublishRecipeTypeCommand, RecipeTypeModel?>
 {
   private readonly IContext _context;
+  private readonly IPermissionService _permissionService;
   private readonly IRecipeTypeQuerier _recipeTypeQuerier;
   private readonly IRecipeTypeRepository _recipeTypeRepository;
-  private readonly IPermissionService _permissionService;
 
   public PublishRecipeTypeCommandHandler(
     IContext context,

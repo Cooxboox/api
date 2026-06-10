@@ -11,9 +11,9 @@ internal record SaveRecipeLocaleCommand(Guid Id, string Language, SaveRecipeLoca
 internal class SaveRecipeLocaleCommandHandler : ICommandHandler<SaveRecipeLocaleCommand, RecipeModel?>
 {
   private readonly IContext _context;
+  private readonly IPermissionService _permissionService;
   private readonly IRecipeQuerier _recipeQuerier;
   private readonly IRecipeRepository _recipeRepository;
-  private readonly IPermissionService _permissionService;
 
   public SaveRecipeLocaleCommandHandler(
     IContext context,

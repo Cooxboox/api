@@ -32,9 +32,9 @@ internal record PublishRecipeCategoryCommand : ICommand<RecipeCategoryModel?>
 internal class PublishRecipeCategoryCommandHandler : ICommandHandler<PublishRecipeCategoryCommand, RecipeCategoryModel?>
 {
   private readonly IContext _context;
+  private readonly IPermissionService _permissionService;
   private readonly IRecipeCategoryQuerier _recipeCategoryQuerier;
   private readonly IRecipeCategoryRepository _recipeCategoryRepository;
-  private readonly IPermissionService _permissionService;
 
   public PublishRecipeCategoryCommandHandler(
     IContext context,

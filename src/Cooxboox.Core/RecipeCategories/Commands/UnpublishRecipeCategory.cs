@@ -32,9 +32,9 @@ internal record UnpublishRecipeCategoryCommand : ICommand<RecipeCategoryModel?>
 internal class UnpublishRecipeCategoryCommandHandler : ICommandHandler<UnpublishRecipeCategoryCommand, RecipeCategoryModel?>
 {
   private readonly IContext _context;
+  private readonly IPermissionService _permissionService;
   private readonly IRecipeCategoryQuerier _recipeCategoryQuerier;
   private readonly IRecipeCategoryRepository _recipeCategoryRepository;
-  private readonly IPermissionService _permissionService;
 
   public UnpublishRecipeCategoryCommandHandler(
     IContext context,

@@ -1,4 +1,4 @@
-﻿using Cooxboox.Core.Permissions;
+using Cooxboox.Core.Permissions;
 using Cooxboox.Core.RecipeTypes.Models;
 using Logitar.CQRS;
 

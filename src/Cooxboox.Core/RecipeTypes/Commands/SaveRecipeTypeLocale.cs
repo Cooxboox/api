@@ -1,4 +1,4 @@
-﻿using Cooxboox.Core.Localization;
+using Cooxboox.Core.Localization;
 using Cooxboox.Core.Permissions;
 using Cooxboox.Core.RecipeTypes.Models;
 using Cooxboox.Core.Seo;
@@ -11,9 +11,9 @@ internal record SaveRecipeTypeLocaleCommand(Guid Id, string Language, SaveRecipe
 internal class SaveRecipeTypeLocaleCommandHandler : ICommandHandler<SaveRecipeTypeLocaleCommand, RecipeTypeModel?>
 {
   private readonly IContext _context;
+  private readonly IPermissionService _permissionService;
   private readonly IRecipeTypeQuerier _recipeTypeQuerier;
   private readonly IRecipeTypeRepository _recipeTypeRepository;
-  private readonly IPermissionService _permissionService;
 
   public SaveRecipeTypeLocaleCommandHandler(
     IContext context,
