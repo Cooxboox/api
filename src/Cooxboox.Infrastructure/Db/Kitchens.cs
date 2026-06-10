@@ -21,5 +21,9 @@ internal static class Kitchens
   public static readonly ColumnId Name = new(nameof(KitchenEntity.Name), Table);
   public static readonly ColumnId Notes = new(nameof(KitchenEntity.Notes), Table);
   public static readonly ColumnId OwnerId = new(nameof(KitchenEntity.OwnerId), Table);
+  public static readonly ColumnId PublishedBy = new(nameof(KitchenEntity.PublishedBy), Table);
+  public static readonly ColumnId PublishedOn = new(nameof(KitchenEntity.PublishedOn), Table);
+  public static readonly ColumnId PublishedVersion = new(nameof(KitchenEntity.PublishedVersion), Table);
   public static readonly ColumnId Slug = new(nameof(KitchenEntity.Slug), Table);
+  public static readonly ColumnId Status = new(nameof(KitchenEntity.Status), Table);
 }

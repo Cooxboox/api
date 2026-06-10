@@ -1,5 +1,8 @@
-﻿using Cooxboox.Core.Kitchens;
+﻿using Cooxboox.Core;
+using Cooxboox.Core.Kitchens;
 using Cooxboox.Core.Kitchens.Events;
+using Cooxboox.Core.Localization;
+using Logitar;
 using Logitar.EventSourcing;
 
 namespace Cooxboox.Infrastructure.Entities;
@@ -16,12 +19,18 @@ internal class KitchenEntity : AggregateEntity
   public string? Slug { get; private set; }
   public string? Notes { get; private set; }
 
+  public ContentStatus Status { get; private set; }
+  public long? PublishedVersion { get; private set; }
+  public string? PublishedBy { get; private set; }
+  public DateTime? PublishedOn { get; private set; }
+
   public List<IngredientCategoryEntity> IngredientCategories { get; private set; } = [];
   public List<IngredientCategoryLocaleEntity> IngredientCategoryLocales { get; private set; } = [];
   public List<IngredientEntity> Ingredients { get; private set; } = [];
   public List<IngredientLocaleEntity> IngredientLocales { get; private set; } = [];
   public List<IngredientTypeEntity> IngredientTypes { get; private set; } = [];
   public List<IngredientTypeLocaleEntity> IngredientTypeLocales { get; private set; } = [];
+  public List<KitchenLocaleEntity> Locales { get; private set; } = [];
   public List<RecipeCategoryEntity> RecipeCategories { get; private set; } = [];
   public List<RecipeCategoryLocaleEntity> RecipeCategoryLocales { get; private set; } = [];
   public List<RecipeEntity> Recipes { get; private set; } = [];
@@ -46,7 +55,74 @@ internal class KitchenEntity : AggregateEntity
   {
     HashSet<ActorId> actorIds = base.GetActorIds().ToHashSet();
     actorIds.Add(new ActorId(OwnerId));
+    if (PublishedBy is not null)
+    {
+      actorIds.Add(new ActorId(PublishedBy));
+    }
+    foreach (KitchenLocaleEntity locale in Locales)
+    {
+      actorIds.AddRange(locale.GetActorIds());
+    }
     return actorIds;
+  }
+
+  public void Publish(KitchenPublished @event)
+  {
+    base.Update(@event);
+
+    if (@event.Language is null)
+    {
+      Status = ContentStatus.Latest;
+      PublishedVersion = Version;
+      PublishedBy = @event.ActorId?.Value;
+      PublishedOn = @event.OccurredOn.AsUniversalTime();
+    }
+    else
+    {
+      KitchenLocaleEntity locale = FindLocale(@event.Language);
+      locale.Publish(@event);
+    }
+  }
+
+  public void Unpublish(KitchenUnpublished @event)
+  {
+    base.Update(@event);
+
+    if (@event.Language is null)
+    {
+      Status = ContentStatus.Unpublished;
+      PublishedVersion = null;
+      PublishedBy = null;
+      PublishedOn = null;
+    }
+    else
+    {
+      KitchenLocaleEntity locale = FindLocale(@event.Language);
+      locale.Unpublish(@event);
+    }
+  }
+
+  public KitchenLocaleEntity? RemoveLocale(KitchenLocaleRemoved @event)
+  {
+    base.Update(@event);
+
+    return TryGetLocale(@event.Language);
+  }
+
+  public void SetLocale(KitchenLocaleChanged @event)
+  {
+    base.Update(@event);
+
+    KitchenLocaleEntity? locale = TryGetLocale(@event.Language);
+    if (locale is null)
+    {
+      locale = new KitchenLocaleEntity(this, @event);
+      Locales.Add(locale);
+    }
+    else
+    {
+      locale.Update(@event);
+    }
   }
 
   public void Update(KitchenUpdated @event)
@@ -58,6 +134,10 @@ internal class KitchenEntity : AggregateEntity
       Name = @event.Name.Value;
     }
   }
+
+  private KitchenLocaleEntity FindLocale(Language language) => TryGetLocale(language)
+    ?? throw new InvalidOperationException($"The kitchen '{this}' locale '{language}' was not found.");
+  private KitchenLocaleEntity? TryGetLocale(Language language) => Locales.SingleOrDefault(locale => locale.Language == language.Code);
 
   public override string ToString() => $"{Name} | {base.ToString()}";
 }

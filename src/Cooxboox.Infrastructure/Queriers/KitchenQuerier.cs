@@ -39,6 +39,7 @@ internal class KitchenQuerier : IKitchenQuerier
   public async Task<KitchenModel?> ReadAsync(KitchenId id, CancellationToken cancellationToken)
   {
     KitchenEntity? kitchen = await _kitchens.AsNoTracking()
+      .Include(x => x.Locales)
       .Where(x => x.StreamId == id.Value && x.OwnerId == _context.UserId.Value)
       .SingleOrDefaultAsync(cancellationToken);
     return kitchen is null ? null : await MapAsync(kitchen, cancellationToken);
@@ -46,6 +47,7 @@ internal class KitchenQuerier : IKitchenQuerier
   public async Task<KitchenModel?> ReadAsync(Guid id, CancellationToken cancellationToken)
   {
     KitchenEntity? kitchen = await _kitchens.AsNoTracking()
+      .Include(x => x.Locales)
       .Where(x => x.EntityId == id && x.OwnerId == _context.UserId.Value)
       .SingleOrDefaultAsync(cancellationToken);
     return kitchen is null ? null : await MapAsync(kitchen, cancellationToken);
