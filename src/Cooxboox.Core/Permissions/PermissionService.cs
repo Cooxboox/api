@@ -59,6 +59,7 @@ internal class PermissionService : IPermissionService
   {
     switch (action)
     {
+      case Actions.CreateIngredient:
       case Actions.CreateIngredientCategory:
       case Actions.CreateIngredientType:
       case Actions.CreateRecipeCategory:

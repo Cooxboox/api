@@ -1,5 +1,6 @@
 ﻿using Cooxboox.Core.Identity;
 using Cooxboox.Core.IngredientCategories;
+using Cooxboox.Core.Ingredients;
 using Cooxboox.Core.IngredientTypes;
 using Cooxboox.Core.Kitchens;
 using Cooxboox.Core.Permissions;
@@ -28,6 +29,7 @@ public static class DependencyInjectionExtensions
   {
     IdentityService.Register(services);
     IngredientCategoryService.Register(services);
+    IngredientService.Register(services);
     IngredientTypeService.Register(services);
     KitchenService.Register(services);
     PermissionService.Register(services);
