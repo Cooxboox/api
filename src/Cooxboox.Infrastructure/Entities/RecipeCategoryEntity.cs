@@ -1,7 +1,7 @@
-using Cooxboox.Core;
+﻿using Cooxboox.Core;
+using Cooxboox.Core.Localization;
 using Cooxboox.Core.RecipeCategories;
 using Cooxboox.Core.RecipeCategories.Events;
-using Cooxboox.Core.Localization;
 using Logitar;
 using Logitar.EventSourcing;
 
@@ -38,6 +38,15 @@ internal class RecipeCategoryEntity : AggregateEntity
   {
   }
 
+  public void Annotate(RecipeCategoryAnnotated @event)
+  {
+    base.Update(@event);
+
+    Notes = @event.Notes?.Value;
+
+    // TODO(fpion): invariant status
+  }
+
   public override IReadOnlyCollection<ActorId> GetActorIds()
   {
     HashSet<ActorId> actorIds = base.GetActorIds().ToHashSet();
@@ -70,29 +79,20 @@ internal class RecipeCategoryEntity : AggregateEntity
     }
   }
 
-  public void Unpublish(RecipeCategoryUnpublished @event)
-  {
-    base.Update(@event);
-
-    if (@event.Language is null)
-    {
-      Status = ContentStatus.Unpublished;
-      PublishedVersion = null;
-      PublishedBy = null;
-      PublishedOn = null;
-    }
-    else
-    {
-      RecipeCategoryLocaleEntity locale = FindLocale(@event.Language);
-      locale.Unpublish(@event);
-    }
-  }
-
   public RecipeCategoryLocaleEntity? RemoveLocale(RecipeCategoryLocaleRemoved @event)
   {
     base.Update(@event);
 
     return TryGetLocale(@event.Language);
+  }
+
+  public void Rename(RecipeCategoryRenamed @event)
+  {
+    base.Update(@event);
+
+    Name = @event.Name.Value;
+
+    // TODO(fpion): invariant status
   }
 
   public void SetLocale(RecipeCategoryLocaleChanged @event)
@@ -111,17 +111,21 @@ internal class RecipeCategoryEntity : AggregateEntity
     }
   }
 
-  public void Update(RecipeCategoryUpdated @event)
+  public void Unpublish(RecipeCategoryUnpublished @event)
   {
     base.Update(@event);
 
-    if (@event.Name is not null)
+    if (@event.Language is null)
     {
-      Name = @event.Name.Value;
+      Status = ContentStatus.Unpublished;
+      PublishedVersion = null;
+      PublishedBy = null;
+      PublishedOn = null;
     }
-    if (@event.Notes is not null)
+    else
     {
-      Notes = @event.Notes.Value?.Value;
+      RecipeCategoryLocaleEntity locale = FindLocale(@event.Language);
+      locale.Unpublish(@event);
     }
   }
 

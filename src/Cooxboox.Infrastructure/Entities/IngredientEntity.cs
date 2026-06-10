@@ -86,6 +86,15 @@ internal class IngredientEntity : AggregateEntity
     return TryGetLocale(@event.Language);
   }
 
+  public void Rename(IngredientRenamed @event)
+  {
+    base.Update(@event);
+
+    Name = @event.Name.Value;
+
+    // TODO(fpion): invariant status
+  }
+
   public void SetLocale(IngredientLocaleChanged @event)
   {
     base.Update(@event);
@@ -100,15 +109,6 @@ internal class IngredientEntity : AggregateEntity
     {
       locale.Update(@event);
     }
-  }
-
-  public void Rename(IngredientRenamed @event)
-  {
-    base.Update(@event);
-
-    Name = @event.Name.Value;
-
-    // TODO(fpion): invariant status
   }
 
   public void Unpublish(IngredientUnpublished @event)

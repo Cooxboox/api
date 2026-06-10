@@ -7,23 +7,25 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Cooxboox.Infrastructure.Handlers;
 
-internal class RecipeCategoryEvents : IEventHandler<RecipeCategoryCreated>,
+internal class RecipeCategoryEvents : IEventHandler<RecipeCategoryAnnotated>,
+  IEventHandler<RecipeCategoryCreated>,
   IEventHandler<RecipeCategoryDeleted>,
   IEventHandler<RecipeCategoryLocaleChanged>,
   IEventHandler<RecipeCategoryLocaleRemoved>,
   IEventHandler<RecipeCategoryPublished>,
-  IEventHandler<RecipeCategoryUnpublished>,
-  IEventHandler<RecipeCategoryUpdated>
+  IEventHandler<RecipeCategoryRenamed>,
+  IEventHandler<RecipeCategoryUnpublished>
 {
   public static void Register(IServiceCollection services)
   {
+    services.AddTransient<IEventHandler<RecipeCategoryAnnotated>, RecipeCategoryEvents>();
     services.AddTransient<IEventHandler<RecipeCategoryCreated>, RecipeCategoryEvents>();
     services.AddTransient<IEventHandler<RecipeCategoryDeleted>, RecipeCategoryEvents>();
     services.AddTransient<IEventHandler<RecipeCategoryLocaleChanged>, RecipeCategoryEvents>();
     services.AddTransient<IEventHandler<RecipeCategoryLocaleRemoved>, RecipeCategoryEvents>();
     services.AddTransient<IEventHandler<RecipeCategoryPublished>, RecipeCategoryEvents>();
+    services.AddTransient<IEventHandler<RecipeCategoryRenamed>, RecipeCategoryEvents>();
     services.AddTransient<IEventHandler<RecipeCategoryUnpublished>, RecipeCategoryEvents>();
-    services.AddTransient<IEventHandler<RecipeCategoryUpdated>, RecipeCategoryEvents>();
   }
 
   private readonly CooxbooxContext _cooxboox;
@@ -31,6 +33,17 @@ internal class RecipeCategoryEvents : IEventHandler<RecipeCategoryCreated>,
   public RecipeCategoryEvents(CooxbooxContext cooxboox)
   {
     _cooxboox = cooxboox;
+  }
+
+  public async Task HandleAsync(RecipeCategoryAnnotated @event, CancellationToken cancellationToken)
+  {
+    RecipeCategoryEntity? recipeCategory = await _cooxboox.RecipeCategories.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (recipeCategory is not null && recipeCategory.Version == (@event.Version - 1))
+    {
+      recipeCategory.Annotate(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
   }
 
   public async Task HandleAsync(RecipeCategoryCreated @event, CancellationToken cancellationToken)
@@ -104,6 +117,17 @@ internal class RecipeCategoryEvents : IEventHandler<RecipeCategoryCreated>,
     }
   }
 
+  public async Task HandleAsync(RecipeCategoryRenamed @event, CancellationToken cancellationToken)
+  {
+    RecipeCategoryEntity? recipeCategory = await _cooxboox.RecipeCategories.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (recipeCategory is not null && recipeCategory.Version == (@event.Version - 1))
+    {
+      recipeCategory.Rename(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
+  }
+
   public async Task HandleAsync(RecipeCategoryUnpublished @event, CancellationToken cancellationToken)
   {
     RecipeCategoryEntity? recipeCategory = await _cooxboox.RecipeCategories
@@ -112,17 +136,6 @@ internal class RecipeCategoryEvents : IEventHandler<RecipeCategoryCreated>,
     if (recipeCategory is not null && recipeCategory.Version == (@event.Version - 1))
     {
       recipeCategory.Unpublish(@event);
-
-      await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
-
-  public async Task HandleAsync(RecipeCategoryUpdated @event, CancellationToken cancellationToken)
-  {
-    RecipeCategoryEntity? recipeCategory = await _cooxboox.RecipeCategories.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (recipeCategory is not null && recipeCategory.Version == (@event.Version - 1))
-    {
-      recipeCategory.Update(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
     }
