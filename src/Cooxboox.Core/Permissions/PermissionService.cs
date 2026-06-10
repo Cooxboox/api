@@ -76,9 +76,12 @@ internal class PermissionService : IPermissionService
 
   private bool IsAllowed(string action, Kitchen kitchen)
   {
-    if (action == Actions.Update)
+    switch (action)
     {
-      return kitchen.OwnerId == _context.UserId;
+      case Actions.Publish:
+      case Actions.Unpublish:
+      case Actions.Update:
+        return kitchen.OwnerId == _context.UserId;
     }
 
     return false;

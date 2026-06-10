@@ -1,5 +1,6 @@
 ﻿using Cooxboox.Core.Identity;
 using Cooxboox.Core.Kitchens.Events;
+using Cooxboox.Core.Localization;
 using Cooxboox.Core.Seo;
 using Logitar.EventSourcing;
 
@@ -18,6 +19,11 @@ public class Kitchen : AggregateRoot, IEntityProvider
   private Name? _name = null;
   public Name Name => _name ?? throw new InvalidOperationException("The name was not initialized.");
   public Slug? Slug { get; }
+
+  private readonly Dictionary<Language, KitchenLocale> _locales = [];
+
+  private ContentStatus _status = ContentStatus.Unpublished;
+  private readonly Dictionary<Language, ContentStatus> _statuses = [];
 
   public Kitchen() : base()
   {
@@ -43,6 +49,127 @@ public class Kitchen : AggregateRoot, IEntityProvider
     }
   }
 
+  public KitchenLocale FindLocale(Language language) => TryGetLocale(language) ?? throw new LocaleNotFoundException(this, language);
+
+  public bool HasLocale(Language language) => _locales.ContainsKey(language);
+
+  public void Publish(ActorId? actorId = null)
+  {
+    PublishInvariant(actorId);
+
+    foreach (Language language in _locales.Keys)
+    {
+      PublishLocale(language, actorId);
+    }
+  }
+  public void PublishInvariant(ActorId? actorId = null)
+  {
+    if (_status != ContentStatus.Latest)
+    {
+      Raise(new KitchenPublished(Language: null), actorId);
+    }
+  }
+  public void PublishLocale(Language language, ActorId? actorId = null)
+  {
+    // TODO(fpion): can we publish a locale if the invariant is not published?
+
+    if (!_statuses.TryGetValue(language, out ContentStatus status))
+    {
+      throw new LocaleNotFoundException(this, language);
+    }
+    else if (status != ContentStatus.Latest)
+    {
+      Raise(new KitchenPublished(language), actorId);
+    }
+  }
+  protected virtual void Handle(KitchenPublished @event)
+  {
+    if (@event.Language is null)
+    {
+      _status = ContentStatus.Latest;
+    }
+    else
+    {
+      _statuses[@event.Language] = ContentStatus.Latest;
+    }
+  }
+
+  public void Unpublish(ActorId? actorId = null)
+  {
+    UnpublishInvariant(actorId);
+
+    foreach (Language language in _locales.Keys)
+    {
+      UnpublishLocale(language, actorId);
+    }
+  }
+  public void UnpublishInvariant(ActorId? actorId = null)
+  {
+    if (_status != ContentStatus.Unpublished)
+    {
+      Raise(new KitchenUnpublished(Language: null), actorId);
+    }
+  }
+  public void UnpublishLocale(Language language, ActorId? actorId = null)
+  {
+    if (!_statuses.TryGetValue(language, out ContentStatus status))
+    {
+      throw new LocaleNotFoundException(this, language);
+    }
+    else if (status != ContentStatus.Unpublished)
+    {
+      Raise(new KitchenUnpublished(language), actorId);
+    }
+  }
+  protected virtual void Handle(KitchenUnpublished @event)
+  {
+    if (@event.Language is null)
+    {
+      _status = ContentStatus.Unpublished;
+    }
+    else
+    {
+      _statuses[@event.Language] = ContentStatus.Unpublished;
+    }
+  }
+
+  public void RemoveLocale(Language language, ActorId? actorId = null)
+  {
+    if (HasLocale(language))
+    {
+      Raise(new KitchenLocaleRemoved(language), actorId);
+    }
+  }
+  protected virtual void Handle(KitchenLocaleRemoved @event)
+  {
+    _locales.Remove(@event.Language);
+    _statuses.Remove(@event.Language);
+  }
+
+  public void SetLocale(Language language, KitchenLocale locale, ActorId? actorId = null)
+  {
+    KitchenLocale? existingLocale = TryGetLocale(language);
+    if (existingLocale is null || !existingLocale.Equals(locale))
+    {
+      Raise(new KitchenLocaleChanged(language, locale), actorId);
+    }
+  }
+  protected virtual void Handle(KitchenLocaleChanged @event)
+  {
+    _locales[@event.Language] = @event.Locale;
+
+    if (!_statuses.TryGetValue(@event.Language, out ContentStatus status))
+    {
+      _statuses[@event.Language] = ContentStatus.Unpublished;
+    }
+    else if (status == ContentStatus.Latest)
+    {
+      _statuses[@event.Language] = ContentStatus.Published;
+    }
+  }
+
+  public KitchenLocale? TryGetLocale(Language language) => _locales.TryGetValue(language, out KitchenLocale? locale) ? locale : null;
+
   public void Update(Name name, ActorId? actorId = null)
   {
     if (!Name.Equals(name))
@@ -55,6 +182,11 @@ public class Kitchen : AggregateRoot, IEntityProvider
     if (@event.Name is not null)
     {
       _name = @event.Name;
+    }
+
+    if (_status == ContentStatus.Latest)
+    {
+      _status = ContentStatus.Published;
     }
   }
 
