@@ -8,13 +8,13 @@ public record MigrateDatabaseCommand : ICommand;
 
 internal class MigrateDatabaseCommandHandler : ICommandHandler<MigrateDatabaseCommand, Unit>
 {
-  private readonly EventContext _events;
   private readonly CooxbooxContext _cooxboox;
+  private readonly EventContext _events;
 
-  public MigrateDatabaseCommandHandler(EventContext events, CooxbooxContext cooxboox)
+  public MigrateDatabaseCommandHandler(CooxbooxContext cooxboox, EventContext events)
   {
-    _events = events;
     _cooxboox = cooxboox;
+    _events = events;
   }
 
   public async Task<Unit> HandleAsync(MigrateDatabaseCommand _, CancellationToken cancellationToken)

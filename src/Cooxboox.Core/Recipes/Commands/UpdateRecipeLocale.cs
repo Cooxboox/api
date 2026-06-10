@@ -11,9 +11,9 @@ internal record UpdateRecipeLocaleCommand(Guid Id, string Language, UpdateRecipe
 internal class UpdateRecipeLocaleCommandHandler : ICommandHandler<UpdateRecipeLocaleCommand, RecipeModel?>
 {
   private readonly IContext _context;
+  private readonly IPermissionService _permissionService;
   private readonly IRecipeQuerier _recipeQuerier;
   private readonly IRecipeRepository _recipeRepository;
-  private readonly IPermissionService _permissionService;
 
   public UpdateRecipeLocaleCommandHandler(
     IContext context,
