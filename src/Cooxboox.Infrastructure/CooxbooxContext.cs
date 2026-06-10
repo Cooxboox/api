@@ -11,6 +11,8 @@ public class CooxbooxContext : DbContext
 
   internal DbSet<IngredientCategoryEntity> IngredientCategories => Set<IngredientCategoryEntity>();
   internal DbSet<IngredientCategoryLocaleEntity> IngredientCategoryLocales => Set<IngredientCategoryLocaleEntity>();
+  internal DbSet<IngredientEntity> Ingredients => Set<IngredientEntity>();
+  internal DbSet<IngredientLocaleEntity> IngredientLocales => Set<IngredientLocaleEntity>();
   internal DbSet<IngredientTypeEntity> IngredientTypes => Set<IngredientTypeEntity>();
   internal DbSet<IngredientTypeLocaleEntity> IngredientTypeLocales => Set<IngredientTypeLocaleEntity>();
   internal DbSet<KitchenEntity> Kitchens => Set<KitchenEntity>();
