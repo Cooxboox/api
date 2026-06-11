@@ -12,6 +12,7 @@ using Cooxboox.Infrastructure.Actors;
 using Cooxboox.Infrastructure.Caching;
 using Cooxboox.Infrastructure.Handlers;
 using Cooxboox.Infrastructure.Identity;
+using Cooxboox.Infrastructure.Outbox;
 using Cooxboox.Infrastructure.Queriers;
 using Cooxboox.Infrastructure.Repositories;
 using Cooxboox.Infrastructure.Settings;
@@ -41,6 +42,7 @@ public static class DependencyInjectionExtensions
       .AddSingleton<IEventSerializer, EventSerializer>()
       .AddScoped<IActorService, ActorService>()
       .AddScoped<IEventBus, EventBus>()
+      .AddScoped<IOutboxService, OutboxService>()
       .AddTransient<ICommandHandler<MigrateDatabaseCommand, Unit>, MigrateDatabaseCommandHandler>();
   }
 

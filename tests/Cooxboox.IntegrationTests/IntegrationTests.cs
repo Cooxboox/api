@@ -55,6 +55,7 @@ public abstract class IntegrationTests : IAsyncLifetime
   protected virtual IServiceProvider BuildServiceProvider()
   {
     ServiceCollection services = new();
+    services.AddLogging();
 
     services.AddSingleton(Configuration);
     services.AddSingleton<IContext>(Context);
