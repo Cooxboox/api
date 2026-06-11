@@ -53,7 +53,7 @@ public class Kitchen : AggregateRoot, IEntityProvider
   {
     Notes = @event.Notes;
 
-    // TODO(fpion): invariant status
+    UpdateInvariant();
   }
 
   public void Delete(ActorId? actorId = null)
@@ -122,7 +122,7 @@ public class Kitchen : AggregateRoot, IEntityProvider
   {
     Slug = @event.Slug;
 
-    // TODO(fpion): invariant status
+    UpdateInvariant();
   }
 
   public void RemoveLocale(Language language, ActorId? actorId = null)
@@ -149,7 +149,7 @@ public class Kitchen : AggregateRoot, IEntityProvider
   {
     _name = @event.Name;
 
-    // TODO(fpion): invariant status
+    UpdateInvariant();
   }
 
   public void SetLocale(Language language, KitchenLocale locale, ActorId? actorId = null)
@@ -212,6 +212,14 @@ public class Kitchen : AggregateRoot, IEntityProvider
     else
     {
       _statuses[@event.Language] = ContentStatus.Unpublished;
+    }
+  }
+
+  private void UpdateInvariant()
+  {
+    if (_status == ContentStatus.Latest)
+    {
+      _status = ContentStatus.Published;
     }
   }
 

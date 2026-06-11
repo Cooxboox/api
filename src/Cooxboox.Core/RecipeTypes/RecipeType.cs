@@ -51,7 +51,7 @@ public class RecipeType : AggregateRoot, IEntityProvider
   {
     Notes = @event.Notes;
 
-    // TODO(fpion): invariant status
+    UpdateInvariant();
   }
 
   public void Delete(ActorId? actorId = null)
@@ -133,7 +133,7 @@ public class RecipeType : AggregateRoot, IEntityProvider
   {
     _name = @event.Name;
 
-    // TODO(fpion): invariant status
+    UpdateInvariant();
   }
 
   public void SetLocale(Language language, RecipeTypeLocale locale, ActorId? actorId = null)
@@ -199,6 +199,13 @@ public class RecipeType : AggregateRoot, IEntityProvider
     }
   }
 
+  private void UpdateInvariant()
+  {
+    if (_status == ContentStatus.Latest)
+    {
+      _status = ContentStatus.Published;
+    }
+  }
 
   public override string ToString() => $"{Name} | {base.ToString()}";
 }
