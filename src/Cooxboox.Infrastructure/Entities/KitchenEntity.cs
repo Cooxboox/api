@@ -53,11 +53,9 @@ internal class KitchenEntity : AggregateEntity
 
   public void Annotate(KitchenAnnotated @event)
   {
-    base.Update(@event);
+    UpdateInvariant(@event);
 
     Notes = @event.Notes?.Value;
-
-    // TODO(fpion): invariant status
   }
 
   public override IReadOnlyCollection<ActorId> GetActorIds()
@@ -102,11 +100,9 @@ internal class KitchenEntity : AggregateEntity
 
   public void Rename(KitchenRenamed @event)
   {
-    base.Update(@event);
+    UpdateInvariant(@event);
 
     Name = @event.Name.Value;
-
-    // TODO(fpion): invariant status
   }
 
   public void SetLocale(KitchenLocaleChanged @event)
@@ -127,11 +123,9 @@ internal class KitchenEntity : AggregateEntity
 
   public void SetSlug(KitchenSlugChanged @event)
   {
-    base.Update(@event);
+    UpdateInvariant(@event);
 
     Slug = @event.Slug?.Value;
-
-    // TODO(fpion): invariant status
   }
 
   public void Unpublish(KitchenUnpublished @event)
@@ -155,6 +149,16 @@ internal class KitchenEntity : AggregateEntity
   private KitchenLocaleEntity FindLocale(Language language) => TryGetLocale(language)
     ?? throw new InvalidOperationException($"The kitchen '{this}' locale '{language}' was not found.");
   private KitchenLocaleEntity? TryGetLocale(Language language) => Locales.SingleOrDefault(locale => locale.Language == language.Code);
+
+  private void UpdateInvariant(DomainEvent @event)
+  {
+    base.Update(@event);
+
+    if (Status == ContentStatus.Latest)
+    {
+      Status = ContentStatus.Published;
+    }
+  }
 
   public override string ToString() => $"{Name} | {base.ToString()}";
 }

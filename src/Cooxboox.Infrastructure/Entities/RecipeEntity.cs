@@ -40,11 +40,9 @@ internal class RecipeEntity : AggregateEntity
 
   public void Annotate(RecipeAnnotated @event)
   {
-    base.Update(@event);
+    UpdateInvariant(@event);
 
     Notes = @event.Notes?.Value;
-
-    // TODO(fpion): invariant status
   }
 
   public override IReadOnlyCollection<ActorId> GetActorIds()
@@ -88,11 +86,9 @@ internal class RecipeEntity : AggregateEntity
 
   public void Rename(RecipeRenamed @event)
   {
-    base.Update(@event);
+    UpdateInvariant(@event);
 
     Name = @event.Name.Value;
-
-    // TODO(fpion): invariant status
   }
 
   public void SetLocale(RecipeLocaleChanged @event)
@@ -132,6 +128,16 @@ internal class RecipeEntity : AggregateEntity
   private RecipeLocaleEntity FindLocale(Language language) => TryGetLocale(language)
     ?? throw new InvalidOperationException($"The recipe type '{this}' locale '{language}' was not found.");
   private RecipeLocaleEntity? TryGetLocale(Language language) => Locales.SingleOrDefault(locale => locale.Language == language.Code);
+
+  private void UpdateInvariant(DomainEvent @event)
+  {
+    base.Update(@event);
+
+    if (Status == ContentStatus.Latest)
+    {
+      Status = ContentStatus.Published;
+    }
+  }
 
   public override string ToString() => $"{Name} | {base.ToString()}";
 }
