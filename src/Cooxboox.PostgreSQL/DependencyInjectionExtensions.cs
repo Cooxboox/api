@@ -22,6 +22,7 @@ public static class DependencyInjectionExtensions
   {
     return services
       .AddDbContext<CooxbooxContext>(options => options.UseNpgsql(connectionString, options => options.MigrationsAssembly("Cooxboox.PostgreSQL")))
+      .AddDbContextFactory<CooxbooxContext>(options => options.UseNpgsql(connectionString), ServiceLifetime.Scoped)
       .AddLogitarEventSourcingWithEntityFrameworkCorePostgreSQL(connectionString)
       .AddSingleton<ISqlHelper, PostgresHelper>();
   }

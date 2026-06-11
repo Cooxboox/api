@@ -1,6 +1,7 @@
 ﻿using Cooxboox.Core.Ingredients;
 using Cooxboox.Core.Ingredients.Events;
 using Cooxboox.Infrastructure.Entities;
+using Cooxboox.Infrastructure.Outbox;
 using Logitar.EventSourcing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,71 +30,85 @@ internal class IngredientEvents : IEventHandler<IngredientAnnotated>,
   }
 
   private readonly CooxbooxContext _cooxboox;
+  private readonly IOutboxService _outbox;
 
-  public IngredientEvents(CooxbooxContext cooxboox)
+  public IngredientEvents(CooxbooxContext cooxboox, IOutboxService outbox)
   {
     _cooxboox = cooxboox;
+    _outbox = outbox;
   }
 
-  public async Task HandleAsync(IngredientAnnotated @event, CancellationToken cancellationToken)
-  {
-    IngredientEntity? ingredient = await _cooxboox.Ingredients.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (ingredient is not null && ingredient.Version == (@event.Version - 1))
+  public async Task HandleAsync(IngredientAnnotated @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
     {
+      IngredientEntity? ingredient = await _cooxboox.Ingredients.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, ingredient);
+
       ingredient.Annotate(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
+    },
+    cancellationToken);
 
-  public async Task HandleAsync(IngredientCreated @event, CancellationToken cancellationToken)
-  {
-    IngredientEntity? ingredient = await _cooxboox.Ingredients.AsNoTracking().SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (ingredient is null)
+  public async Task HandleAsync(IngredientCreated @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
     {
-      IngredientId ingredientId = new(@event.StreamId);
-      KitchenEntity kitchen = await _cooxboox.Kitchens.SingleOrDefaultAsync(x => x.StreamId == ingredientId.KitchenId.Value, cancellationToken)
-        ?? throw new InvalidOperationException($"The kitchen entity 'StreamId={ingredientId.KitchenId}' was not found.");
+      IngredientEntity? ingredient = await _cooxboox.Ingredients.AsNoTracking().SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      if (ingredient is null)
+      {
+        IngredientId ingredientId = new(@event.StreamId);
+        KitchenEntity kitchen = await _cooxboox.Kitchens.SingleOrDefaultAsync(x => x.StreamId == ingredientId.KitchenId.Value, cancellationToken)
+          ?? throw new InvalidOperationException($"The kitchen entity 'StreamId={ingredientId.KitchenId}' was not found.");
 
-      ingredient = new IngredientEntity(kitchen, @event);
+        ingredient = new IngredientEntity(kitchen, @event);
 
-      _cooxboox.Ingredients.Add(ingredient);
+        _cooxboox.Ingredients.Add(ingredient);
 
-      await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
+        await _cooxboox.SaveChangesAsync(cancellationToken);
+      }
+    },
+    cancellationToken);
 
-  public async Task HandleAsync(IngredientDeleted @event, CancellationToken cancellationToken)
-  {
-    IngredientEntity? ingredient = await _cooxboox.Ingredients.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (ingredient is not null)
+  public async Task HandleAsync(IngredientDeleted @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
     {
-      _cooxboox.Ingredients.Remove(ingredient);
+      IngredientEntity? ingredient = await _cooxboox.Ingredients.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      if (ingredient is not null)
+      {
+        _cooxboox.Ingredients.Remove(ingredient);
 
-      await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
+        await _cooxboox.SaveChangesAsync(cancellationToken);
+      }
+    },
+    cancellationToken);
 
-  public async Task HandleAsync(IngredientLocaleChanged @event, CancellationToken cancellationToken)
-  {
-    IngredientEntity? ingredient = await _cooxboox.Ingredients
-      .Include(x => x.Locales)
-      .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (ingredient is not null && ingredient.Version == (@event.Version - 1))
+  public async Task HandleAsync(IngredientLocaleChanged @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
     {
+      IngredientEntity? ingredient = await _cooxboox.Ingredients
+        .Include(x => x.Locales)
+        .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, ingredient);
+
       ingredient.SetLocale(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
+    },
+    cancellationToken);
 
-  public async Task HandleAsync(IngredientLocaleRemoved @event, CancellationToken cancellationToken)
-  {
-    IngredientEntity? ingredient = await _cooxboox.Ingredients
-      .Include(x => x.Locales)
-      .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (ingredient is not null && ingredient.Version == (@event.Version - 1))
+  public async Task HandleAsync(IngredientLocaleRemoved @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
     {
+      IngredientEntity? ingredient = await _cooxboox.Ingredients
+        .Include(x => x.Locales)
+        .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, ingredient);
+
       IngredientLocaleEntity? locale = ingredient.RemoveLocale(@event);
       if (locale is not null)
       {
@@ -101,43 +116,49 @@ internal class IngredientEvents : IEventHandler<IngredientAnnotated>,
       }
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
+    },
+    cancellationToken);
 
-  public async Task HandleAsync(IngredientPublished @event, CancellationToken cancellationToken)
-  {
-    IngredientEntity? ingredient = await _cooxboox.Ingredients
-      .Include(x => x.Locales)
-      .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (ingredient is not null && ingredient.Version == (@event.Version - 1))
+  public async Task HandleAsync(IngredientPublished @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
     {
+      IngredientEntity? ingredient = await _cooxboox.Ingredients
+        .Include(x => x.Locales)
+        .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, ingredient);
+
       ingredient.Publish(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
+    },
+    cancellationToken);
 
-  public async Task HandleAsync(IngredientRenamed @event, CancellationToken cancellationToken)
-  {
-    IngredientEntity? ingredient = await _cooxboox.Ingredients.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (ingredient is not null && ingredient.Version == (@event.Version - 1))
+  public async Task HandleAsync(IngredientRenamed @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
     {
+      IngredientEntity? ingredient = await _cooxboox.Ingredients.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, ingredient);
+
       ingredient.Rename(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
+    },
+    cancellationToken);
 
-  public async Task HandleAsync(IngredientUnpublished @event, CancellationToken cancellationToken)
-  {
-    IngredientEntity? ingredient = await _cooxboox.Ingredients
-      .Include(x => x.Locales)
-      .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (ingredient is not null && ingredient.Version == (@event.Version - 1))
+  public async Task HandleAsync(IngredientUnpublished @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
     {
+      IngredientEntity? ingredient = await _cooxboox.Ingredients
+        .Include(x => x.Locales)
+        .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, ingredient);
+
       ingredient.Unpublish(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
+    },
+    cancellationToken);
 }

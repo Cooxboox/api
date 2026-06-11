@@ -1,6 +1,7 @@
 ﻿using Cooxboox.Core.RecipeTypes;
 using Cooxboox.Core.RecipeTypes.Events;
 using Cooxboox.Infrastructure.Entities;
+using Cooxboox.Infrastructure.Outbox;
 using Logitar.EventSourcing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,71 +30,85 @@ internal class RecipeTypeEvents : IEventHandler<RecipeTypeAnnotated>,
   }
 
   private readonly CooxbooxContext _cooxboox;
+  private readonly IOutboxService _outbox;
 
-  public RecipeTypeEvents(CooxbooxContext cooxboox)
+  public RecipeTypeEvents(CooxbooxContext cooxboox, IOutboxService outbox)
   {
     _cooxboox = cooxboox;
+    _outbox = outbox;
   }
 
-  public async Task HandleAsync(RecipeTypeAnnotated @event, CancellationToken cancellationToken)
-  {
-    RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (recipeType is not null && recipeType.Version == (@event.Version - 1))
+  public async Task HandleAsync(RecipeTypeAnnotated @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
     {
+      RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, recipeType);
+
       recipeType.Annotate(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
+    },
+    cancellationToken);
 
-  public async Task HandleAsync(RecipeTypeCreated @event, CancellationToken cancellationToken)
-  {
-    RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes.AsNoTracking().SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (recipeType is null)
+  public async Task HandleAsync(RecipeTypeCreated @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
     {
-      RecipeTypeId recipeTypeId = new(@event.StreamId);
-      KitchenEntity kitchen = await _cooxboox.Kitchens.SingleOrDefaultAsync(x => x.StreamId == recipeTypeId.KitchenId.Value, cancellationToken)
-        ?? throw new InvalidOperationException($"The kitchen entity 'StreamId={recipeTypeId.KitchenId}' was not found.");
+      RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes.AsNoTracking().SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      if (recipeType is null)
+      {
+        RecipeTypeId recipeTypeId = new(@event.StreamId);
+        KitchenEntity kitchen = await _cooxboox.Kitchens.SingleOrDefaultAsync(x => x.StreamId == recipeTypeId.KitchenId.Value, cancellationToken)
+          ?? throw new InvalidOperationException($"The kitchen entity 'StreamId={recipeTypeId.KitchenId}' was not found.");
 
-      recipeType = new RecipeTypeEntity(kitchen, @event);
+        recipeType = new RecipeTypeEntity(kitchen, @event);
 
-      _cooxboox.RecipeTypes.Add(recipeType);
+        _cooxboox.RecipeTypes.Add(recipeType);
 
-      await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
+        await _cooxboox.SaveChangesAsync(cancellationToken);
+      }
+    },
+    cancellationToken);
 
-  public async Task HandleAsync(RecipeTypeDeleted @event, CancellationToken cancellationToken)
-  {
-    RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (recipeType is not null)
+  public async Task HandleAsync(RecipeTypeDeleted @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
     {
-      _cooxboox.RecipeTypes.Remove(recipeType);
+      RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      if (recipeType is not null)
+      {
+        _cooxboox.RecipeTypes.Remove(recipeType);
 
-      await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
+        await _cooxboox.SaveChangesAsync(cancellationToken);
+      }
+    },
+    cancellationToken);
 
-  public async Task HandleAsync(RecipeTypeLocaleChanged @event, CancellationToken cancellationToken)
-  {
-    RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes
-      .Include(x => x.Locales)
-      .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (recipeType is not null && recipeType.Version == (@event.Version - 1))
+  public async Task HandleAsync(RecipeTypeLocaleChanged @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
     {
+      RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes
+        .Include(x => x.Locales)
+        .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, recipeType);
+
       recipeType.SetLocale(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
+    },
+    cancellationToken);
 
-  public async Task HandleAsync(RecipeTypeLocaleRemoved @event, CancellationToken cancellationToken)
-  {
-    RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes
-      .Include(x => x.Locales)
-      .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (recipeType is not null && recipeType.Version == (@event.Version - 1))
+  public async Task HandleAsync(RecipeTypeLocaleRemoved @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
     {
+      RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes
+        .Include(x => x.Locales)
+        .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, recipeType);
+
       RecipeTypeLocaleEntity? locale = recipeType.RemoveLocale(@event);
       if (locale is not null)
       {
@@ -101,43 +116,49 @@ internal class RecipeTypeEvents : IEventHandler<RecipeTypeAnnotated>,
       }
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
+    },
+    cancellationToken);
 
-  public async Task HandleAsync(RecipeTypePublished @event, CancellationToken cancellationToken)
-  {
-    RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes
-      .Include(x => x.Locales)
-      .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (recipeType is not null && recipeType.Version == (@event.Version - 1))
+  public async Task HandleAsync(RecipeTypePublished @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
     {
+      RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes
+        .Include(x => x.Locales)
+        .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, recipeType);
+
       recipeType.Publish(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
+    },
+    cancellationToken);
 
-  public async Task HandleAsync(RecipeTypeRenamed @event, CancellationToken cancellationToken)
-  {
-    RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (recipeType is not null && recipeType.Version == (@event.Version - 1))
+  public async Task HandleAsync(RecipeTypeRenamed @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
     {
+      RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, recipeType);
+
       recipeType.Rename(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
+    },
+    cancellationToken);
 
-  public async Task HandleAsync(RecipeTypeUnpublished @event, CancellationToken cancellationToken)
-  {
-    RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes
-      .Include(x => x.Locales)
-      .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (recipeType is not null && recipeType.Version == (@event.Version - 1))
+  public async Task HandleAsync(RecipeTypeUnpublished @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
     {
+      RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes
+        .Include(x => x.Locales)
+        .SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, recipeType);
+
       recipeType.Unpublish(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
+    },
+    cancellationToken);
 }
