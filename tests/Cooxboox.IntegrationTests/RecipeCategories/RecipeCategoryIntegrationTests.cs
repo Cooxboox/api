@@ -246,7 +246,7 @@ public class RecipeCategoryIntegrationTests : IntegrationTests
     RecipeCategoryModel recipeCategory = result.RecipeCategory;
 
     Assert.Equal(_recipeCategory.Entity.Id, recipeCategory.Id);
-    Assert.Equal(_recipeCategory.Version + 1, recipeCategory.Version);
+    Assert.Equal(_recipeCategory.Version + 2, recipeCategory.Version);
     Assert.Equal(_recipeCategory.CreatedBy, recipeCategory.CreatedBy.ToActorId());
     Assert.Equal(_recipeCategory.CreatedOn.AsUniversalTime(), recipeCategory.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(Actor, recipeCategory.UpdatedBy);

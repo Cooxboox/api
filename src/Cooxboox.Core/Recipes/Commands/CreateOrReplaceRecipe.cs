@@ -41,7 +41,6 @@ internal class CreateOrReplaceRecipeCommandHandler : ICommandHandler<CreateOrRep
 
     ActorId? actorId = _context.ActorId;
     Name name = new(payload.Name);
-    Notes? notes = Notes.TryCreate(payload.Notes);
 
     bool created = false;
     if (recipe is null)
@@ -54,9 +53,11 @@ internal class CreateOrReplaceRecipeCommandHandler : ICommandHandler<CreateOrRep
     else
     {
       await _permissionService.CheckAsync(Actions.Update, recipe, cancellationToken);
+
+      recipe.Rename(name, actorId);
     }
 
-    recipe.Update(name, notes, actorId);
+    recipe.Annotate(Notes.TryCreate(payload.Notes), actorId);
 
     await _recipeRepository.SaveAsync(recipe, cancellationToken);
 

@@ -40,6 +40,20 @@ public class IngredientType : AggregateRoot, IEntityProvider
     _name = @event.Name;
   }
 
+  public void Annotate(Notes? notes, ActorId? actorId = null)
+  {
+    if (!Equals(Notes, notes))
+    {
+      Raise(new IngredientTypeAnnotated(notes), actorId);
+    }
+  }
+  protected virtual void Handle(IngredientTypeAnnotated @event)
+  {
+    Notes = @event.Notes;
+
+    UpdateInvariant();
+  }
+
   public void Delete(ActorId? actorId = null)
   {
     if (!IsDeleted)
@@ -95,6 +109,57 @@ public class IngredientType : AggregateRoot, IEntityProvider
     }
   }
 
+  public void RemoveLocale(Language language, ActorId? actorId = null)
+  {
+    if (HasLocale(language))
+    {
+      Raise(new IngredientTypeLocaleRemoved(language), actorId);
+    }
+  }
+  protected virtual void Handle(IngredientTypeLocaleRemoved @event)
+  {
+    _locales.Remove(@event.Language);
+    _statuses.Remove(@event.Language);
+  }
+
+  public void Rename(Name name, ActorId? actorId = null)
+  {
+    if (!Name.Equals(name))
+    {
+      Raise(new IngredientTypeRenamed(name), actorId);
+    }
+  }
+  protected virtual void Handle(IngredientTypeRenamed @event)
+  {
+    _name = @event.Name;
+
+    UpdateInvariant();
+  }
+
+  public void SetLocale(Language language, IngredientTypeLocale locale, ActorId? actorId = null)
+  {
+    IngredientTypeLocale? existingLocale = TryGetLocale(language);
+    if (existingLocale is null || !existingLocale.Equals(locale))
+    {
+      Raise(new IngredientTypeLocaleChanged(language, locale), actorId);
+    }
+  }
+  protected virtual void Handle(IngredientTypeLocaleChanged @event)
+  {
+    _locales[@event.Language] = @event.Locale;
+
+    if (!_statuses.TryGetValue(@event.Language, out ContentStatus status))
+    {
+      _statuses[@event.Language] = ContentStatus.Unpublished;
+    }
+    else if (status == ContentStatus.Latest)
+    {
+      _statuses[@event.Language] = ContentStatus.Published;
+    }
+  }
+
+  public IngredientTypeLocale? TryGetLocale(Language language) => _locales.TryGetValue(language, out IngredientTypeLocale? locale) ? locale : null;
+
   public void Unpublish(ActorId? actorId = null)
   {
     UnpublishInvariant(actorId);
@@ -134,65 +199,8 @@ public class IngredientType : AggregateRoot, IEntityProvider
     }
   }
 
-  public void RemoveLocale(Language language, ActorId? actorId = null)
+  private void UpdateInvariant()
   {
-    if (HasLocale(language))
-    {
-      Raise(new IngredientTypeLocaleRemoved(language), actorId);
-    }
-  }
-  protected virtual void Handle(IngredientTypeLocaleRemoved @event)
-  {
-    _locales.Remove(@event.Language);
-    _statuses.Remove(@event.Language);
-  }
-
-  public void SetLocale(Language language, IngredientTypeLocale locale, ActorId? actorId = null)
-  {
-    IngredientTypeLocale? existingLocale = TryGetLocale(language);
-    if (existingLocale is null || !existingLocale.Equals(locale))
-    {
-      Raise(new IngredientTypeLocaleChanged(language, locale), actorId);
-    }
-  }
-  protected virtual void Handle(IngredientTypeLocaleChanged @event)
-  {
-    _locales[@event.Language] = @event.Locale;
-
-    if (!_statuses.TryGetValue(@event.Language, out ContentStatus status))
-    {
-      _statuses[@event.Language] = ContentStatus.Unpublished;
-    }
-    else if (status == ContentStatus.Latest)
-    {
-      _statuses[@event.Language] = ContentStatus.Published;
-    }
-  }
-
-  public IngredientTypeLocale? TryGetLocale(Language language) => _locales.TryGetValue(language, out IngredientTypeLocale? locale) ? locale : null;
-
-  public void Update(Name name, Notes? notes, ActorId? actorId = null)
-  {
-    IngredientTypeUpdated @event = new(
-      Name.Equals(name) ? null : name,
-      Equals(Notes, notes) ? null : new Optional<Notes>(notes));
-
-    if (@event.Name is not null || @event.Notes is not null)
-    {
-      Raise(@event, actorId);
-    }
-  }
-  protected virtual void Handle(IngredientTypeUpdated @event)
-  {
-    if (@event.Name is not null)
-    {
-      _name = @event.Name;
-    }
-    if (@event.Notes is not null)
-    {
-      Notes = @event.Notes.Value;
-    }
-
     if (_status == ContentStatus.Latest)
     {
       _status = ContentStatus.Published;

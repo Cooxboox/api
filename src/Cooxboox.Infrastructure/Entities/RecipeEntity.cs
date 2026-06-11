@@ -1,7 +1,7 @@
-using Cooxboox.Core;
+﻿using Cooxboox.Core;
+using Cooxboox.Core.Localization;
 using Cooxboox.Core.Recipes;
 using Cooxboox.Core.Recipes.Events;
-using Cooxboox.Core.Localization;
 using Logitar;
 using Logitar.EventSourcing;
 
@@ -38,6 +38,13 @@ internal class RecipeEntity : AggregateEntity
   {
   }
 
+  public void Annotate(RecipeAnnotated @event)
+  {
+    UpdateInvariant(@event);
+
+    Notes = @event.Notes?.Value;
+  }
+
   public override IReadOnlyCollection<ActorId> GetActorIds()
   {
     HashSet<ActorId> actorIds = base.GetActorIds().ToHashSet();
@@ -70,29 +77,18 @@ internal class RecipeEntity : AggregateEntity
     }
   }
 
-  public void Unpublish(RecipeUnpublished @event)
-  {
-    base.Update(@event);
-
-    if (@event.Language is null)
-    {
-      Status = ContentStatus.Unpublished;
-      PublishedVersion = null;
-      PublishedBy = null;
-      PublishedOn = null;
-    }
-    else
-    {
-      RecipeLocaleEntity locale = FindLocale(@event.Language);
-      locale.Unpublish(@event);
-    }
-  }
-
   public RecipeLocaleEntity? RemoveLocale(RecipeLocaleRemoved @event)
   {
     base.Update(@event);
 
     return TryGetLocale(@event.Language);
+  }
+
+  public void Rename(RecipeRenamed @event)
+  {
+    UpdateInvariant(@event);
+
+    Name = @event.Name.Value;
   }
 
   public void SetLocale(RecipeLocaleChanged @event)
@@ -111,23 +107,37 @@ internal class RecipeEntity : AggregateEntity
     }
   }
 
-  public void Update(RecipeUpdated @event)
+  public void Unpublish(RecipeUnpublished @event)
   {
     base.Update(@event);
 
-    if (@event.Name is not null)
+    if (@event.Language is null)
     {
-      Name = @event.Name.Value;
+      Status = ContentStatus.Unpublished;
+      PublishedVersion = null;
+      PublishedBy = null;
+      PublishedOn = null;
     }
-    if (@event.Notes is not null)
+    else
     {
-      Notes = @event.Notes.Value?.Value;
+      RecipeLocaleEntity locale = FindLocale(@event.Language);
+      locale.Unpublish(@event);
     }
   }
 
   private RecipeLocaleEntity FindLocale(Language language) => TryGetLocale(language)
     ?? throw new InvalidOperationException($"The recipe type '{this}' locale '{language}' was not found.");
   private RecipeLocaleEntity? TryGetLocale(Language language) => Locales.SingleOrDefault(locale => locale.Language == language.Code);
+
+  private void UpdateInvariant(DomainEvent @event)
+  {
+    base.Update(@event);
+
+    if (Status == ContentStatus.Latest)
+    {
+      Status = ContentStatus.Published;
+    }
+  }
 
   public override string ToString() => $"{Name} | {base.ToString()}";
 }

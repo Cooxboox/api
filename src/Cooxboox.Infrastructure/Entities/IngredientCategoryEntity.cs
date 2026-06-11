@@ -1,4 +1,4 @@
-using Cooxboox.Core;
+﻿using Cooxboox.Core;
 using Cooxboox.Core.IngredientCategories;
 using Cooxboox.Core.IngredientCategories.Events;
 using Cooxboox.Core.Localization;
@@ -38,6 +38,13 @@ internal class IngredientCategoryEntity : AggregateEntity
   {
   }
 
+  public void Annotate(IngredientCategoryAnnotated @event)
+  {
+    UpdateInvariant(@event);
+
+    Notes = @event.Notes?.Value;
+  }
+
   public override IReadOnlyCollection<ActorId> GetActorIds()
   {
     HashSet<ActorId> actorIds = base.GetActorIds().ToHashSet();
@@ -70,29 +77,18 @@ internal class IngredientCategoryEntity : AggregateEntity
     }
   }
 
-  public void Unpublish(IngredientCategoryUnpublished @event)
-  {
-    base.Update(@event);
-
-    if (@event.Language is null)
-    {
-      Status = ContentStatus.Unpublished;
-      PublishedVersion = null;
-      PublishedBy = null;
-      PublishedOn = null;
-    }
-    else
-    {
-      IngredientCategoryLocaleEntity locale = FindLocale(@event.Language);
-      locale.Unpublish(@event);
-    }
-  }
-
   public IngredientCategoryLocaleEntity? RemoveLocale(IngredientCategoryLocaleRemoved @event)
   {
     base.Update(@event);
 
     return TryGetLocale(@event.Language);
+  }
+
+  public void Rename(IngredientCategoryRenamed @event)
+  {
+    UpdateInvariant(@event);
+
+    Name = @event.Name.Value;
   }
 
   public void SetLocale(IngredientCategoryLocaleChanged @event)
@@ -111,23 +107,37 @@ internal class IngredientCategoryEntity : AggregateEntity
     }
   }
 
-  public void Update(IngredientCategoryUpdated @event)
+  public void Unpublish(IngredientCategoryUnpublished @event)
   {
     base.Update(@event);
 
-    if (@event.Name is not null)
+    if (@event.Language is null)
     {
-      Name = @event.Name.Value;
+      Status = ContentStatus.Unpublished;
+      PublishedVersion = null;
+      PublishedBy = null;
+      PublishedOn = null;
     }
-    if (@event.Notes is not null)
+    else
     {
-      Notes = @event.Notes.Value?.Value;
+      IngredientCategoryLocaleEntity locale = FindLocale(@event.Language);
+      locale.Unpublish(@event);
     }
   }
 
   private IngredientCategoryLocaleEntity FindLocale(Language language) => TryGetLocale(language)
     ?? throw new InvalidOperationException($"The ingredient category '{this}' locale '{language}' was not found.");
   private IngredientCategoryLocaleEntity? TryGetLocale(Language language) => Locales.SingleOrDefault(locale => locale.Language == language.Code);
+
+  private void UpdateInvariant(DomainEvent @event)
+  {
+    base.Update(@event);
+
+    if (Status == ContentStatus.Latest)
+    {
+      Status = ContentStatus.Published;
+    }
+  }
 
   public override string ToString() => $"{Name} | {base.ToString()}";
 }

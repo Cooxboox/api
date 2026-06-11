@@ -1,4 +1,4 @@
-using Cooxboox.Builders;
+﻿using Cooxboox.Builders;
 using Cooxboox.Core;
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.Ingredients;
@@ -246,7 +246,7 @@ public class IngredientIntegrationTests : IntegrationTests
     IngredientModel ingredient = result.Ingredient;
 
     Assert.Equal(_ingredient.Entity.Id, ingredient.Id);
-    Assert.Equal(_ingredient.Version + 1, ingredient.Version);
+    Assert.Equal(_ingredient.Version + 2, ingredient.Version);
     Assert.Equal(_ingredient.CreatedBy, ingredient.CreatedBy.ToActorId());
     Assert.Equal(_ingredient.CreatedOn.AsUniversalTime(), ingredient.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(Actor, ingredient.UpdatedBy);

@@ -7,23 +7,25 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Cooxboox.Infrastructure.Handlers;
 
-internal class IngredientCategoryEvents : IEventHandler<IngredientCategoryCreated>,
+internal class IngredientCategoryEvents : IEventHandler<IngredientCategoryAnnotated>,
+  IEventHandler<IngredientCategoryCreated>,
   IEventHandler<IngredientCategoryDeleted>,
   IEventHandler<IngredientCategoryLocaleChanged>,
   IEventHandler<IngredientCategoryLocaleRemoved>,
   IEventHandler<IngredientCategoryPublished>,
-  IEventHandler<IngredientCategoryUnpublished>,
-  IEventHandler<IngredientCategoryUpdated>
+  IEventHandler<IngredientCategoryRenamed>,
+  IEventHandler<IngredientCategoryUnpublished>
 {
   public static void Register(IServiceCollection services)
   {
+    services.AddTransient<IEventHandler<IngredientCategoryAnnotated>, IngredientCategoryEvents>();
     services.AddTransient<IEventHandler<IngredientCategoryCreated>, IngredientCategoryEvents>();
     services.AddTransient<IEventHandler<IngredientCategoryDeleted>, IngredientCategoryEvents>();
     services.AddTransient<IEventHandler<IngredientCategoryLocaleChanged>, IngredientCategoryEvents>();
     services.AddTransient<IEventHandler<IngredientCategoryLocaleRemoved>, IngredientCategoryEvents>();
     services.AddTransient<IEventHandler<IngredientCategoryPublished>, IngredientCategoryEvents>();
+    services.AddTransient<IEventHandler<IngredientCategoryRenamed>, IngredientCategoryEvents>();
     services.AddTransient<IEventHandler<IngredientCategoryUnpublished>, IngredientCategoryEvents>();
-    services.AddTransient<IEventHandler<IngredientCategoryUpdated>, IngredientCategoryEvents>();
   }
 
   private readonly CooxbooxContext _cooxboox;
@@ -31,6 +33,17 @@ internal class IngredientCategoryEvents : IEventHandler<IngredientCategoryCreate
   public IngredientCategoryEvents(CooxbooxContext cooxboox)
   {
     _cooxboox = cooxboox;
+  }
+
+  public async Task HandleAsync(IngredientCategoryAnnotated @event, CancellationToken cancellationToken)
+  {
+    IngredientCategoryEntity? ingredientCategory = await _cooxboox.IngredientCategories.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (ingredientCategory is not null && ingredientCategory.Version == (@event.Version - 1))
+    {
+      ingredientCategory.Annotate(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
   }
 
   public async Task HandleAsync(IngredientCategoryCreated @event, CancellationToken cancellationToken)
@@ -104,6 +117,17 @@ internal class IngredientCategoryEvents : IEventHandler<IngredientCategoryCreate
     }
   }
 
+  public async Task HandleAsync(IngredientCategoryRenamed @event, CancellationToken cancellationToken)
+  {
+    IngredientCategoryEntity? ingredientCategory = await _cooxboox.IngredientCategories.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (ingredientCategory is not null && ingredientCategory.Version == (@event.Version - 1))
+    {
+      ingredientCategory.Rename(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
+  }
+
   public async Task HandleAsync(IngredientCategoryUnpublished @event, CancellationToken cancellationToken)
   {
     IngredientCategoryEntity? ingredientCategory = await _cooxboox.IngredientCategories
@@ -112,17 +136,6 @@ internal class IngredientCategoryEvents : IEventHandler<IngredientCategoryCreate
     if (ingredientCategory is not null && ingredientCategory.Version == (@event.Version - 1))
     {
       ingredientCategory.Unpublish(@event);
-
-      await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
-
-  public async Task HandleAsync(IngredientCategoryUpdated @event, CancellationToken cancellationToken)
-  {
-    IngredientCategoryEntity? ingredientCategory = await _cooxboox.IngredientCategories.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (ingredientCategory is not null && ingredientCategory.Version == (@event.Version - 1))
-    {
-      ingredientCategory.Update(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
     }

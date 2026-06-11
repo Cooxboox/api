@@ -7,23 +7,25 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Cooxboox.Infrastructure.Handlers;
 
-internal class RecipeEvents : IEventHandler<RecipeCreated>,
+internal class RecipeEvents : IEventHandler<RecipeAnnotated>,
+  IEventHandler<RecipeCreated>,
   IEventHandler<RecipeDeleted>,
   IEventHandler<RecipeLocaleChanged>,
   IEventHandler<RecipeLocaleRemoved>,
   IEventHandler<RecipePublished>,
-  IEventHandler<RecipeUnpublished>,
-  IEventHandler<RecipeUpdated>
+  IEventHandler<RecipeRenamed>,
+  IEventHandler<RecipeUnpublished>
 {
   public static void Register(IServiceCollection services)
   {
+    services.AddTransient<IEventHandler<RecipeAnnotated>, RecipeEvents>();
     services.AddTransient<IEventHandler<RecipeCreated>, RecipeEvents>();
     services.AddTransient<IEventHandler<RecipeDeleted>, RecipeEvents>();
     services.AddTransient<IEventHandler<RecipeLocaleChanged>, RecipeEvents>();
     services.AddTransient<IEventHandler<RecipeLocaleRemoved>, RecipeEvents>();
     services.AddTransient<IEventHandler<RecipePublished>, RecipeEvents>();
+    services.AddTransient<IEventHandler<RecipeRenamed>, RecipeEvents>();
     services.AddTransient<IEventHandler<RecipeUnpublished>, RecipeEvents>();
-    services.AddTransient<IEventHandler<RecipeUpdated>, RecipeEvents>();
   }
 
   private readonly CooxbooxContext _cooxboox;
@@ -31,6 +33,17 @@ internal class RecipeEvents : IEventHandler<RecipeCreated>,
   public RecipeEvents(CooxbooxContext cooxboox)
   {
     _cooxboox = cooxboox;
+  }
+
+  public async Task HandleAsync(RecipeAnnotated @event, CancellationToken cancellationToken)
+  {
+    RecipeEntity? recipe = await _cooxboox.Recipes.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (recipe is not null && recipe.Version == (@event.Version - 1))
+    {
+      recipe.Annotate(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
   }
 
   public async Task HandleAsync(RecipeCreated @event, CancellationToken cancellationToken)
@@ -104,6 +117,17 @@ internal class RecipeEvents : IEventHandler<RecipeCreated>,
     }
   }
 
+  public async Task HandleAsync(RecipeRenamed @event, CancellationToken cancellationToken)
+  {
+    RecipeEntity? recipe = await _cooxboox.Recipes.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (recipe is not null && recipe.Version == (@event.Version - 1))
+    {
+      recipe.Rename(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
+  }
+
   public async Task HandleAsync(RecipeUnpublished @event, CancellationToken cancellationToken)
   {
     RecipeEntity? recipe = await _cooxboox.Recipes
@@ -112,17 +136,6 @@ internal class RecipeEvents : IEventHandler<RecipeCreated>,
     if (recipe is not null && recipe.Version == (@event.Version - 1))
     {
       recipe.Unpublish(@event);
-
-      await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
-
-  public async Task HandleAsync(RecipeUpdated @event, CancellationToken cancellationToken)
-  {
-    RecipeEntity? recipe = await _cooxboox.Recipes.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (recipe is not null && recipe.Version == (@event.Version - 1))
-    {
-      recipe.Update(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
     }

@@ -1,4 +1,4 @@
-using Cooxboox.Core.Ingredients;
+﻿using Cooxboox.Core.Ingredients;
 using Cooxboox.Core.Ingredients.Events;
 using Cooxboox.Infrastructure.Entities;
 using Logitar.EventSourcing;
@@ -7,23 +7,25 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Cooxboox.Infrastructure.Handlers;
 
-internal class IngredientEvents : IEventHandler<IngredientCreated>,
+internal class IngredientEvents : IEventHandler<IngredientAnnotated>,
+  IEventHandler<IngredientCreated>,
   IEventHandler<IngredientDeleted>,
   IEventHandler<IngredientLocaleChanged>,
   IEventHandler<IngredientLocaleRemoved>,
   IEventHandler<IngredientPublished>,
-  IEventHandler<IngredientUnpublished>,
-  IEventHandler<IngredientUpdated>
+  IEventHandler<IngredientRenamed>,
+  IEventHandler<IngredientUnpublished>
 {
   public static void Register(IServiceCollection services)
   {
+    services.AddTransient<IEventHandler<IngredientAnnotated>, IngredientEvents>();
     services.AddTransient<IEventHandler<IngredientCreated>, IngredientEvents>();
     services.AddTransient<IEventHandler<IngredientDeleted>, IngredientEvents>();
     services.AddTransient<IEventHandler<IngredientLocaleChanged>, IngredientEvents>();
     services.AddTransient<IEventHandler<IngredientLocaleRemoved>, IngredientEvents>();
     services.AddTransient<IEventHandler<IngredientPublished>, IngredientEvents>();
+    services.AddTransient<IEventHandler<IngredientRenamed>, IngredientEvents>();
     services.AddTransient<IEventHandler<IngredientUnpublished>, IngredientEvents>();
-    services.AddTransient<IEventHandler<IngredientUpdated>, IngredientEvents>();
   }
 
   private readonly CooxbooxContext _cooxboox;
@@ -31,6 +33,17 @@ internal class IngredientEvents : IEventHandler<IngredientCreated>,
   public IngredientEvents(CooxbooxContext cooxboox)
   {
     _cooxboox = cooxboox;
+  }
+
+  public async Task HandleAsync(IngredientAnnotated @event, CancellationToken cancellationToken)
+  {
+    IngredientEntity? ingredient = await _cooxboox.Ingredients.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (ingredient is not null && ingredient.Version == (@event.Version - 1))
+    {
+      ingredient.Annotate(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
   }
 
   public async Task HandleAsync(IngredientCreated @event, CancellationToken cancellationToken)
@@ -104,6 +117,17 @@ internal class IngredientEvents : IEventHandler<IngredientCreated>,
     }
   }
 
+  public async Task HandleAsync(IngredientRenamed @event, CancellationToken cancellationToken)
+  {
+    IngredientEntity? ingredient = await _cooxboox.Ingredients.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+    if (ingredient is not null && ingredient.Version == (@event.Version - 1))
+    {
+      ingredient.Rename(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    }
+  }
+
   public async Task HandleAsync(IngredientUnpublished @event, CancellationToken cancellationToken)
   {
     IngredientEntity? ingredient = await _cooxboox.Ingredients
@@ -112,17 +136,6 @@ internal class IngredientEvents : IEventHandler<IngredientCreated>,
     if (ingredient is not null && ingredient.Version == (@event.Version - 1))
     {
       ingredient.Unpublish(@event);
-
-      await _cooxboox.SaveChangesAsync(cancellationToken);
-    }
-  }
-
-  public async Task HandleAsync(IngredientUpdated @event, CancellationToken cancellationToken)
-  {
-    IngredientEntity? ingredient = await _cooxboox.Ingredients.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
-    if (ingredient is not null && ingredient.Version == (@event.Version - 1))
-    {
-      ingredient.Update(@event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
     }

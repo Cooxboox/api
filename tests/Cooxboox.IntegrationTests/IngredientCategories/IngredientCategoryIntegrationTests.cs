@@ -246,7 +246,7 @@ public class IngredientCategoryIntegrationTests : IntegrationTests
     IngredientCategoryModel ingredientCategory = result.IngredientCategory;
 
     Assert.Equal(_ingredientCategory.Entity.Id, ingredientCategory.Id);
-    Assert.Equal(_ingredientCategory.Version + 1, ingredientCategory.Version);
+    Assert.Equal(_ingredientCategory.Version + 2, ingredientCategory.Version);
     Assert.Equal(_ingredientCategory.CreatedBy, ingredientCategory.CreatedBy.ToActorId());
     Assert.Equal(_ingredientCategory.CreatedOn.AsUniversalTime(), ingredientCategory.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(Actor, ingredientCategory.UpdatedBy);

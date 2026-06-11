@@ -41,7 +41,6 @@ internal class CreateOrReplaceIngredientCategoryCommandHandler : ICommandHandler
 
     ActorId? actorId = _context.ActorId;
     Name name = new(payload.Name);
-    Notes? notes = Notes.TryCreate(payload.Notes);
 
     bool created = false;
     if (ingredientCategory is null)
@@ -54,9 +53,11 @@ internal class CreateOrReplaceIngredientCategoryCommandHandler : ICommandHandler
     else
     {
       await _permissionService.CheckAsync(Actions.Update, ingredientCategory, cancellationToken);
+
+      ingredientCategory.Rename(name, actorId);
     }
 
-    ingredientCategory.Update(name, notes, actorId);
+    ingredientCategory.Annotate(Notes.TryCreate(payload.Notes), actorId);
 
     await _ingredientCategoryRepository.SaveAsync(ingredientCategory, cancellationToken);
 

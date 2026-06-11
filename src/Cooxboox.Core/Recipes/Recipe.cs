@@ -40,6 +40,20 @@ public class Recipe : AggregateRoot, IEntityProvider
     _name = @event.Name;
   }
 
+  public void Annotate(Notes? notes, ActorId? actorId = null)
+  {
+    if (!Equals(Notes, notes))
+    {
+      Raise(new RecipeAnnotated(notes), actorId);
+    }
+  }
+  protected virtual void Handle(RecipeAnnotated @event)
+  {
+    Notes = @event.Notes;
+
+    UpdateInvariant();
+  }
+
   public void Delete(ActorId? actorId = null)
   {
     if (!IsDeleted)
@@ -95,6 +109,57 @@ public class Recipe : AggregateRoot, IEntityProvider
     }
   }
 
+  public void RemoveLocale(Language language, ActorId? actorId = null)
+  {
+    if (HasLocale(language))
+    {
+      Raise(new RecipeLocaleRemoved(language), actorId);
+    }
+  }
+  protected virtual void Handle(RecipeLocaleRemoved @event)
+  {
+    _locales.Remove(@event.Language);
+    _statuses.Remove(@event.Language);
+  }
+
+  public void Rename(Name name, ActorId? actorId = null)
+  {
+    if (!Name.Equals(name))
+    {
+      Raise(new RecipeRenamed(name), actorId);
+    }
+  }
+  protected virtual void Handle(RecipeRenamed @event)
+  {
+    _name = @event.Name;
+
+    UpdateInvariant();
+  }
+
+  public void SetLocale(Language language, RecipeLocale locale, ActorId? actorId = null)
+  {
+    RecipeLocale? existingLocale = TryGetLocale(language);
+    if (existingLocale is null || !existingLocale.Equals(locale))
+    {
+      Raise(new RecipeLocaleChanged(language, locale), actorId);
+    }
+  }
+  protected virtual void Handle(RecipeLocaleChanged @event)
+  {
+    _locales[@event.Language] = @event.Locale;
+
+    if (!_statuses.TryGetValue(@event.Language, out ContentStatus status))
+    {
+      _statuses[@event.Language] = ContentStatus.Unpublished;
+    }
+    else if (status == ContentStatus.Latest)
+    {
+      _statuses[@event.Language] = ContentStatus.Published;
+    }
+  }
+
+  public RecipeLocale? TryGetLocale(Language language) => _locales.TryGetValue(language, out RecipeLocale? locale) ? locale : null;
+
   public void Unpublish(ActorId? actorId = null)
   {
     UnpublishInvariant(actorId);
@@ -134,65 +199,8 @@ public class Recipe : AggregateRoot, IEntityProvider
     }
   }
 
-  public void RemoveLocale(Language language, ActorId? actorId = null)
+  private void UpdateInvariant()
   {
-    if (HasLocale(language))
-    {
-      Raise(new RecipeLocaleRemoved(language), actorId);
-    }
-  }
-  protected virtual void Handle(RecipeLocaleRemoved @event)
-  {
-    _locales.Remove(@event.Language);
-    _statuses.Remove(@event.Language);
-  }
-
-  public void SetLocale(Language language, RecipeLocale locale, ActorId? actorId = null)
-  {
-    RecipeLocale? existingLocale = TryGetLocale(language);
-    if (existingLocale is null || !existingLocale.Equals(locale))
-    {
-      Raise(new RecipeLocaleChanged(language, locale), actorId);
-    }
-  }
-  protected virtual void Handle(RecipeLocaleChanged @event)
-  {
-    _locales[@event.Language] = @event.Locale;
-
-    if (!_statuses.TryGetValue(@event.Language, out ContentStatus status))
-    {
-      _statuses[@event.Language] = ContentStatus.Unpublished;
-    }
-    else if (status == ContentStatus.Latest)
-    {
-      _statuses[@event.Language] = ContentStatus.Published;
-    }
-  }
-
-  public RecipeLocale? TryGetLocale(Language language) => _locales.TryGetValue(language, out RecipeLocale? locale) ? locale : null;
-
-  public void Update(Name name, Notes? notes, ActorId? actorId = null)
-  {
-    RecipeUpdated @event = new(
-      Name.Equals(name) ? null : name,
-      Equals(Notes, notes) ? null : new Optional<Notes>(notes));
-
-    if (@event.Name is not null || @event.Notes is not null)
-    {
-      Raise(@event, actorId);
-    }
-  }
-  protected virtual void Handle(RecipeUpdated @event)
-  {
-    if (@event.Name is not null)
-    {
-      _name = @event.Name;
-    }
-    if (@event.Notes is not null)
-    {
-      Notes = @event.Notes.Value;
-    }
-
     if (_status == ContentStatus.Latest)
     {
       _status = ContentStatus.Published;

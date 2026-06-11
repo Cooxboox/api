@@ -1,6 +1,7 @@
-﻿using Cooxboox.Core.IngredientTypes.Models;
+using Cooxboox.Core.IngredientTypes.Models;
 using Cooxboox.Core.Permissions;
 using Logitar.CQRS;
+using Logitar.EventSourcing;
 
 namespace Cooxboox.Core.IngredientTypes.Commands;
 
@@ -38,10 +39,16 @@ internal class UpdateIngredientTypeCommandHandler : ICommandHandler<UpdateIngred
     }
     await _permissionService.CheckAsync(Actions.Update, ingredientType, cancellationToken);
 
-    Name name = Name.TryCreate(payload.Name) ?? ingredientType.Name;
-    Notes? notes = payload.Notes is null ? ingredientType.Notes : Notes.TryCreate(payload.Notes.Value);
+    ActorId? actorId = _context.ActorId;
 
-    ingredientType.Update(name, notes, _context.ActorId);
+    if (!string.IsNullOrWhiteSpace(payload.Name))
+    {
+      ingredientType.Rename(new Name(payload.Name), actorId);
+    }
+    if (payload.Notes is not null)
+    {
+      ingredientType.Annotate(Notes.TryCreate(payload.Notes.Value), actorId);
+    }
 
     await _ingredientTypeRepository.SaveAsync(ingredientType, cancellationToken);
 
