@@ -78,6 +78,7 @@ internal class Mapper
     {
       Id = source.EntityId,
       Name = source.Name,
+      Icon = source.Icon,
       Notes = source.Notes,
       Status = source.Status,
       PublishedVersion = source.PublishedVersion,
@@ -202,6 +203,7 @@ internal class Mapper
     {
       Id = source.EntityId,
       Name = source.Name,
+      Icon = source.Icon,
       Notes = source.Notes,
       Status = source.Status,
       PublishedVersion = source.PublishedVersion,
@@ -243,6 +245,7 @@ internal class Mapper
     {
       Id = source.EntityId,
       Name = source.Name,
+      Icon = source.Icon,
       Notes = source.Notes,
       Status = source.Status,
       PublishedVersion = source.PublishedVersion,

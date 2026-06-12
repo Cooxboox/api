@@ -24,6 +24,7 @@ internal class RecipeCategoryConfiguration : AggregateConfiguration<RecipeCatego
     builder.HasIndex(x => x.PublishedOn);
 
     builder.Property(x => x.Name).HasMaxLength(Name.MaximumLength);
+    builder.Property(x => x.Icon).HasMaxLength(Icon.MaximumLength);
     builder.Property(x => x.Status).HasMaxLength(16).HasConversion(new EnumToStringConverter<ContentStatus>());
     builder.Property(x => x.PublishedBy).HasMaxLength(ActorId.MaximumLength);
 

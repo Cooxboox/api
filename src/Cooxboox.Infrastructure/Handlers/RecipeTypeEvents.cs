@@ -11,6 +11,7 @@ namespace Cooxboox.Infrastructure.Handlers;
 internal class RecipeTypeEvents : IEventHandler<RecipeTypeAnnotated>,
   IEventHandler<RecipeTypeCreated>,
   IEventHandler<RecipeTypeDeleted>,
+  IEventHandler<RecipeTypeIconChanged>,
   IEventHandler<RecipeTypeLocaleChanged>,
   IEventHandler<RecipeTypeLocaleRemoved>,
   IEventHandler<RecipeTypePublished>,
@@ -22,6 +23,7 @@ internal class RecipeTypeEvents : IEventHandler<RecipeTypeAnnotated>,
     services.AddTransient<IEventHandler<RecipeTypeAnnotated>, RecipeTypeEvents>();
     services.AddTransient<IEventHandler<RecipeTypeCreated>, RecipeTypeEvents>();
     services.AddTransient<IEventHandler<RecipeTypeDeleted>, RecipeTypeEvents>();
+    services.AddTransient<IEventHandler<RecipeTypeIconChanged>, RecipeTypeEvents>();
     services.AddTransient<IEventHandler<RecipeTypeLocaleChanged>, RecipeTypeEvents>();
     services.AddTransient<IEventHandler<RecipeTypeLocaleRemoved>, RecipeTypeEvents>();
     services.AddTransient<IEventHandler<RecipeTypePublished>, RecipeTypeEvents>();
@@ -82,6 +84,19 @@ internal class RecipeTypeEvents : IEventHandler<RecipeTypeAnnotated>,
 
         await _cooxboox.SaveChangesAsync(cancellationToken);
       }
+    },
+    cancellationToken);
+
+  public async Task HandleAsync(RecipeTypeIconChanged @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
+    {
+      RecipeTypeEntity? recipeType = await _cooxboox.RecipeTypes.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, recipeType);
+
+      recipeType.SetIcon(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
     },
     cancellationToken);
 

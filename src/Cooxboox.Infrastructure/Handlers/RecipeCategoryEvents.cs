@@ -11,6 +11,7 @@ namespace Cooxboox.Infrastructure.Handlers;
 internal class RecipeCategoryEvents : IEventHandler<RecipeCategoryAnnotated>,
   IEventHandler<RecipeCategoryCreated>,
   IEventHandler<RecipeCategoryDeleted>,
+  IEventHandler<RecipeCategoryIconChanged>,
   IEventHandler<RecipeCategoryLocaleChanged>,
   IEventHandler<RecipeCategoryLocaleRemoved>,
   IEventHandler<RecipeCategoryPublished>,
@@ -22,6 +23,7 @@ internal class RecipeCategoryEvents : IEventHandler<RecipeCategoryAnnotated>,
     services.AddTransient<IEventHandler<RecipeCategoryAnnotated>, RecipeCategoryEvents>();
     services.AddTransient<IEventHandler<RecipeCategoryCreated>, RecipeCategoryEvents>();
     services.AddTransient<IEventHandler<RecipeCategoryDeleted>, RecipeCategoryEvents>();
+    services.AddTransient<IEventHandler<RecipeCategoryIconChanged>, RecipeCategoryEvents>();
     services.AddTransient<IEventHandler<RecipeCategoryLocaleChanged>, RecipeCategoryEvents>();
     services.AddTransient<IEventHandler<RecipeCategoryLocaleRemoved>, RecipeCategoryEvents>();
     services.AddTransient<IEventHandler<RecipeCategoryPublished>, RecipeCategoryEvents>();
@@ -82,6 +84,19 @@ internal class RecipeCategoryEvents : IEventHandler<RecipeCategoryAnnotated>,
 
         await _cooxboox.SaveChangesAsync(cancellationToken);
       }
+    },
+    cancellationToken);
+
+  public async Task HandleAsync(RecipeCategoryIconChanged @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
+    {
+      RecipeCategoryEntity? recipeCategory = await _cooxboox.RecipeCategories.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, recipeCategory);
+
+      recipeCategory.SetIcon(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
     },
     cancellationToken);
 

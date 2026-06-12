@@ -16,6 +16,7 @@ internal static class IngredientCategories
   public static readonly ColumnId Version = new(nameof(IngredientCategoryEntity.Version), Table);
 
   public static readonly ColumnId EntityId = new(nameof(IngredientCategoryEntity.EntityId), Table);
+  public static readonly ColumnId Icon = new(nameof(IngredientCategoryEntity.Icon), Table);
   public static readonly ColumnId IngredientCategoryId = new(nameof(IngredientCategoryEntity.IngredientCategoryId), Table);
   public static readonly ColumnId KitchenId = new(nameof(IngredientCategoryEntity.KitchenId), Table);
   public static readonly ColumnId Name = new(nameof(IngredientCategoryEntity.Name), Table);

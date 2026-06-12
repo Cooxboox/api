@@ -16,6 +16,7 @@ internal class RecipeCategoryEntity : AggregateEntity
   public Guid EntityId { get; private set; }
 
   public string Name { get; private set; } = string.Empty;
+  public string? Icon { get; private set; }
   public string? Notes { get; private set; }
 
   public ContentStatus Status { get; private set; }
@@ -89,6 +90,13 @@ internal class RecipeCategoryEntity : AggregateEntity
     UpdateInvariant(@event);
 
     Name = @event.Name.Value;
+  }
+
+  public void SetIcon(RecipeCategoryIconChanged @event)
+  {
+    UpdateInvariant(@event);
+
+    Icon = @event.Icon?.Value;
   }
 
   public void SetLocale(RecipeCategoryLocaleChanged @event)
