@@ -1,4 +1,4 @@
-using Cooxboox.Core.IngredientTypes.Models;
+﻿using Cooxboox.Core.IngredientTypes.Models;
 using Cooxboox.Core.Permissions;
 using Logitar.CQRS;
 using Logitar.EventSourcing;
@@ -58,6 +58,7 @@ internal class CreateOrReplaceIngredientTypeCommandHandler : ICommandHandler<Cre
     }
 
     ingredientType.Annotate(Notes.TryCreate(payload.Notes), actorId);
+    ingredientType.SetIcon(Icon.TryCreate(payload.Icon), actorId);
 
     await _ingredientTypeRepository.SaveAsync(ingredientType, cancellationToken);
 
