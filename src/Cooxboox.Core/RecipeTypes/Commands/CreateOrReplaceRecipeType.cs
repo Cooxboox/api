@@ -58,6 +58,7 @@ internal class CreateOrReplaceRecipeTypeCommandHandler : ICommandHandler<CreateO
     }
 
     recipeType.Annotate(Notes.TryCreate(payload.Notes), actorId);
+    recipeType.SetIcon(Icon.TryCreate(payload.Icon), actorId);
 
     await _recipeTypeRepository.SaveAsync(recipeType, cancellationToken);
 

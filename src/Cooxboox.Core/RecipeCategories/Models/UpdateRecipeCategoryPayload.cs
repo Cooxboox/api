@@ -6,6 +6,7 @@ namespace Cooxboox.Core.RecipeCategories.Models;
 public record UpdateRecipeCategoryPayload
 {
   public string? Name { get; set; }
+  public Optional<string>? Icon { get; set; }
   public Optional<string>? Notes { get; set; }
 
   public void Validate() => new Validator().ValidateAndThrow(this);
@@ -16,6 +17,7 @@ public record UpdateRecipeCategoryPayload
     {
 
       When(x => !string.IsNullOrWhiteSpace(x.Name), () => RuleFor(x => x.Name!).Name());
+      When(x => !string.IsNullOrWhiteSpace(x.Icon?.Value), () => RuleFor(x => x.Icon!.Value!).Icon());
       When(x => !string.IsNullOrWhiteSpace(x.Notes?.Value), () => RuleFor(x => x.Notes!.Value!).Notes());
     }
   }

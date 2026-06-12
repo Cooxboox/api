@@ -45,6 +45,10 @@ internal class UpdateRecipeCategoryCommandHandler : ICommandHandler<UpdateRecipe
     {
       recipeCategory.Rename(new Name(payload.Name), actorId);
     }
+    if (payload.Icon is not null)
+    {
+      recipeCategory.SetIcon(Icon.TryCreate(payload.Icon.Value), actorId);
+    }
     if (payload.Notes is not null)
     {
       recipeCategory.Annotate(Notes.TryCreate(payload.Notes.Value), actorId);
