@@ -14,6 +14,7 @@ public class RecipeCategory : AggregateRoot, IEntityProvider
 
   private Name? _name = null;
   public Name Name => _name ?? throw new InvalidOperationException("The name was not initialized.");
+  public Icon? Icon { get; private set; }
   public Notes? Notes { get; private set; }
 
   private readonly Dictionary<Language, RecipeCategoryLocale> _locales = [];
@@ -132,6 +133,20 @@ public class RecipeCategory : AggregateRoot, IEntityProvider
   protected virtual void Handle(RecipeCategoryRenamed @event)
   {
     _name = @event.Name;
+
+    UpdateInvariant();
+  }
+
+  public void SetIcon(Icon? icon, ActorId? actorId = null)
+  {
+    if (!Equals(Icon, icon))
+    {
+      Raise(new RecipeCategoryIconChanged(icon), actorId);
+    }
+  }
+  protected virtual void Handle(RecipeCategoryIconChanged @event)
+  {
+    Icon = @event.Icon;
 
     UpdateInvariant();
   }

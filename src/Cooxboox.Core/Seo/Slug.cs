@@ -11,10 +11,12 @@ public class Slug
 
   public Slug(string value)
   {
-    Value = value.Trim();
+    Value = Normalize(value);
     new Validator().ValidateAndThrow(this);
   }
 
+  public static bool IsValid(string value) => value.Split('-').All(word => !string.IsNullOrEmpty(word) && word.All(char.IsLetterOrDigit));
+  public static string Normalize(string value) => value.Trim().ToLowerInvariant();
   public static Slug? TryCreate(string? value) => string.IsNullOrWhiteSpace(value) ? null : new(value);
 
   public override bool Equals(object? obj) => obj is Slug slug && slug.Value == Value;

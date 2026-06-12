@@ -11,6 +11,7 @@ namespace Cooxboox.Infrastructure.Handlers;
 internal class IngredientCategoryEvents : IEventHandler<IngredientCategoryAnnotated>,
   IEventHandler<IngredientCategoryCreated>,
   IEventHandler<IngredientCategoryDeleted>,
+  IEventHandler<IngredientCategoryIconChanged>,
   IEventHandler<IngredientCategoryLocaleChanged>,
   IEventHandler<IngredientCategoryLocaleRemoved>,
   IEventHandler<IngredientCategoryPublished>,
@@ -22,6 +23,7 @@ internal class IngredientCategoryEvents : IEventHandler<IngredientCategoryAnnota
     services.AddTransient<IEventHandler<IngredientCategoryAnnotated>, IngredientCategoryEvents>();
     services.AddTransient<IEventHandler<IngredientCategoryCreated>, IngredientCategoryEvents>();
     services.AddTransient<IEventHandler<IngredientCategoryDeleted>, IngredientCategoryEvents>();
+    services.AddTransient<IEventHandler<IngredientCategoryIconChanged>, IngredientCategoryEvents>();
     services.AddTransient<IEventHandler<IngredientCategoryLocaleChanged>, IngredientCategoryEvents>();
     services.AddTransient<IEventHandler<IngredientCategoryLocaleRemoved>, IngredientCategoryEvents>();
     services.AddTransient<IEventHandler<IngredientCategoryPublished>, IngredientCategoryEvents>();
@@ -82,6 +84,19 @@ internal class IngredientCategoryEvents : IEventHandler<IngredientCategoryAnnota
 
         await _cooxboox.SaveChangesAsync(cancellationToken);
       }
+    },
+    cancellationToken);
+
+  public async Task HandleAsync(IngredientCategoryIconChanged @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
+    {
+      IngredientCategoryEntity? ingredientCategory = await _cooxboox.IngredientCategories.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, ingredientCategory);
+
+      ingredientCategory.SetIcon(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
     },
     cancellationToken);
 

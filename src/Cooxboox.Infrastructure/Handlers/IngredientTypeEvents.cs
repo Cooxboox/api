@@ -11,6 +11,7 @@ namespace Cooxboox.Infrastructure.Handlers;
 internal class IngredientTypeEvents : IEventHandler<IngredientTypeAnnotated>,
   IEventHandler<IngredientTypeCreated>,
   IEventHandler<IngredientTypeDeleted>,
+  IEventHandler<IngredientTypeIconChanged>,
   IEventHandler<IngredientTypeLocaleChanged>,
   IEventHandler<IngredientTypeLocaleRemoved>,
   IEventHandler<IngredientTypePublished>,
@@ -22,6 +23,7 @@ internal class IngredientTypeEvents : IEventHandler<IngredientTypeAnnotated>,
     services.AddTransient<IEventHandler<IngredientTypeAnnotated>, IngredientTypeEvents>();
     services.AddTransient<IEventHandler<IngredientTypeCreated>, IngredientTypeEvents>();
     services.AddTransient<IEventHandler<IngredientTypeDeleted>, IngredientTypeEvents>();
+    services.AddTransient<IEventHandler<IngredientTypeIconChanged>, IngredientTypeEvents>();
     services.AddTransient<IEventHandler<IngredientTypeLocaleChanged>, IngredientTypeEvents>();
     services.AddTransient<IEventHandler<IngredientTypeLocaleRemoved>, IngredientTypeEvents>();
     services.AddTransient<IEventHandler<IngredientTypePublished>, IngredientTypeEvents>();
@@ -82,6 +84,19 @@ internal class IngredientTypeEvents : IEventHandler<IngredientTypeAnnotated>,
 
         await _cooxboox.SaveChangesAsync(cancellationToken);
       }
+    },
+    cancellationToken);
+
+  public async Task HandleAsync(IngredientTypeIconChanged @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
+    {
+      IngredientTypeEntity? ingredientType = await _cooxboox.IngredientTypes.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, ingredientType);
+
+      ingredientType.SetIcon(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
     },
     cancellationToken);
 

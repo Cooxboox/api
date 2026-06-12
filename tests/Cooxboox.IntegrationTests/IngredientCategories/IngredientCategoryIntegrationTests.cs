@@ -504,6 +504,7 @@ public class IngredientCategoryIntegrationTests : IntegrationTests
   {
     UpdateIngredientCategoryPayload payload = new()
     {
+      Icon = new Optional<string>("Emoji:Fruit"),
       Notes = new Optional<string>("  Les agrumes regroupent les fruits des plantes du genre Citrus, comme l’orange, le citron et le pamplemousse.  ")
     };
 
@@ -511,13 +512,14 @@ public class IngredientCategoryIntegrationTests : IntegrationTests
     Assert.NotNull(ingredientCategory);
 
     Assert.Equal(_ingredientCategory.Entity.Id, ingredientCategory.Id);
-    Assert.Equal(_ingredientCategory.Version + 1, ingredientCategory.Version);
+    Assert.Equal(_ingredientCategory.Version + 2, ingredientCategory.Version);
     Assert.Equal(_ingredientCategory.CreatedBy, ingredientCategory.CreatedBy.ToActorId());
     Assert.Equal(_ingredientCategory.CreatedOn.AsUniversalTime(), ingredientCategory.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(Actor, ingredientCategory.UpdatedBy);
     Assert.Equal(DateTime.UtcNow, ingredientCategory.UpdatedOn, TimeSpan.FromSeconds(10));
 
     Assert.Equal(_ingredientCategory.Name.Value, ingredientCategory.Name);
+    Assert.Equal(payload.Icon.Value?.ToLowerInvariant(), ingredientCategory.Icon);
     Assert.Equal(payload.Notes.Value?.Trim(), ingredientCategory.Notes);
   }
 

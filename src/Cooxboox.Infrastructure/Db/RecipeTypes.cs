@@ -16,6 +16,7 @@ internal static class RecipeTypes
   public static readonly ColumnId Version = new(nameof(RecipeTypeEntity.Version), Table);
 
   public static readonly ColumnId EntityId = new(nameof(RecipeTypeEntity.EntityId), Table);
+  public static readonly ColumnId Icon = new(nameof(RecipeTypeEntity.Icon), Table);
   public static readonly ColumnId KitchenId = new(nameof(RecipeTypeEntity.KitchenId), Table);
   public static readonly ColumnId Name = new(nameof(RecipeTypeEntity.Name), Table);
   public static readonly ColumnId Notes = new(nameof(RecipeTypeEntity.Notes), Table);

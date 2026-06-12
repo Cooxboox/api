@@ -26,6 +26,11 @@ internal static class ValidationExtensions
     return ruleBuilder.NotEmpty();
   }
 
+  public static IRuleBuilderOptions<T, string> Icon<T>(this IRuleBuilder<T, string> ruleBuilder)
+  {
+    return ruleBuilder.NotEmpty().MaximumLength(Core.Icon.MaximumLength).SetValidator(new IconValidator<T>());
+  }
+
   public static IRuleBuilderOptions<T, string> Language<T>(this IRuleBuilder<T, string> ruleBuilder)
   {
     return ruleBuilder.NotEmpty().MaximumLength(Localization.Language.MaximumLength).SetValidator(new LanguageValidator<T>());

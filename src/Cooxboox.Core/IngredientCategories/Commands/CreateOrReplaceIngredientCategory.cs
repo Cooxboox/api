@@ -58,6 +58,7 @@ internal class CreateOrReplaceIngredientCategoryCommandHandler : ICommandHandler
     }
 
     ingredientCategory.Annotate(Notes.TryCreate(payload.Notes), actorId);
+    ingredientCategory.SetIcon(Icon.TryCreate(payload.Icon), actorId);
 
     await _ingredientCategoryRepository.SaveAsync(ingredientCategory, cancellationToken);
 

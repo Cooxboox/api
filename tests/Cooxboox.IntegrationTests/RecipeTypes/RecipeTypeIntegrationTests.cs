@@ -1,4 +1,4 @@
-using Cooxboox.Builders;
+﻿using Cooxboox.Builders;
 using Cooxboox.Core;
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.Kitchens;
@@ -504,6 +504,7 @@ public class RecipeTypeIntegrationTests : IntegrationTests
   {
     UpdateRecipeTypePayload payload = new()
     {
+      Icon = new Optional<string>("Emoji:Dinner"),
       Notes = new Optional<string>("  Le plat principal constitue le cœur du repas, généralement servi après l’entrée et avant le dessert.  ")
     };
 
@@ -511,13 +512,14 @@ public class RecipeTypeIntegrationTests : IntegrationTests
     Assert.NotNull(recipeType);
 
     Assert.Equal(_recipeType.Entity.Id, recipeType.Id);
-    Assert.Equal(_recipeType.Version + 1, recipeType.Version);
+    Assert.Equal(_recipeType.Version + 2, recipeType.Version);
     Assert.Equal(_recipeType.CreatedBy, recipeType.CreatedBy.ToActorId());
     Assert.Equal(_recipeType.CreatedOn.AsUniversalTime(), recipeType.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(Actor, recipeType.UpdatedBy);
     Assert.Equal(DateTime.UtcNow, recipeType.UpdatedOn, TimeSpan.FromSeconds(10));
 
     Assert.Equal(_recipeType.Name.Value, recipeType.Name);
+    Assert.Equal(payload.Icon.Value?.ToLowerInvariant(), recipeType.Icon);
     Assert.Equal(payload.Notes.Value?.Trim(), recipeType.Notes);
   }
 

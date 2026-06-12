@@ -1,4 +1,4 @@
-using Cooxboox.Builders;
+﻿using Cooxboox.Builders;
 using Cooxboox.Core;
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.Kitchens;
@@ -504,6 +504,7 @@ public class RecipeCategoryIntegrationTests : IntegrationTests
   {
     UpdateRecipeCategoryPayload payload = new()
     {
+      Icon = new Optional<string>("Emoji:Summer"),
       Notes = new Optional<string>("Le BBQ regroupe les recettes de cuisine au barbecue, où les aliments sont cuits à la chaleur directe ou indirecte.")
     };
 
@@ -511,13 +512,14 @@ public class RecipeCategoryIntegrationTests : IntegrationTests
     Assert.NotNull(recipeCategory);
 
     Assert.Equal(_recipeCategory.Entity.Id, recipeCategory.Id);
-    Assert.Equal(_recipeCategory.Version + 1, recipeCategory.Version);
+    Assert.Equal(_recipeCategory.Version + 2, recipeCategory.Version);
     Assert.Equal(_recipeCategory.CreatedBy, recipeCategory.CreatedBy.ToActorId());
     Assert.Equal(_recipeCategory.CreatedOn.AsUniversalTime(), recipeCategory.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(Actor, recipeCategory.UpdatedBy);
     Assert.Equal(DateTime.UtcNow, recipeCategory.UpdatedOn, TimeSpan.FromSeconds(10));
 
     Assert.Equal(_recipeCategory.Name.Value, recipeCategory.Name);
+    Assert.Equal(payload.Icon.Value?.ToLowerInvariant(), recipeCategory.Icon);
     Assert.Equal(payload.Notes.Value?.Trim(), recipeCategory.Notes);
   }
 

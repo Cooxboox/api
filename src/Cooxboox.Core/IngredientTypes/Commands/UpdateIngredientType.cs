@@ -1,4 +1,4 @@
-using Cooxboox.Core.IngredientTypes.Models;
+﻿using Cooxboox.Core.IngredientTypes.Models;
 using Cooxboox.Core.Permissions;
 using Logitar.CQRS;
 using Logitar.EventSourcing;
@@ -44,6 +44,10 @@ internal class UpdateIngredientTypeCommandHandler : ICommandHandler<UpdateIngred
     if (!string.IsNullOrWhiteSpace(payload.Name))
     {
       ingredientType.Rename(new Name(payload.Name), actorId);
+    }
+    if (payload.Icon is not null)
+    {
+      ingredientType.SetIcon(Icon.TryCreate(payload.Icon.Value), actorId);
     }
     if (payload.Notes is not null)
     {

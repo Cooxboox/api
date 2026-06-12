@@ -6,6 +6,7 @@ namespace Cooxboox.Core.IngredientCategories.Models;
 public class IngredientCategoryModel : Aggregate
 {
   public string Name { get; set; } = string.Empty;
+  public string? Icon { get; set; }
   public string? Notes { get; set; }
 
   public ContentStatus Status { get; set; }
