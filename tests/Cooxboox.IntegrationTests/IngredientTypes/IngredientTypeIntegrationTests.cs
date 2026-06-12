@@ -1,4 +1,4 @@
-using Cooxboox.Builders;
+﻿using Cooxboox.Builders;
 using Cooxboox.Core;
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.IngredientTypes;
@@ -504,6 +504,7 @@ public class IngredientTypeIntegrationTests : IntegrationTests
   {
     UpdateIngredientTypePayload payload = new()
     {
+      Icon = new Optional<string>("Emoji:Vegetables"),
       Notes = new Optional<string>("  Dans le langage courant, il désigne généralement une plante cultivée au jardin ou dans les champs. Un fruit peut donc bien être un légume.  ")
     };
 
@@ -511,13 +512,14 @@ public class IngredientTypeIntegrationTests : IntegrationTests
     Assert.NotNull(ingredientType);
 
     Assert.Equal(_ingredientType.Entity.Id, ingredientType.Id);
-    Assert.Equal(_ingredientType.Version + 1, ingredientType.Version);
+    Assert.Equal(_ingredientType.Version + 2, ingredientType.Version);
     Assert.Equal(_ingredientType.CreatedBy, ingredientType.CreatedBy.ToActorId());
     Assert.Equal(_ingredientType.CreatedOn.AsUniversalTime(), ingredientType.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(Actor, ingredientType.UpdatedBy);
     Assert.Equal(DateTime.UtcNow, ingredientType.UpdatedOn, TimeSpan.FromSeconds(10));
 
     Assert.Equal(_ingredientType.Name.Value, ingredientType.Name);
+    Assert.Equal(payload.Icon.Value?.ToLowerInvariant(), ingredientType.Icon);
     Assert.Equal(payload.Notes.Value?.Trim(), ingredientType.Notes);
   }
 
