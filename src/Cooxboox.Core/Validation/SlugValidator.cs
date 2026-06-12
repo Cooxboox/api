@@ -1,4 +1,5 @@
-﻿using FluentValidation;
+﻿using Cooxboox.Core.Seo;
+using FluentValidation;
 using FluentValidation.Validators;
 
 namespace Cooxboox.Core.Validation;
@@ -12,5 +13,5 @@ internal class SlugValidator<T> : IPropertyValidator<T, string>
     return "'{PropertyName}' must be composed of non-empty alphanumeric words separated by hyphens (-).";
   }
 
-  public bool IsValid(ValidationContext<T> context, string value) => value.IsKebabCase();
+  public bool IsValid(ValidationContext<T> context, string value) => Slug.IsValid(value);
 }

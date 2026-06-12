@@ -11,11 +11,10 @@ public class Icon
 
   public Icon(string value)
   {
-    Value = Normalize(value);
+    Value = value.Trim().ToLowerInvariant();
     new Validator().ValidateAndThrow(this);
   }
 
-  public static string Normalize(string value) => value.Trim().ToLowerInvariant(); // TODO(fpion): why are we normalizing?
   public static Icon? TryCreate(string? value) => string.IsNullOrWhiteSpace(value) ? null : new(value);
 
   public override bool Equals(object? obj) => obj is Icon icon && icon.Value == Value;
