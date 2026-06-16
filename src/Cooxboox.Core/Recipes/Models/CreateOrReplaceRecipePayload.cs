@@ -8,6 +8,8 @@ public record CreateOrReplaceRecipePayload
   public string Name { get; set; }
   public string? Notes { get; set; }
 
+  public Guid? TypeId { get; set; }
+
   public CreateOrReplaceRecipePayload() : this(string.Empty)
   {
   }

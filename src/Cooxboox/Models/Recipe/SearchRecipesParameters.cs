@@ -1,13 +1,20 @@
-using Cooxboox.Core.Recipes.Models;
+﻿using Cooxboox.Core.Recipes.Models;
 using Krakenar.Contracts.Search;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Cooxboox.Models.Recipe;
 
 public record SearchRecipesParameters : SearchParameters
 {
+  [FromQuery(Name = "type")]
+  public Guid? RecipeTypeId { get; set; }
+
   public virtual SearchRecipesPayload ToPayload()
   {
-    SearchRecipesPayload payload = new();
+    SearchRecipesPayload payload = new()
+    {
+      RecipeTypeId = RecipeTypeId
+    };
     Fill(payload);
 
     foreach (SortOption sort in payload.Sort)

@@ -1,4 +1,4 @@
-using Cooxboox.Core;
+﻿using Cooxboox.Core;
 using Cooxboox.Infrastructure.Entities;
 using Logitar.EventSourcing;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +18,7 @@ internal class IngredientConfiguration : AggregateConfiguration<IngredientEntity
 
     builder.HasIndex(x => new { x.KitchenId, x.EntityId }).IsUnique();
     builder.HasIndex(x => x.Name);
+    builder.HasIndex(x => x.IngredientTypeId);
     builder.HasIndex(x => x.Status);
     builder.HasIndex(x => x.PublishedVersion);
     builder.HasIndex(x => x.PublishedBy);
@@ -28,5 +29,6 @@ internal class IngredientConfiguration : AggregateConfiguration<IngredientEntity
     builder.Property(x => x.PublishedBy).HasMaxLength(ActorId.MaximumLength);
 
     builder.HasOne(x => x.Kitchen).WithMany(x => x.Ingredients).OnDelete(DeleteBehavior.Restrict);
+    builder.HasOne(x => x.IngredientType).WithMany(x => x.Ingredients).OnDelete(DeleteBehavior.Restrict);
   }
 }

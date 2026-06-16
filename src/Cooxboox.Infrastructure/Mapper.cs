@@ -49,6 +49,11 @@ internal class Mapper
       destination.Locales.Add(ToIngredientLocale(locale));
     }
 
+    if (source.IngredientType is not null)
+    {
+      destination.Type = ToIngredientType(source.IngredientType);
+    }
+
     MapAggregate(source, destination);
 
     return destination;
@@ -172,6 +177,11 @@ internal class Mapper
     foreach (RecipeLocaleEntity locale in source.Locales)
     {
       destination.Locales.Add(ToRecipeLocale(locale));
+    }
+
+    if (source.RecipeType is not null)
+    {
+      destination.Type = ToRecipeType(source.RecipeType);
     }
 
     MapAggregate(source, destination);

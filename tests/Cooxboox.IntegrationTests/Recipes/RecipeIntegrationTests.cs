@@ -1,4 +1,4 @@
-using Cooxboox.Builders;
+﻿using Cooxboox.Builders;
 using Cooxboox.Core;
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.Kitchens;
@@ -6,6 +6,7 @@ using Cooxboox.Core.Localization;
 using Cooxboox.Core.Permissions;
 using Cooxboox.Core.Recipes;
 using Cooxboox.Core.Recipes.Models;
+using Cooxboox.Core.RecipeTypes;
 using Krakenar.Contracts.Search;
 using Logitar;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,19 +17,25 @@ namespace Cooxboox.Recipes;
 public class RecipeIntegrationTests : IntegrationTests
 {
   private readonly IRecipeRepository _recipeRepository;
+  private readonly IRecipeTypeRepository _recipeTypeRepository;
   private readonly IRecipeService _recipeService;
 
   private Recipe _recipe = null!;
+  private RecipeType _recipeType = null!;
 
   public RecipeIntegrationTests() : base()
   {
     _recipeRepository = ServiceProvider.GetRequiredService<IRecipeRepository>();
+    _recipeTypeRepository = ServiceProvider.GetRequiredService<IRecipeTypeRepository>();
     _recipeService = ServiceProvider.GetRequiredService<IRecipeService>();
   }
 
   public override async Task InitializeAsync()
   {
     await base.InitializeAsync();
+
+    _recipeType = new RecipeTypeBuilder(Faker).WithKitchen(Context.Kitchen).Build();
+    await _recipeTypeRepository.SaveAsync(_recipeType);
 
     _recipe = new RecipeBuilder(Faker).WithKitchen(Context.Kitchen).Build();
     await _recipeRepository.SaveAsync(_recipe);
@@ -42,7 +49,8 @@ public class RecipeIntegrationTests : IntegrationTests
     CreateOrReplaceRecipePayload payload = new()
     {
       Name = " Brochettes de poulet citronnées au BBQ ",
-      Notes = "  Les brochettes de poulet citronnées au BBQ sont un plat principal savoureux, parfait pour un repas d’été au barbecue.  "
+      Notes = "  Les brochettes de poulet citronnées au BBQ sont un plat principal savoureux, parfait pour un repas d’été au barbecue.  ",
+      TypeId = _recipeType.Entity.Id
     };
     Guid? id = withId ? Guid.NewGuid() : null;
 
@@ -54,7 +62,7 @@ public class RecipeIntegrationTests : IntegrationTests
     {
       Assert.Equal(id.Value, recipe.Id);
     }
-    Assert.Equal(2, recipe.Version);
+    Assert.Equal(3, recipe.Version);
     Assert.Equal(Actor, recipe.CreatedBy);
     Assert.Equal(DateTime.UtcNow, recipe.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(recipe.CreatedBy, recipe.UpdatedBy);
@@ -62,6 +70,8 @@ public class RecipeIntegrationTests : IntegrationTests
 
     Assert.Equal(payload.Name.Trim(), recipe.Name);
     Assert.Equal(payload.Notes.Trim(), recipe.Notes);
+    Assert.NotNull(recipe.Type);
+    Assert.Equal(payload.TypeId, recipe.Type.Id);
   }
 
   [Fact(DisplayName = "It should publish a recipe.")]
@@ -238,7 +248,8 @@ public class RecipeIntegrationTests : IntegrationTests
     CreateOrReplaceRecipePayload payload = new()
     {
       Name = " Brochettes de poulet citronnées au BBQ ",
-      Notes = "  Les brochettes de poulet citronnées au BBQ sont un plat principal savoureux, parfait pour un repas d’été au barbecue.  "
+      Notes = "  Les brochettes de poulet citronnées au BBQ sont un plat principal savoureux, parfait pour un repas d’été au barbecue.  ",
+      TypeId = _recipeType.Entity.Id
     };
 
     CreateOrReplaceRecipeResult result = await _recipeService.CreateOrReplaceAsync(payload, _recipe.Entity.Id);
@@ -246,7 +257,7 @@ public class RecipeIntegrationTests : IntegrationTests
     RecipeModel recipe = result.Recipe;
 
     Assert.Equal(_recipe.Entity.Id, recipe.Id);
-    Assert.Equal(_recipe.Version + 2, recipe.Version);
+    Assert.Equal(_recipe.Version + 3, recipe.Version);
     Assert.Equal(_recipe.CreatedBy, recipe.CreatedBy.ToActorId());
     Assert.Equal(_recipe.CreatedOn.AsUniversalTime(), recipe.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(Actor, recipe.UpdatedBy);
@@ -254,6 +265,8 @@ public class RecipeIntegrationTests : IntegrationTests
 
     Assert.Equal(payload.Name.Trim(), recipe.Name);
     Assert.Equal(payload.Notes.Trim(), recipe.Notes);
+    Assert.NotNull(recipe.Type);
+    Assert.Equal(payload.TypeId, recipe.Type.Id);
   }
 
   [Fact(DisplayName = "It should return empty search results.")]
@@ -504,14 +517,15 @@ public class RecipeIntegrationTests : IntegrationTests
   {
     UpdateRecipePayload payload = new()
     {
-      Notes = new Optional<string>("  Les brochettes de poulet citronnées au BBQ sont un plat principal savoureux, parfait pour un repas d’été au barbecue.  ")
+      Notes = new Optional<string>("  Les brochettes de poulet citronnées au BBQ sont un plat principal savoureux, parfait pour un repas d’été au barbecue.  "),
+      TypeId = new Optional<Guid?>(_recipeType.Entity.Id)
     };
 
     RecipeModel? recipe = await _recipeService.UpdateAsync(_recipe.Entity.Id, payload);
     Assert.NotNull(recipe);
 
     Assert.Equal(_recipe.Entity.Id, recipe.Id);
-    Assert.Equal(_recipe.Version + 1, recipe.Version);
+    Assert.Equal(_recipe.Version + 2, recipe.Version);
     Assert.Equal(_recipe.CreatedBy, recipe.CreatedBy.ToActorId());
     Assert.Equal(_recipe.CreatedOn.AsUniversalTime(), recipe.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(Actor, recipe.UpdatedBy);
@@ -519,6 +533,23 @@ public class RecipeIntegrationTests : IntegrationTests
 
     Assert.Equal(_recipe.Name.Value, recipe.Name);
     Assert.Equal(payload.Notes.Value?.Trim(), recipe.Notes);
+    Assert.NotNull(recipe.Type);
+    Assert.Equal(payload.TypeId.Value, recipe.Type.Id);
+  }
+
+  [Fact(DisplayName = "It should throw RecipeTypeNotFoundException when the recipe type does not exist (CreateOrReplace).")]
+  public async Task Given_TypeNotExist_When_CreateOrReplace_Then_RecipeTypeNotFoundException()
+  {
+    Guid typeId = Guid.NewGuid();
+    CreateOrReplaceRecipePayload payload = new("Brochettes de poulet citronnées au BBQ")
+    {
+      TypeId = typeId
+    };
+
+    RecipeTypeNotFoundException exception = await Assert.ThrowsAsync<RecipeTypeNotFoundException>(async () => await _recipeService.CreateOrReplaceAsync(payload));
+    Assert.Equal(Context.Kitchen?.Id.EntityId, exception.KitchenId);
+    Assert.Equal(typeId, exception.RecipeTypeId);
+    Assert.Equal(nameof(payload.TypeId), exception.PropertyName);
   }
 
   [Fact(DisplayName = "It should update a recipe locale.")]
@@ -563,5 +594,20 @@ public class RecipeIntegrationTests : IntegrationTests
     Assert.Null(locale.PublishedVersion);
     Assert.Null(locale.PublishedBy);
     Assert.Null(locale.PublishedOn);
+  }
+
+  [Fact(DisplayName = "It should throw RecipeTypeNotFoundException when the recipe type does not exist (Update).")]
+  public async Task Given_TypeNotExist_When_Update_Then_RecipeTypeNotFoundException()
+  {
+    Guid typeId = Guid.NewGuid();
+    UpdateRecipePayload payload = new()
+    {
+      TypeId = new Optional<Guid?>(typeId)
+    };
+
+    RecipeTypeNotFoundException exception = await Assert.ThrowsAsync<RecipeTypeNotFoundException>(async () => await _recipeService.UpdateAsync(_recipe.Entity.Id, payload));
+    Assert.Equal(Context.Kitchen?.Id.EntityId, exception.KitchenId);
+    Assert.Equal(typeId, exception.RecipeTypeId);
+    Assert.Equal(nameof(payload.TypeId), exception.PropertyName);
   }
 }

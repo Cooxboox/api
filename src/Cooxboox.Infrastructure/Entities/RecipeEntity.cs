@@ -18,6 +18,9 @@ internal class RecipeEntity : AggregateEntity
   public string Name { get; private set; } = string.Empty;
   public string? Notes { get; private set; }
 
+  public RecipeTypeEntity? RecipeType { get; private set; }
+  public int? RecipeTypeId { get; private set; }
+
   public ContentStatus Status { get; private set; }
   public long? PublishedVersion { get; private set; }
   public string? PublishedBy { get; private set; }
@@ -55,6 +58,10 @@ internal class RecipeEntity : AggregateEntity
     foreach (RecipeLocaleEntity locale in Locales)
     {
       actorIds.AddRange(locale.GetActorIds());
+    }
+    if (RecipeType is not null)
+    {
+      actorIds.AddRange(RecipeType.GetActorIds());
     }
     return actorIds;
   }
@@ -105,6 +112,14 @@ internal class RecipeEntity : AggregateEntity
     {
       locale.Update(@event);
     }
+  }
+
+  public void SetType(RecipeTypeEntity? recipeType, RecipeTyped @event)
+  {
+    base.Update(@event);
+
+    RecipeType = recipeType;
+    RecipeTypeId = recipeType?.RecipeTypeId;
   }
 
   public void Unpublish(RecipeUnpublished @event)

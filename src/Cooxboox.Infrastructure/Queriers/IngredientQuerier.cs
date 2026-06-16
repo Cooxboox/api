@@ -1,4 +1,4 @@
-using Cooxboox.Core;
+﻿using Cooxboox.Core;
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.Ingredients;
 using Cooxboox.Core.Ingredients.Models;
@@ -35,6 +35,7 @@ internal class IngredientQuerier : IIngredientQuerier
   {
     IngredientEntity? ingredient = await _ingredients.AsNoTracking()
       .Where(x => x.StreamId == id.Value && x.Kitchen!.StreamId == _context.KitchenId.Value)
+      .Include(x => x.IngredientType).ThenInclude(x => x!.Locales)
       .Include(x => x.Locales)
       .SingleOrDefaultAsync(cancellationToken);
     return ingredient is null ? null : await MapAsync(ingredient, cancellationToken);
@@ -43,6 +44,7 @@ internal class IngredientQuerier : IIngredientQuerier
   {
     IngredientEntity? ingredient = await _ingredients.AsNoTracking()
       .Where(x => x.EntityId == id && x.Kitchen!.StreamId == _context.KitchenId.Value)
+      .Include(x => x.IngredientType).ThenInclude(x => x!.Locales)
       .Include(x => x.Locales)
       .SingleOrDefaultAsync(cancellationToken);
     return ingredient is null ? null : await MapAsync(ingredient, cancellationToken);
@@ -55,7 +57,14 @@ internal class IngredientQuerier : IIngredientQuerier
       .ApplyKitchenFilter(Db.Ingredients.KitchenId, _context.KitchenId);
     _sqlHelper.ApplyTextSearch(builder, payload.Search, Db.Ingredients.Name);
 
-    IQueryable<IngredientEntity> query = _ingredients.FromQuery(builder).AsNoTracking();
+    if (payload.IngredientTypeId.HasValue)
+    {
+      OperatorCondition condition = new(Db.IngredientTypes.EntityId, Operators.IsEqualTo(payload.IngredientTypeId.Value));
+      builder.Join(Db.IngredientTypes.IngredientTypeId, Db.Ingredients.IngredientTypeId, condition);
+    }
+
+    IQueryable<IngredientEntity> query = _ingredients.FromQuery(builder).AsNoTracking()
+      .Include(x => x.IngredientType);
 
     long total = await query.LongCountAsync(cancellationToken);
 

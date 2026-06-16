@@ -23,5 +23,6 @@ internal static class Recipes
   public static readonly ColumnId PublishedOn = new(nameof(RecipeEntity.PublishedOn), Table);
   public static readonly ColumnId PublishedVersion = new(nameof(RecipeEntity.PublishedVersion), Table);
   public static readonly ColumnId RecipeId = new(nameof(RecipeEntity.RecipeId), Table);
+  public static readonly ColumnId RecipeTypeId = new(nameof(RecipeEntity.RecipeTypeId), Table);
   public static readonly ColumnId Status = new(nameof(RecipeEntity.Status), Table);
 }

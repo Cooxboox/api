@@ -1,4 +1,4 @@
-using Cooxboox.Infrastructure.Configurations;
+﻿using Cooxboox.Infrastructure.Configurations;
 using Cooxboox.Infrastructure.Entities;
 using Logitar.Data;
 
@@ -17,6 +17,7 @@ internal static class Ingredients
 
   public static readonly ColumnId EntityId = new(nameof(IngredientEntity.EntityId), Table);
   public static readonly ColumnId IngredientId = new(nameof(IngredientEntity.IngredientId), Table);
+  public static readonly ColumnId IngredientTypeId = new(nameof(IngredientEntity.IngredientTypeId), Table);
   public static readonly ColumnId KitchenId = new(nameof(IngredientEntity.KitchenId), Table);
   public static readonly ColumnId Name = new(nameof(IngredientEntity.Name), Table);
   public static readonly ColumnId Notes = new(nameof(IngredientEntity.Notes), Table);

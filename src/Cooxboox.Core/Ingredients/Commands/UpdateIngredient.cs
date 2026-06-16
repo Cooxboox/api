@@ -1,4 +1,5 @@
 ﻿using Cooxboox.Core.Ingredients.Models;
+using Cooxboox.Core.IngredientTypes;
 using Cooxboox.Core.Permissions;
 using Logitar.CQRS;
 using Logitar.EventSourcing;
@@ -12,17 +13,20 @@ internal class UpdateIngredientCommandHandler : ICommandHandler<UpdateIngredient
   private readonly IContext _context;
   private readonly IIngredientQuerier _ingredientQuerier;
   private readonly IIngredientRepository _ingredientRepository;
+  private readonly IIngredientTypeRepository _ingredientTypeRepository;
   private readonly IPermissionService _permissionService;
 
   public UpdateIngredientCommandHandler(
     IContext context,
     IIngredientQuerier ingredientQuerier,
     IIngredientRepository ingredientRepository,
+    IIngredientTypeRepository ingredientTypeRepository,
     IPermissionService permissionService)
   {
     _context = context;
     _ingredientQuerier = ingredientQuerier;
     _ingredientRepository = ingredientRepository;
+    _ingredientTypeRepository = ingredientTypeRepository;
     _permissionService = permissionService;
   }
 
@@ -48,6 +52,18 @@ internal class UpdateIngredientCommandHandler : ICommandHandler<UpdateIngredient
     if (payload.Notes is not null)
     {
       ingredient.Annotate(Notes.TryCreate(payload.Notes.Value), actorId);
+    }
+
+    if (payload.TypeId is not null)
+    {
+      IngredientType? ingredientType = null;
+      if (payload.TypeId.Value.HasValue)
+      {
+        IngredientTypeId ingredientTypeId = new(ingredientId.KitchenId, payload.TypeId.Value.Value);
+        ingredientType = await _ingredientTypeRepository.LoadAsync(ingredientTypeId, cancellationToken)
+          ?? throw new IngredientTypeNotFoundException(ingredientTypeId, nameof(payload.TypeId));
+      }
+      ingredient.SetType(ingredientType, actorId);
     }
 
     await _ingredientRepository.SaveAsync(ingredient, cancellationToken);

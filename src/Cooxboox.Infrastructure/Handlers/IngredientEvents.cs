@@ -15,6 +15,7 @@ internal class IngredientEvents : IEventHandler<IngredientAnnotated>,
   IEventHandler<IngredientLocaleRemoved>,
   IEventHandler<IngredientPublished>,
   IEventHandler<IngredientRenamed>,
+  IEventHandler<IngredientTyped>,
   IEventHandler<IngredientUnpublished>
 {
   public static void Register(IServiceCollection services)
@@ -26,6 +27,7 @@ internal class IngredientEvents : IEventHandler<IngredientAnnotated>,
     services.AddTransient<IEventHandler<IngredientLocaleRemoved>, IngredientEvents>();
     services.AddTransient<IEventHandler<IngredientPublished>, IngredientEvents>();
     services.AddTransient<IEventHandler<IngredientRenamed>, IngredientEvents>();
+    services.AddTransient<IEventHandler<IngredientTyped>, IngredientEvents>();
     services.AddTransient<IEventHandler<IngredientUnpublished>, IngredientEvents>();
   }
 
@@ -142,6 +144,26 @@ internal class IngredientEvents : IEventHandler<IngredientAnnotated>,
       UnexpectedVersionException.ThrowIfUnexpected(@event, ingredient);
 
       ingredient.Rename(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    },
+    cancellationToken);
+
+  public async Task HandleAsync(IngredientTyped @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
+    {
+      IngredientEntity? ingredient = await _cooxboox.Ingredients.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, ingredient);
+
+      IngredientTypeEntity? ingredientType = null;
+      if (@event.IngredientTypeId.HasValue)
+      {
+        ingredientType = await _cooxboox.IngredientTypes.SingleOrDefaultAsync(x => x.StreamId == @event.IngredientTypeId.Value.Value, cancellationToken)
+          ?? throw new InvalidOperationException($"The ingredient type entity 'StreamId={@event.IngredientTypeId}' was not found.");
+      }
+
+      ingredient.SetType(ingredientType, @event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
     },

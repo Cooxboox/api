@@ -15,6 +15,7 @@ internal class RecipeEvents : IEventHandler<RecipeAnnotated>,
   IEventHandler<RecipeLocaleRemoved>,
   IEventHandler<RecipePublished>,
   IEventHandler<RecipeRenamed>,
+  IEventHandler<RecipeTyped>,
   IEventHandler<RecipeUnpublished>
 {
   public static void Register(IServiceCollection services)
@@ -26,6 +27,7 @@ internal class RecipeEvents : IEventHandler<RecipeAnnotated>,
     services.AddTransient<IEventHandler<RecipeLocaleRemoved>, RecipeEvents>();
     services.AddTransient<IEventHandler<RecipePublished>, RecipeEvents>();
     services.AddTransient<IEventHandler<RecipeRenamed>, RecipeEvents>();
+    services.AddTransient<IEventHandler<RecipeTyped>, RecipeEvents>();
     services.AddTransient<IEventHandler<RecipeUnpublished>, RecipeEvents>();
   }
 
@@ -142,6 +144,26 @@ internal class RecipeEvents : IEventHandler<RecipeAnnotated>,
       UnexpectedVersionException.ThrowIfUnexpected(@event, recipe);
 
       recipe.Rename(@event);
+
+      await _cooxboox.SaveChangesAsync(cancellationToken);
+    },
+    cancellationToken);
+
+  public async Task HandleAsync(RecipeTyped @event, CancellationToken cancellationToken) => await _outbox.HandleAsync(
+    @event,
+    async (@event, cancellationToken) =>
+    {
+      RecipeEntity? recipe = await _cooxboox.Recipes.SingleOrDefaultAsync(x => x.StreamId == @event.StreamId.Value, cancellationToken);
+      UnexpectedVersionException.ThrowIfUnexpected(@event, recipe);
+
+      RecipeTypeEntity? recipeType = null;
+      if (@event.RecipeTypeId.HasValue)
+      {
+        recipeType = await _cooxboox.RecipeTypes.SingleOrDefaultAsync(x => x.StreamId == @event.RecipeTypeId.Value.Value, cancellationToken)
+          ?? throw new InvalidOperationException($"The recipe type entity 'StreamId={@event.RecipeTypeId}' was not found.");
+      }
+
+      recipe.SetType(recipeType, @event);
 
       await _cooxboox.SaveChangesAsync(cancellationToken);
     },

@@ -24,6 +24,7 @@ internal class IngredientTypeEntity : AggregateEntity
   public string? PublishedBy { get; private set; }
   public DateTime? PublishedOn { get; private set; }
 
+  public List<IngredientEntity> Ingredients { get; private set; } = [];
   public List<IngredientTypeLocaleEntity> Locales { get; private set; } = [];
 
   public IngredientTypeEntity(KitchenEntity kitchen, IngredientTypeCreated @event) : base(@event)
