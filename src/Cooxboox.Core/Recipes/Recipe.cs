@@ -1,6 +1,7 @@
 ﻿using Cooxboox.Core.Kitchens;
 using Cooxboox.Core.Localization;
 using Cooxboox.Core.Recipes.Events;
+using Cooxboox.Core.RecipeTypes;
 using Logitar.EventSourcing;
 
 namespace Cooxboox.Core.Recipes;
@@ -15,6 +16,8 @@ public class Recipe : AggregateRoot, IEntityProvider
   private Name? _name = null;
   public Name Name => _name ?? throw new InvalidOperationException("The name was not initialized.");
   public Notes? Notes { get; private set; }
+
+  public RecipeTypeId? RecipeTypeId { get; private set; }
 
   private readonly Dictionary<Language, RecipeLocale> _locales = [];
 
@@ -156,6 +159,23 @@ public class Recipe : AggregateRoot, IEntityProvider
     {
       _statuses[@event.Language] = ContentStatus.Published;
     }
+  }
+
+  public void SetType(RecipeType? recipeType, ActorId? actorId = null) => SetType(recipeType?.Id, actorId);
+  public void SetType(RecipeTypeId? recipeTypeId, ActorId? actorId = null)
+  {
+    if (recipeTypeId.HasValue)
+    {
+      KitchenMismatchException.ThrowIfMismatch(Entity, new Entity(EntityKind, recipeTypeId.Value.EntityId, recipeTypeId.Value.KitchenId));
+    }
+    else if (RecipeTypeId != recipeTypeId)
+    {
+      Raise(new RecipeTyped(recipeTypeId), actorId);
+    }
+  }
+  protected virtual void Handle(RecipeTyped @event)
+  {
+    RecipeTypeId = @event.RecipeTypeId;
   }
 
   public RecipeLocale? TryGetLocale(Language language) => _locales.TryGetValue(language, out RecipeLocale? locale) ? locale : null;
