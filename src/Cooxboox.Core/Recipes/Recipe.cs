@@ -168,7 +168,8 @@ public class Recipe : AggregateRoot, IEntityProvider
     {
       KitchenMismatchException.ThrowIfMismatch(Entity, new Entity(EntityKind, recipeTypeId.Value.EntityId, recipeTypeId.Value.KitchenId));
     }
-    else if (RecipeTypeId != recipeTypeId)
+
+    if (RecipeTypeId != recipeTypeId)
     {
       Raise(new RecipeTyped(recipeTypeId), actorId);
     }

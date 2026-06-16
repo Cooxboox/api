@@ -168,7 +168,8 @@ public class Ingredient : AggregateRoot, IEntityProvider
     {
       KitchenMismatchException.ThrowIfMismatch(Entity, new Entity(EntityKind, ingredientTypeId.Value.EntityId, ingredientTypeId.Value.KitchenId));
     }
-    else if (IngredientTypeId != ingredientTypeId)
+
+    if (IngredientTypeId != ingredientTypeId)
     {
       Raise(new IngredientTyped(ingredientTypeId), actorId);
     }
