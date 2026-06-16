@@ -18,6 +18,9 @@ internal class IngredientEntity : AggregateEntity
   public string Name { get; private set; } = string.Empty;
   public string? Notes { get; private set; }
 
+  public IngredientTypeEntity? IngredientType { get; private set; }
+  public int? IngredientTypeId { get; private set; }
+
   public ContentStatus Status { get; private set; }
   public long? PublishedVersion { get; private set; }
   public string? PublishedBy { get; private set; }
@@ -105,6 +108,14 @@ internal class IngredientEntity : AggregateEntity
     {
       locale.Update(@event);
     }
+  }
+
+  public void SetType(IngredientTypeEntity? ingredientType, IngredientTyped @event)
+  {
+    base.Update(@event);
+
+    IngredientType = ingredientType;
+    IngredientTypeId = ingredientType?.IngredientTypeId;
   }
 
   public void Unpublish(IngredientUnpublished @event)

@@ -55,6 +55,12 @@ internal class RecipeQuerier : IRecipeQuerier
       .ApplyKitchenFilter(Db.Recipes.KitchenId, _context.KitchenId);
     _sqlHelper.ApplyTextSearch(builder, payload.Search, Db.Recipes.Name);
 
+    if (payload.RecipeTypeId.HasValue)
+    {
+      OperatorCondition condition = new(Db.RecipeTypes.EntityId, Operators.IsEqualTo(payload.RecipeTypeId.Value));
+      builder.Join(Db.RecipeTypes.RecipeTypeId, Db.Recipes.RecipeTypeId, condition);
+    }
+
     IQueryable<RecipeEntity> query = _recipes.FromQuery(builder).AsNoTracking();
 
     long total = await query.LongCountAsync(cancellationToken);

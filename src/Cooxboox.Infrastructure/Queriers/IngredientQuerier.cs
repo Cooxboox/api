@@ -1,4 +1,4 @@
-using Cooxboox.Core;
+﻿using Cooxboox.Core;
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.Ingredients;
 using Cooxboox.Core.Ingredients.Models;
@@ -54,6 +54,12 @@ internal class IngredientQuerier : IIngredientQuerier
       .ApplyIdFilter(Db.Ingredients.EntityId, payload.Ids)
       .ApplyKitchenFilter(Db.Ingredients.KitchenId, _context.KitchenId);
     _sqlHelper.ApplyTextSearch(builder, payload.Search, Db.Ingredients.Name);
+
+    if (payload.IngredientTypeId.HasValue)
+    {
+      OperatorCondition condition = new(Db.IngredientTypes.EntityId, Operators.IsEqualTo(payload.IngredientTypeId.Value));
+      builder.Join(Db.IngredientTypes.IngredientTypeId, Db.Ingredients.IngredientTypeId, condition);
+    }
 
     IQueryable<IngredientEntity> query = _ingredients.FromQuery(builder).AsNoTracking();
 

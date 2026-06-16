@@ -18,6 +18,7 @@ internal class RecipeConfiguration : AggregateConfiguration<RecipeEntity>, IEnti
 
     builder.HasIndex(x => new { x.KitchenId, x.EntityId }).IsUnique();
     builder.HasIndex(x => x.Name);
+    builder.HasIndex(x => x.RecipeTypeId);
     builder.HasIndex(x => x.Status);
     builder.HasIndex(x => x.PublishedVersion);
     builder.HasIndex(x => x.PublishedBy);
@@ -28,5 +29,6 @@ internal class RecipeConfiguration : AggregateConfiguration<RecipeEntity>, IEnti
     builder.Property(x => x.PublishedBy).HasMaxLength(ActorId.MaximumLength);
 
     builder.HasOne(x => x.Kitchen).WithMany(x => x.Recipes).OnDelete(DeleteBehavior.Restrict);
+    builder.HasOne(x => x.RecipeType).WithMany(x => x.Recipes).OnDelete(DeleteBehavior.Restrict);
   }
 }

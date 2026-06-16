@@ -25,6 +25,7 @@ internal class RecipeTypeEntity : AggregateEntity
   public DateTime? PublishedOn { get; private set; }
 
   public List<RecipeTypeLocaleEntity> Locales { get; private set; } = [];
+  public List<RecipeEntity> Recipes { get; private set; } = [];
 
   public RecipeTypeEntity(KitchenEntity kitchen, RecipeTypeCreated @event) : base(@event)
   {
