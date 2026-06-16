@@ -1,4 +1,4 @@
-using Cooxboox.Core.Validation;
+﻿using Cooxboox.Core.Validation;
 using FluentValidation;
 
 namespace Cooxboox.Core.Ingredients.Models;
@@ -7,6 +7,8 @@ public record CreateOrReplaceIngredientPayload
 {
   public string Name { get; set; }
   public string? Notes { get; set; }
+
+  public Guid? TypeId { get; set; }
 
   public CreateOrReplaceIngredientPayload() : this(string.Empty)
   {

@@ -3,6 +3,7 @@ using Cooxboox.Core;
 using Cooxboox.Core.Actors;
 using Cooxboox.Core.Ingredients;
 using Cooxboox.Core.Ingredients.Models;
+using Cooxboox.Core.IngredientTypes;
 using Cooxboox.Core.Kitchens;
 using Cooxboox.Core.Localization;
 using Cooxboox.Core.Permissions;
@@ -16,19 +17,25 @@ namespace Cooxboox.Ingredients;
 public class IngredientIntegrationTests : IntegrationTests
 {
   private readonly IIngredientRepository _ingredientRepository;
+  private readonly IIngredientTypeRepository _ingredientTypeRepository;
   private readonly IIngredientService _ingredientService;
 
   private Ingredient _ingredient = null!;
+  private IngredientType _ingredientType = null!;
 
   public IngredientIntegrationTests() : base()
   {
     _ingredientRepository = ServiceProvider.GetRequiredService<IIngredientRepository>();
+    _ingredientTypeRepository = ServiceProvider.GetRequiredService<IIngredientTypeRepository>();
     _ingredientService = ServiceProvider.GetRequiredService<IIngredientService>();
   }
 
   public override async Task InitializeAsync()
   {
     await base.InitializeAsync();
+
+    _ingredientType = new IngredientTypeBuilder(Faker).WithKitchen(Context.Kitchen).Build();
+    await _ingredientTypeRepository.SaveAsync(_ingredientType);
 
     _ingredient = new IngredientBuilder(Faker).WithKitchen(Context.Kitchen).Build();
     await _ingredientRepository.SaveAsync(_ingredient);
@@ -42,7 +49,8 @@ public class IngredientIntegrationTests : IntegrationTests
     CreateOrReplaceIngredientPayload payload = new()
     {
       Name = " Citron ",
-      Notes = "  Le citron est un agrume acide, très utilisé en cuisine pour son jus et son zeste.  "
+      Notes = "  Le citron est un agrume acide, très utilisé en cuisine pour son jus et son zeste.  ",
+      TypeId = _ingredientType.Entity.Id
     };
     Guid? id = withId ? Guid.NewGuid() : null;
 
@@ -54,7 +62,7 @@ public class IngredientIntegrationTests : IntegrationTests
     {
       Assert.Equal(id.Value, ingredient.Id);
     }
-    Assert.Equal(2, ingredient.Version);
+    Assert.Equal(3, ingredient.Version);
     Assert.Equal(Actor, ingredient.CreatedBy);
     Assert.Equal(DateTime.UtcNow, ingredient.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(ingredient.CreatedBy, ingredient.UpdatedBy);
@@ -62,6 +70,8 @@ public class IngredientIntegrationTests : IntegrationTests
 
     Assert.Equal(payload.Name.Trim(), ingredient.Name);
     Assert.Equal(payload.Notes.Trim(), ingredient.Notes);
+    Assert.NotNull(ingredient.Type);
+    Assert.Equal(payload.TypeId, ingredient.Type.Id);
   }
 
   [Fact(DisplayName = "It should publish an ingredient.")]
@@ -238,7 +248,8 @@ public class IngredientIntegrationTests : IntegrationTests
     CreateOrReplaceIngredientPayload payload = new()
     {
       Name = " Citron ",
-      Notes = "  Le citron est un agrume acide, très utilisé en cuisine pour son jus et son zeste.  "
+      Notes = "  Le citron est un agrume acide, très utilisé en cuisine pour son jus et son zeste.  ",
+      TypeId = _ingredientType.Entity.Id
     };
 
     CreateOrReplaceIngredientResult result = await _ingredientService.CreateOrReplaceAsync(payload, _ingredient.Entity.Id);
@@ -246,7 +257,7 @@ public class IngredientIntegrationTests : IntegrationTests
     IngredientModel ingredient = result.Ingredient;
 
     Assert.Equal(_ingredient.Entity.Id, ingredient.Id);
-    Assert.Equal(_ingredient.Version + 2, ingredient.Version);
+    Assert.Equal(_ingredient.Version + 3, ingredient.Version);
     Assert.Equal(_ingredient.CreatedBy, ingredient.CreatedBy.ToActorId());
     Assert.Equal(_ingredient.CreatedOn.AsUniversalTime(), ingredient.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(Actor, ingredient.UpdatedBy);
@@ -254,6 +265,8 @@ public class IngredientIntegrationTests : IntegrationTests
 
     Assert.Equal(payload.Name.Trim(), ingredient.Name);
     Assert.Equal(payload.Notes.Trim(), ingredient.Notes);
+    Assert.NotNull(ingredient.Type);
+    Assert.Equal(payload.TypeId, ingredient.Type.Id);
   }
 
   [Fact(DisplayName = "It should return empty search results.")]
@@ -504,14 +517,15 @@ public class IngredientIntegrationTests : IntegrationTests
   {
     UpdateIngredientPayload payload = new()
     {
-      Notes = new Optional<string>("  Le citron est un agrume acide, très utilisé en cuisine pour son jus et son zeste.  ")
+      Notes = new Optional<string>("  Le citron est un agrume acide, très utilisé en cuisine pour son jus et son zeste.  "),
+      TypeId = new Optional<Guid?>(_ingredientType.Entity.Id)
     };
 
     IngredientModel? ingredient = await _ingredientService.UpdateAsync(_ingredient.Entity.Id, payload);
     Assert.NotNull(ingredient);
 
     Assert.Equal(_ingredient.Entity.Id, ingredient.Id);
-    Assert.Equal(_ingredient.Version + 1, ingredient.Version);
+    Assert.Equal(_ingredient.Version + 2, ingredient.Version);
     Assert.Equal(_ingredient.CreatedBy, ingredient.CreatedBy.ToActorId());
     Assert.Equal(_ingredient.CreatedOn.AsUniversalTime(), ingredient.CreatedOn, TimeSpan.FromSeconds(10));
     Assert.Equal(Actor, ingredient.UpdatedBy);
@@ -519,6 +533,23 @@ public class IngredientIntegrationTests : IntegrationTests
 
     Assert.Equal(_ingredient.Name.Value, ingredient.Name);
     Assert.Equal(payload.Notes.Value?.Trim(), ingredient.Notes);
+    Assert.NotNull(ingredient.Type);
+    Assert.Equal(payload.TypeId.Value, ingredient.Type.Id);
+  }
+
+  [Fact(DisplayName = "It should throw IngredientTypeNotFoundException when the ingredient type does not exist (CreateOrReplace).")]
+  public async Task Given_TypeNotExist_When_CreateOrReplace_Then_IngredientTypeNotFoundException()
+  {
+    Guid typeId = Guid.NewGuid();
+    CreateOrReplaceIngredientPayload payload = new("Citron")
+    {
+      TypeId = typeId
+    };
+
+    IngredientTypeNotFoundException exception = await Assert.ThrowsAsync<IngredientTypeNotFoundException>(async () => await _ingredientService.CreateOrReplaceAsync(payload));
+    Assert.Equal(Context.Kitchen?.Id.EntityId, exception.KitchenId);
+    Assert.Equal(typeId, exception.IngredientTypeId);
+    Assert.Equal(nameof(payload.TypeId), exception.PropertyName);
   }
 
   [Fact(DisplayName = "It should update an ingredient locale.")]
@@ -563,5 +594,20 @@ public class IngredientIntegrationTests : IntegrationTests
     Assert.Null(locale.PublishedVersion);
     Assert.Null(locale.PublishedBy);
     Assert.Null(locale.PublishedOn);
+  }
+
+  [Fact(DisplayName = "It should throw IngredientTypeNotFoundException when the ingredient type does not exist (Update).")]
+  public async Task Given_TypeNotExist_When_Update_Then_IngredientTypeNotFoundException()
+  {
+    Guid typeId = Guid.NewGuid();
+    UpdateIngredientPayload payload = new()
+    {
+      TypeId = new Optional<Guid?>(typeId)
+    };
+
+    IngredientTypeNotFoundException exception = await Assert.ThrowsAsync<IngredientTypeNotFoundException>(async () => await _ingredientService.UpdateAsync(_ingredient.Entity.Id, payload));
+    Assert.Equal(Context.Kitchen?.Id.EntityId, exception.KitchenId);
+    Assert.Equal(typeId, exception.IngredientTypeId);
+    Assert.Equal(nameof(payload.TypeId), exception.PropertyName);
   }
 }

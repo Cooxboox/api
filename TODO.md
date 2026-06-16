@@ -9,3 +9,4 @@
 - Recipe: Times, Servings, Price Per Serving, Editorial vs. Public Notes, Ingredients, Steps
 - Ensure Unicity (e.g. Slugs)
 - Database indices must be composed with `KitchenId`
+- Slug indices are unique per type.

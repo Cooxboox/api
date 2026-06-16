@@ -1,5 +1,6 @@
 using Cooxboox.Core.Permissions;
 using Cooxboox.Core.Recipes.Models;
+using Cooxboox.Core.RecipeTypes;
 using Logitar.CQRS;
 using Logitar.EventSourcing;
 
@@ -13,17 +14,20 @@ internal class CreateOrReplaceRecipeCommandHandler : ICommandHandler<CreateOrRep
   private readonly IPermissionService _permissionService;
   private readonly IRecipeQuerier _recipeQuerier;
   private readonly IRecipeRepository _recipeRepository;
+  private readonly IRecipeTypeRepository _recipeTypeRepository;
 
   public CreateOrReplaceRecipeCommandHandler(
     IContext context,
     IPermissionService permissionService,
     IRecipeQuerier recipeQuerier,
-    IRecipeRepository recipeRepository)
+    IRecipeRepository recipeRepository,
+    IRecipeTypeRepository recipeTypeRepository)
   {
     _context = context;
     _permissionService = permissionService;
     _recipeQuerier = recipeQuerier;
     _recipeRepository = recipeRepository;
+    _recipeTypeRepository = recipeTypeRepository;
   }
 
   public async Task<CreateOrReplaceRecipeResult> HandleAsync(CreateOrReplaceRecipeCommand command, CancellationToken cancellationToken)
@@ -58,6 +62,15 @@ internal class CreateOrReplaceRecipeCommandHandler : ICommandHandler<CreateOrRep
     }
 
     recipe.Annotate(Notes.TryCreate(payload.Notes), actorId);
+
+    RecipeType? recipeType = null;
+    if (payload.TypeId.HasValue)
+    {
+      RecipeTypeId recipeTypeId = new(recipeId.KitchenId, payload.TypeId.Value);
+      recipeType = await _recipeTypeRepository.LoadAsync(recipeTypeId, cancellationToken)
+        ?? throw new RecipeTypeNotFoundException(recipeTypeId, nameof(payload.TypeId));
+    }
+    recipe.SetType(recipeType, actorId);
 
     await _recipeRepository.SaveAsync(recipe, cancellationToken);
 

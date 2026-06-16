@@ -59,6 +59,10 @@ internal class IngredientEntity : AggregateEntity
     {
       actorIds.AddRange(locale.GetActorIds());
     }
+    if (IngredientType is not null)
+    {
+      actorIds.AddRange(IngredientType.GetActorIds());
+    }
     return actorIds;
   }
 

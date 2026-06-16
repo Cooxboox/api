@@ -1,3 +1,4 @@
+﻿using Cooxboox.Core.RecipeTypes.Models;
 using Krakenar.Contracts;
 using Krakenar.Contracts.Actors;
 
@@ -7,6 +8,8 @@ public class RecipeModel : Aggregate
 {
   public string Name { get; set; } = string.Empty;
   public string? Notes { get; set; }
+
+  public RecipeTypeModel? Type { get; set; }
 
   public ContentStatus Status { get; set; }
   public long? PublishedVersion { get; set; }

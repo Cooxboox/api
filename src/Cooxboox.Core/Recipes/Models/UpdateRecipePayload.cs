@@ -8,6 +8,8 @@ public record UpdateRecipePayload
   public string? Name { get; set; }
   public Optional<string>? Notes { get; set; }
 
+  public Optional<Guid?>? TypeId { get; set; }
+
   public void Validate() => new Validator().ValidateAndThrow(this);
 
   private class Validator : AbstractValidator<UpdateRecipePayload>
