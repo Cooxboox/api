@@ -1,11 +1,6 @@
-﻿using Cooxboox.Core;
-using Cooxboox.Core.Identity;
-using Cooxboox.Core.Permissions;
-using Cooxboox.Extensions;
+﻿using Cooxboox.Extensions;
 using Cooxboox.Settings;
-using FluentValidation;
 using Krakenar.Contracts;
-using Logitar;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -28,19 +23,7 @@ internal class ExceptionHandler : IExceptionHandler
   public virtual async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
   {
     int? statusCode = null;
-    if (IsBadRequest(exception))
-    {
-      statusCode = StatusCodes.Status400BadRequest;
-    }
-    else if (IsForbidden(exception))
-    {
-      statusCode = StatusCodes.Status403Forbidden;
-    }
-    else if (exception is NotFoundException)
-    {
-      statusCode = StatusCodes.Status404NotFound;
-    }
-    else if (_errorSettings.ExposeDetail)
+    if (_errorSettings.ExposeDetail)
     {
       statusCode = StatusCodes.Status500InternalServerError;
     }
@@ -63,25 +46,12 @@ internal class ExceptionHandler : IExceptionHandler
     return await _problemDetailsService.TryWriteAsync(context);
   }
 
-  private static bool IsBadRequest(Exception exception) => exception is DomainException || exception is IdentityException || exception is ValidationException;
-
-  private static bool IsForbidden(Exception exception) => exception is AuthenticationFlowNotAllowedException || exception is PermissionDeniedException;
-
   private static Error ToError(Exception exception)
   {
     Error error;
     if (exception is ErrorException errorException)
     {
       error = errorException.Error;
-    }
-    else if (exception is IdentityException)
-    {
-      error = new InvalidCredentialsError();
-    }
-    else if (exception is ValidationException validation)
-    {
-      error = new(exception.GetErrorCode(), "Validation failed.");
-      error.Data["Failures"] = validation.Errors;
     }
     else
     {

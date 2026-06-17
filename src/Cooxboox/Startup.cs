@@ -1,14 +1,6 @@
-﻿using Cooxboox.Authentication;
-using Cooxboox.Core;
-using Cooxboox.Extensions;
-using Cooxboox.Infrastructure;
-using Cooxboox.Middlewares;
-using Cooxboox.PostgreSQL;
+﻿using Cooxboox.Extensions;
 using Cooxboox.Settings;
-using Krakenar.Client;
 using Krakenar.Contracts.Constants;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authorization;
 
 namespace Cooxboox;
 
@@ -29,29 +21,11 @@ internal class Startup : StartupBase
   {
     base.ConfigureServices(services);
 
-    services.AddCooxbooxCore();
-    services.AddCooxbooxInfrastructure();
-    services.AddCooxbooxPostgreSQL(_configuration);
-    services.AddKrakenarClient(_configuration);
-    services.AddSingleton<IContext, HttpApplicationContext>();
-
     services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
     services.AddHttpContextAccessor();
 
     services.AddSingleton(_corsSettings);
     services.AddCors();
-
-    string[] authenticationSchemes = GetAuthenticationSchemes();
-    AuthenticationBuilder authenticationBuilder = services.AddAuthentication()
-      .AddScheme<ApiKeyAuthenticationOptions, ApiKeyAuthenticationHandler>(Schemes.ApiKey, options => { })
-      .AddScheme<BearerAuthenticationOptions, BearerAuthenticationHandler>(Schemes.Bearer, options => { })
-      .AddScheme<SessionAuthenticationOptions, SessionAuthenticationHandler>(Schemes.Session, options => { });
-    if (_apiSettings.EnableBasicAuthentication)
-    {
-      authenticationBuilder.AddScheme<BasicAuthenticationOptions, BasicAuthenticationHandler>(Schemes.Basic, options => { });
-    }
-
-    services.AddAuthorizationBuilder().SetDefaultPolicy(new AuthorizationPolicyBuilder(authenticationSchemes).RequireAuthenticatedUser().Build());
 
     CookiesSettings cookiesSettings = CookiesSettings.Initialize(_configuration);
     services.AddSingleton(cookiesSettings);
@@ -67,7 +41,7 @@ internal class Startup : StartupBase
     services.AddExceptionHandler<ExceptionHandler>();
     services.AddProblemDetails();
 
-    services.AddHealthChecks().AddDbContextCheck<CooxbooxContext>();
+    services.AddHealthChecks();
 
     services.AddSingleton(_apiSettings);
     if (_apiSettings.EnableSwagger)
@@ -109,10 +83,8 @@ internal class Startup : StartupBase
     application.UseCors(_corsSettings);
     application.UseExceptionHandler();
     application.UseSession();
-    application.UseMiddleware<RenewSession>();
     application.UseAuthentication();
     application.UseAuthorization();
-    application.UseMiddleware<ResolveKitchen>();
 
     application.MapControllers();
   }
