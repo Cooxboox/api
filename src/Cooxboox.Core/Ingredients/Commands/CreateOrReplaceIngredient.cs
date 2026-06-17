@@ -68,7 +68,7 @@ internal class CreateOrReplaceIngredientCommandHandler : ICommandHandler<CreateO
     {
       IngredientTypeId ingredientTypeId = new(ingredientId.KitchenId, payload.TypeId.Value);
       ingredientType = await _ingredientTypeRepository.LoadAsync(ingredientTypeId, cancellationToken)
-        ?? throw new IngredientTypeNotFoundException(ingredientTypeId, nameof(payload.TypeId));
+        ?? throw new EntityNotFoundException(new Entity(IngredientType.EntityKind, ingredientTypeId.EntityId, ingredientTypeId.KitchenId), nameof(payload.TypeId));
     }
     ingredient.SetType(ingredientType, actorId);
 

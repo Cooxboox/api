@@ -537,8 +537,8 @@ public class RecipeIntegrationTests : IntegrationTests
     Assert.Equal(payload.TypeId.Value, recipe.Type.Id);
   }
 
-  [Fact(DisplayName = "It should throw RecipeTypeNotFoundException when the recipe type does not exist (CreateOrReplace).")]
-  public async Task Given_TypeNotExist_When_CreateOrReplace_Then_RecipeTypeNotFoundException()
+  [Fact(DisplayName = "It should throw EntityNotFoundException when the recipe type does not exist (CreateOrReplace).")]
+  public async Task Given_TypeNotExist_When_CreateOrReplace_Then_EntityNotFoundException()
   {
     Guid typeId = Guid.NewGuid();
     CreateOrReplaceRecipePayload payload = new("Brochettes de poulet citronnées au BBQ")
@@ -546,9 +546,10 @@ public class RecipeIntegrationTests : IntegrationTests
       TypeId = typeId
     };
 
-    RecipeTypeNotFoundException exception = await Assert.ThrowsAsync<RecipeTypeNotFoundException>(async () => await _recipeService.CreateOrReplaceAsync(payload));
+    EntityNotFoundException exception = await Assert.ThrowsAsync<EntityNotFoundException>(async () => await _recipeService.CreateOrReplaceAsync(payload));
     Assert.Equal(Context.Kitchen?.Id.EntityId, exception.KitchenId);
-    Assert.Equal(typeId, exception.RecipeTypeId);
+    Assert.Equal(RecipeType.EntityKind, exception.EntityKind);
+    Assert.Equal(typeId, exception.EntityId);
     Assert.Equal(nameof(payload.TypeId), exception.PropertyName);
   }
 
@@ -596,8 +597,8 @@ public class RecipeIntegrationTests : IntegrationTests
     Assert.Null(locale.PublishedOn);
   }
 
-  [Fact(DisplayName = "It should throw RecipeTypeNotFoundException when the recipe type does not exist (Update).")]
-  public async Task Given_TypeNotExist_When_Update_Then_RecipeTypeNotFoundException()
+  [Fact(DisplayName = "It should throw EntityNotFoundException when the recipe type does not exist (Update).")]
+  public async Task Given_TypeNotExist_When_Update_Then_EntityNotFoundException()
   {
     Guid typeId = Guid.NewGuid();
     UpdateRecipePayload payload = new()
@@ -605,9 +606,10 @@ public class RecipeIntegrationTests : IntegrationTests
       TypeId = new Optional<Guid?>(typeId)
     };
 
-    RecipeTypeNotFoundException exception = await Assert.ThrowsAsync<RecipeTypeNotFoundException>(async () => await _recipeService.UpdateAsync(_recipe.Entity.Id, payload));
+    EntityNotFoundException exception = await Assert.ThrowsAsync<EntityNotFoundException>(async () => await _recipeService.UpdateAsync(_recipe.Entity.Id, payload));
     Assert.Equal(Context.Kitchen?.Id.EntityId, exception.KitchenId);
-    Assert.Equal(typeId, exception.RecipeTypeId);
+    Assert.Equal(RecipeType.EntityKind, exception.EntityKind);
+    Assert.Equal(typeId, exception.EntityId);
     Assert.Equal(nameof(payload.TypeId), exception.PropertyName);
   }
 }

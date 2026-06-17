@@ -68,7 +68,7 @@ internal class CreateOrReplaceRecipeCommandHandler : ICommandHandler<CreateOrRep
     {
       RecipeTypeId recipeTypeId = new(recipeId.KitchenId, payload.TypeId.Value);
       recipeType = await _recipeTypeRepository.LoadAsync(recipeTypeId, cancellationToken)
-        ?? throw new RecipeTypeNotFoundException(recipeTypeId, nameof(payload.TypeId));
+        ?? throw new EntityNotFoundException(new Entity(RecipeType.EntityKind, recipeTypeId.EntityId, recipeTypeId.KitchenId), nameof(payload.TypeId));
     }
     recipe.SetType(recipeType, actorId);
 

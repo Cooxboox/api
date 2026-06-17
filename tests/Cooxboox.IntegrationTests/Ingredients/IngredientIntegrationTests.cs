@@ -537,8 +537,8 @@ public class IngredientIntegrationTests : IntegrationTests
     Assert.Equal(payload.TypeId.Value, ingredient.Type.Id);
   }
 
-  [Fact(DisplayName = "It should throw IngredientTypeNotFoundException when the ingredient type does not exist (CreateOrReplace).")]
-  public async Task Given_TypeNotExist_When_CreateOrReplace_Then_IngredientTypeNotFoundException()
+  [Fact(DisplayName = "It should throw EntityNotFoundException when the ingredient type does not exist (CreateOrReplace).")]
+  public async Task Given_TypeNotExist_When_CreateOrReplace_Then_EntityNotFoundException()
   {
     Guid typeId = Guid.NewGuid();
     CreateOrReplaceIngredientPayload payload = new("Citron")
@@ -546,9 +546,10 @@ public class IngredientIntegrationTests : IntegrationTests
       TypeId = typeId
     };
 
-    IngredientTypeNotFoundException exception = await Assert.ThrowsAsync<IngredientTypeNotFoundException>(async () => await _ingredientService.CreateOrReplaceAsync(payload));
+    EntityNotFoundException exception = await Assert.ThrowsAsync<EntityNotFoundException>(async () => await _ingredientService.CreateOrReplaceAsync(payload));
     Assert.Equal(Context.Kitchen?.Id.EntityId, exception.KitchenId);
-    Assert.Equal(typeId, exception.IngredientTypeId);
+    Assert.Equal(IngredientType.EntityKind, exception.EntityKind);
+    Assert.Equal(typeId, exception.EntityId);
     Assert.Equal(nameof(payload.TypeId), exception.PropertyName);
   }
 
@@ -596,8 +597,8 @@ public class IngredientIntegrationTests : IntegrationTests
     Assert.Null(locale.PublishedOn);
   }
 
-  [Fact(DisplayName = "It should throw IngredientTypeNotFoundException when the ingredient type does not exist (Update).")]
-  public async Task Given_TypeNotExist_When_Update_Then_IngredientTypeNotFoundException()
+  [Fact(DisplayName = "It should throw EntityNotFoundException when the ingredient type does not exist (Update).")]
+  public async Task Given_TypeNotExist_When_Update_Then_EntityNotFoundException()
   {
     Guid typeId = Guid.NewGuid();
     UpdateIngredientPayload payload = new()
@@ -605,9 +606,10 @@ public class IngredientIntegrationTests : IntegrationTests
       TypeId = new Optional<Guid?>(typeId)
     };
 
-    IngredientTypeNotFoundException exception = await Assert.ThrowsAsync<IngredientTypeNotFoundException>(async () => await _ingredientService.UpdateAsync(_ingredient.Entity.Id, payload));
+    EntityNotFoundException exception = await Assert.ThrowsAsync<EntityNotFoundException>(async () => await _ingredientService.UpdateAsync(_ingredient.Entity.Id, payload));
     Assert.Equal(Context.Kitchen?.Id.EntityId, exception.KitchenId);
-    Assert.Equal(typeId, exception.IngredientTypeId);
+    Assert.Equal(IngredientType.EntityKind, exception.EntityKind);
+    Assert.Equal(typeId, exception.EntityId);
     Assert.Equal(nameof(payload.TypeId), exception.PropertyName);
   }
 }
