@@ -177,6 +177,8 @@ public class Ingredient : AggregateRoot, IEntityProvider
   protected virtual void Handle(IngredientTyped @event)
   {
     IngredientTypeId = @event.IngredientTypeId;
+
+    UpdateInvariant();
   }
 
   public IngredientLocale? TryGetLocale(Language language) => _locales.TryGetValue(language, out IngredientLocale? locale) ? locale : null;

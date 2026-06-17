@@ -116,7 +116,7 @@ internal class RecipeEntity : AggregateEntity
 
   public void SetType(RecipeTypeEntity? recipeType, RecipeTyped @event)
   {
-    base.Update(@event);
+    UpdateInvariant(@event);
 
     RecipeType = recipeType;
     RecipeTypeId = recipeType?.RecipeTypeId;

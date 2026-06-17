@@ -116,7 +116,7 @@ internal class IngredientEntity : AggregateEntity
 
   public void SetType(IngredientTypeEntity? ingredientType, IngredientTyped @event)
   {
-    base.Update(@event);
+    UpdateInvariant(@event);
 
     IngredientType = ingredientType;
     IngredientTypeId = ingredientType?.IngredientTypeId;
