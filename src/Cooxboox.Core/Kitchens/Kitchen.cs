@@ -45,7 +45,7 @@ public class Kitchen : IEntityProvider
     CreatedBy = ownerId;
     CreatedOn = createdOn.Value;
 
-    Update(ownerId, name, slug, notes, createdOn);
+    Update(name, slug, notes, ownerId, createdOn);
   }
 
   private Kitchen()
@@ -66,7 +66,7 @@ public class Kitchen : IEntityProvider
 
   public Entity GetEntity() => new(EntityKind, EntityId);
 
-  public void Update(Guid userId, string name, string? slug = null, string? notes = null, DateTime? updatedOn = null)
+  public void Update(string name, string? slug, string? notes, Guid userId, DateTime? updatedOn = null)
   {
     Name = name.Trim();
     Slug = SlugHelper.Format(slug);

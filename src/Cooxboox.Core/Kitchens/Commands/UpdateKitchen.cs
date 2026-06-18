@@ -35,10 +35,10 @@ internal class UpdateKitchenCommandHandler : ICommandHandler<UpdateKitchenComman
     await _permissionService.CheckAsync(Actions.Update, kitchen, cancellationToken);
 
     kitchen.Update(
-      _context.UserId,
       string.IsNullOrWhiteSpace(payload.Name) ? kitchen.Name : payload.Name,
       payload.Slug is null ? kitchen.Slug : payload.Slug.Value,
-      payload.Notes is null ? kitchen.Notes : payload.Notes.Value);
+      payload.Notes is null ? kitchen.Notes : payload.Notes.Value,
+      _context.UserId);
 
     await _kitchenManager.EnsureUniticityAsync(kitchen, cancellationToken);
 

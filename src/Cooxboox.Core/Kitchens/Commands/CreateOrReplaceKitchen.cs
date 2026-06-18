@@ -48,7 +48,7 @@ internal class CreateOrReplaceKitchenCommandHandler : ICommandHandler<CreateOrRe
     {
       await _permissionService.CheckAsync(Actions.Update, kitchen, cancellationToken);
 
-      kitchen.Update(_context.UserId, payload.Name, payload.Slug, payload.Notes);
+      kitchen.Update(payload.Name, payload.Slug, payload.Notes, _context.UserId);
     }
 
     await _kitchenManager.EnsureUniticityAsync(kitchen, cancellationToken);
