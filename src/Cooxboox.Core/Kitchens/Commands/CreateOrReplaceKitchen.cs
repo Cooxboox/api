@@ -11,12 +11,14 @@ internal class CreateOrReplaceKitchenCommandHandler : ICommandHandler<CreateOrRe
 {
   private readonly IContext _context;
   private readonly IDbContext _database;
+  private readonly IKitchenManager _kitchenManager;
   private readonly IPermissionService _permissionService;
 
-  public CreateOrReplaceKitchenCommandHandler(IContext context, IDbContext database, IPermissionService permissionService)
+  public CreateOrReplaceKitchenCommandHandler(IContext context, IDbContext database, IKitchenManager kitchenManager, IPermissionService permissionService)
   {
     _context = context;
     _database = database;
+    _kitchenManager = kitchenManager;
     _permissionService = permissionService;
   }
 
@@ -49,7 +51,7 @@ internal class CreateOrReplaceKitchenCommandHandler : ICommandHandler<CreateOrRe
       kitchen.Update(_context.UserId, payload.Name, payload.Slug, payload.Notes);
     }
 
-    // TODO(fpion): ensure unicity
+    await _kitchenManager.EnsureUniticityAsync(kitchen, cancellationToken);
 
     // TODO(fpion): audit event
 

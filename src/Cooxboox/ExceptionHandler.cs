@@ -1,4 +1,5 @@
-﻿using Cooxboox.Core.Permissions;
+﻿using Cooxboox.Core;
+using Cooxboox.Core.Permissions;
 using Cooxboox.Extensions;
 using Cooxboox.Settings;
 using FluentValidation;
@@ -32,6 +33,10 @@ internal class ExceptionHandler : IExceptionHandler
     else if (exception is PermissionDeniedException)
     {
       statusCode = StatusCodes.Status403Forbidden;
+    }
+    else if (exception is ConflictException)
+    {
+      statusCode = StatusCodes.Status409Conflict;
     }
     else if (_errorSettings.ExposeDetail)
     {
