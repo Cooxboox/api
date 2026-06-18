@@ -14,7 +14,11 @@ internal class UpdateKitchenCommandHandler : ICommandHandler<UpdateKitchenComman
   private readonly IKitchenManager _kitchenManager;
   private readonly IPermissionService _permissionService;
 
-  public UpdateKitchenCommandHandler(IContext context, IDbContext database, IKitchenManager kitchenManager, IPermissionService permissionService)
+  public UpdateKitchenCommandHandler(
+    IContext context,
+    IDbContext database,
+    IKitchenManager kitchenManager,
+    IPermissionService permissionService)
   {
     _context = context;
     _database = database;
