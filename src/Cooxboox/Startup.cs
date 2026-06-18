@@ -1,4 +1,7 @@
-﻿using Cooxboox.Extensions;
+﻿using Cooxboox.Core;
+using Cooxboox.Extensions;
+using Cooxboox.Infrastructure;
+using Cooxboox.PostgreSQL;
 using Cooxboox.Settings;
 using Krakenar.Contracts.Constants;
 
@@ -21,6 +24,11 @@ internal class Startup : StartupBase
   {
     base.ConfigureServices(services);
 
+    services.AddCooxbooxCore();
+    services.AddCooxbooxInfrastructure();
+    services.AddCooxbooxPostgreSQL(_configuration);
+    services.AddSingleton<IContext, HttpApplicationContext>();
+
     services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
     services.AddHttpContextAccessor();
 
@@ -41,7 +49,7 @@ internal class Startup : StartupBase
     services.AddExceptionHandler<ExceptionHandler>();
     services.AddProblemDetails();
 
-    services.AddHealthChecks();
+    services.AddHealthChecks().AddDbContextCheck<CooxbooxContext>();
 
     services.AddSingleton(_apiSettings);
     if (_apiSettings.EnableSwagger)

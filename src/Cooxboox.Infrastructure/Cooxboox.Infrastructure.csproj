@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <InternalsVisibleTo Include="Cooxboox.IntegrationTests" />
+    <Using Include="System.Reflection" />
   </ItemGroup>
 
 </Project>
