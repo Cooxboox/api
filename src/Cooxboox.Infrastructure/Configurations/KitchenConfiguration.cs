@@ -1,5 +1,6 @@
 ﻿using Cooxboox.Core;
 using Cooxboox.Core.Kitchens;
+using Cooxboox.Core.Validation;
 using Cooxboox.Infrastructure.Db;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -29,8 +30,8 @@ internal class KitchenConfiguration : IEntityTypeConfiguration<Kitchen>
     builder.HasIndex(x => x.PublishedOn);
 
     builder.Property(x => x.Confidentiality).HasMaxLength(8).HasConversion(new EnumToStringConverter<Confidentiality>());
-    builder.Property(x => x.Name).HasMaxLength(100); // TODO(fpion): constant
-    builder.Property(x => x.Slug).HasMaxLength(100); // TODO(fpion): constant
+    builder.Property(x => x.Name).HasMaxLength(Constants.NameMaximumLength);
+    builder.Property(x => x.Slug).HasMaxLength(Constants.SlugMaximumLength);
     builder.Property(x => x.Status).HasMaxLength(16).HasConversion(new EnumToStringConverter<ContentStatus>());
   }
 }

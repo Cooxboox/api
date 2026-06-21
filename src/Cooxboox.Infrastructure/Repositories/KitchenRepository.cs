@@ -51,8 +51,7 @@ internal class KitchenRepository : IKitchenRepository
   {
     if (kitchen.Slug is not null)
     {
-      Guid? kitchenId = await _cooxboox.Kitchens
-        .Where(x => x.Slug == kitchen.Slug)
+      Guid? kitchenId = await _cooxboox.Kitchens.Where(x => x.Slug == kitchen.Slug)
         .Select(x => (Guid?)x.EntityId)
         .SingleOrDefaultAsync(cancellationToken);
       if (kitchenId.HasValue && !kitchenId.Value.Equals(kitchen.EntityId))

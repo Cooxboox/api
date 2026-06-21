@@ -6,7 +6,7 @@ internal static class ValidationExtensions
 {
   public static IRuleBuilderOptions<T, string> Name<T>(this IRuleBuilder<T, string> ruleBuilder)
   {
-    return ruleBuilder.NotEmpty().MaximumLength(100); // TODO(fpion): constant
+    return ruleBuilder.NotEmpty().MaximumLength(Constants.NameMaximumLength);
   }
 
   public static IRuleBuilderOptions<T, string> Notes<T>(this IRuleBuilder<T, string> ruleBuilder)
@@ -16,6 +16,6 @@ internal static class ValidationExtensions
 
   public static IRuleBuilderOptions<T, string> Slug<T>(this IRuleBuilder<T, string> ruleBuilder)
   {
-    return ruleBuilder.NotEmpty().MaximumLength(100).SetValidator(new SlugValidator<T>()); // TODO(fpion): constant
+    return ruleBuilder.NotEmpty().MaximumLength(Constants.SlugMaximumLength).SetValidator(new SlugValidator<T>());
   }
 }
