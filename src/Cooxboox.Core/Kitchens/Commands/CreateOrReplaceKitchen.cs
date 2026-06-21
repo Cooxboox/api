@@ -1,7 +1,7 @@
-﻿using Cooxboox.Core.Kitchens.Models;
+﻿using Cooxboox.Core.Kitchens.Events;
+using Cooxboox.Core.Kitchens.Models;
 using Cooxboox.Core.Permissions;
 using Logitar.CQRS;
-using Microsoft.EntityFrameworkCore;
 
 namespace Cooxboox.Core.Kitchens.Commands;
 
@@ -10,19 +10,13 @@ internal record CreateOrReplaceKitchenCommand(CreateOrReplaceKitchenPayload Payl
 internal class CreateOrReplaceKitchenCommandHandler : ICommandHandler<CreateOrReplaceKitchenCommand, CreateOrReplaceKitchenResult>
 {
   private readonly IContext _context;
-  private readonly IDbContext _database;
-  private readonly IKitchenManager _kitchenManager;
+  private readonly IKitchenRepository _kitchenRepository;
   private readonly IPermissionService _permissionService;
 
-  public CreateOrReplaceKitchenCommandHandler(
-    IContext context,
-    IDbContext database,
-    IKitchenManager kitchenManager,
-    IPermissionService permissionService)
+  public CreateOrReplaceKitchenCommandHandler(IContext context, IKitchenRepository kitchenRepository, IPermissionService permissionService)
   {
     _context = context;
-    _database = database;
-    _kitchenManager = kitchenManager;
+    _kitchenRepository = kitchenRepository;
     _permissionService = permissionService;
   }
 
@@ -36,7 +30,7 @@ internal class CreateOrReplaceKitchenCommandHandler : ICommandHandler<CreateOrRe
     if (command.Id.HasValue)
     {
       kitchenId = command.Id.Value;
-      kitchen = await _database.Kitchens.SingleOrDefaultAsync(x => x.EntityId == kitchenId, cancellationToken);
+      kitchen = await _kitchenRepository.LoadAsync(kitchenId.Value, cancellationToken);
     }
 
     bool created = false;
@@ -45,23 +39,22 @@ internal class CreateOrReplaceKitchenCommandHandler : ICommandHandler<CreateOrRe
       await _permissionService.CheckAsync(Actions.CreateKitchen, cancellationToken);
 
       kitchen = new Kitchen(_context.UserId, payload.Name, kitchenId, Confidentiality.Private, payload.Slug, payload.Notes);
-      _database.Kitchens.Add(kitchen);
+      _kitchenRepository.Add(kitchen);
       created = true;
     }
     else
     {
       await _permissionService.CheckAsync(Actions.Update, kitchen, cancellationToken);
 
-      kitchen.Update(payload.Name, payload.Slug, payload.Notes, _context.UserId);
+      KitchenUpdated @event = kitchen.Update(payload.Name, payload.Slug, payload.Notes, _context.UserId);
+      _kitchenRepository.Update(kitchen, @event);
     }
 
-    await _kitchenManager.EnsureUniticityAsync(kitchen, cancellationToken);
+    await _kitchenRepository.EnsureUnicityAsync(kitchen, cancellationToken);
 
-    // TODO(fpion): audit event
+    await _context.SaveChangesAsync(cancellationToken);
 
-    await _database.SaveChangesAsync(cancellationToken);
-
-    KitchenModel model = null!; // TODO(fpion): map
+    KitchenModel model = await _kitchenRepository.ReadAsync(kitchen, cancellationToken);
     return new CreateOrReplaceKitchenResult(model, created);
   }
 }

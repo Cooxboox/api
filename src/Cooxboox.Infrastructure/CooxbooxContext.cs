@@ -1,16 +1,15 @@
-﻿using Cooxboox.Core;
-using Cooxboox.Core.Kitchens;
+﻿using Cooxboox.Core.Kitchens;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cooxboox.Infrastructure;
 
-public class CooxbooxContext : DbContext, IDbContext
+public class CooxbooxContext : DbContext
 {
-  protected CooxbooxContext(DbContextOptions<CooxbooxContext> options) : base(options)
+  public CooxbooxContext(DbContextOptions<CooxbooxContext> options) : base(options)
   {
   }
 
-  public DbSet<Kitchen> Kitchens => Set<Kitchen>();
+  internal DbSet<Kitchen> Kitchens => Set<Kitchen>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {

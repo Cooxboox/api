@@ -18,7 +18,6 @@ internal class KitchenService : IKitchenService
   public static void Register(IServiceCollection services)
   {
     services.AddTransient<IKitchenService, KitchenService>();
-    services.AddTransient<IKitchenManager, KitchenManager>();
     services.AddTransient<ICommandHandler<CreateOrReplaceKitchenCommand, CreateOrReplaceKitchenResult>, CreateOrReplaceKitchenCommandHandler>();
     services.AddTransient<ICommandHandler<UpdateKitchenCommand, KitchenModel?>, UpdateKitchenCommandHandler>();
     services.AddTransient<IQueryHandler<ReadKitchenQuery, KitchenModel?>, ReadKitchenQueryHandler>();

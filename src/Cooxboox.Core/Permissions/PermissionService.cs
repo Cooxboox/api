@@ -1,5 +1,4 @@
 ﻿using Cooxboox.Core.Kitchens;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -20,13 +19,13 @@ internal class PermissionService : IPermissionService
   }
 
   private readonly IContext _context;
-  private readonly IDbContext _database;
+  private readonly IKitchenRepository _kitchenRepository;
   private readonly PermissionSettings _settings;
 
-  public PermissionService(IContext context, IDbContext database, PermissionSettings settings)
+  public PermissionService(IContext context, IKitchenRepository kitchenRepository, PermissionSettings settings)
   {
     _context = context;
-    _database = database;
+    _kitchenRepository = kitchenRepository;
     _settings = settings;
   }
 
@@ -60,7 +59,7 @@ internal class PermissionService : IPermissionService
     switch (action)
     {
       case Actions.CreateKitchen:
-        int count = await _database.Kitchens.CountAsync(x => x.OwnerId == _context.UserId, cancellationToken);
+        int count = await _kitchenRepository.CountAsync(cancellationToken);
         return count < _settings.KitchenLimit;
       default:
         return false;

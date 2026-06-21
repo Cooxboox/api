@@ -1,6 +1,5 @@
 ﻿using Cooxboox.Core.Kitchens.Models;
 using Logitar.CQRS;
-using Microsoft.EntityFrameworkCore;
 
 namespace Cooxboox.Core.Kitchens.Queries;
 
@@ -8,21 +7,15 @@ internal record ReadKitchenQuery(Guid Id) : IQuery<KitchenModel?>;
 
 internal class ReadKitchenQueryHandler : IQueryHandler<ReadKitchenQuery, KitchenModel?>
 {
-  private readonly IContext _context;
-  private readonly DbSet<Kitchen> _kitchens;
+  private readonly IKitchenRepository _kitchenRepository;
 
-  public ReadKitchenQueryHandler(IContext context, IDbContext database)
+  public ReadKitchenQueryHandler(IKitchenRepository kitchenRepository)
   {
-    _context = context;
-    _kitchens = database.Kitchens;
+    _kitchenRepository = kitchenRepository;
   }
 
   public async Task<KitchenModel?> HandleAsync(ReadKitchenQuery query, CancellationToken cancellationToken)
   {
-    Kitchen? kitchen = await _kitchens.AsNoTracking()
-      .Where(x => x.EntityId == query.Id && x.OwnerId == _context.UserId)
-      .SingleOrDefaultAsync(cancellationToken);
-
-    return null; // TODO(fpion): map
+    return await _kitchenRepository.ReadAsync(query.Id, cancellationToken);
   }
 }

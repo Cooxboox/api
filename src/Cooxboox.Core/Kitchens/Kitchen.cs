@@ -1,8 +1,9 @@
-﻿using Logitar;
+﻿using Cooxboox.Core.Kitchens.Events;
+using Logitar;
 
 namespace Cooxboox.Core.Kitchens;
 
-public class Kitchen : IEntityProvider
+public class Kitchen : AggregateEntity, IEntityProvider
 {
   public const string EntityKind = "Kitchen";
 
@@ -16,11 +17,11 @@ public class Kitchen : IEntityProvider
   public string? Slug { get; private set; }
   public string? Notes { get; private set; }
 
-  public long Version { get; private set; }
-  public Guid CreatedBy { get; private set; }
-  public DateTime CreatedOn { get; private set; }
-  public Guid UpdatedBy { get; private set; }
-  public DateTime UpdatedOn { get; private set; }
+  public new long Version { get; private set; } // TODO(fpion): this is bad!
+  public new Guid CreatedBy { get; private set; } // TODO(fpion): this is bad!
+  public new DateTime CreatedOn { get; private set; } // TODO(fpion): this is bad!
+  public new Guid UpdatedBy { get; private set; } // TODO(fpion): this is bad!
+  public new DateTime UpdatedOn { get; private set; } // TODO(fpion): this is bad!
 
   public ContentStatus Status { get; private set; }
   public Guid? PublishedBy { get; private set; }
@@ -54,7 +55,8 @@ public class Kitchen : IEntityProvider
 
   public IReadOnlyCollection<Guid> GetUserIds()
   {
-    HashSet<Guid> userIds = new(capacity: 3);
+    HashSet<Guid> userIds = new(capacity: 4);
+    userIds.Add(OwnerId);
     userIds.Add(CreatedBy);
     userIds.Add(UpdatedBy);
     if (PublishedBy.HasValue)
@@ -66,7 +68,7 @@ public class Kitchen : IEntityProvider
 
   public Entity GetEntity() => new(EntityKind, EntityId);
 
-  public void Update(string name, string? slug, string? notes, Guid userId, DateTime? updatedOn = null)
+  public KitchenUpdated Update(string name, string? slug, string? notes, Guid userId, DateTime? updatedOn = null)
   {
     Name = name.Trim();
     Slug = SlugHelper.Format(slug);
@@ -80,6 +82,8 @@ public class Kitchen : IEntityProvider
     {
       Status = ContentStatus.Published;
     }
+
+    return new KitchenUpdated(this); // TODO(fpion): changes
   }
 
   public override bool Equals(object? obj) => obj is Kitchen kitchen && kitchen.KitchenId == KitchenId;

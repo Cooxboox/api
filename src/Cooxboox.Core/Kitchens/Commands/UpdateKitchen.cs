@@ -1,7 +1,7 @@
-﻿using Cooxboox.Core.Kitchens.Models;
+﻿using Cooxboox.Core.Kitchens.Events;
+using Cooxboox.Core.Kitchens.Models;
 using Cooxboox.Core.Permissions;
 using Logitar.CQRS;
-using Microsoft.EntityFrameworkCore;
 
 namespace Cooxboox.Core.Kitchens.Commands;
 
@@ -10,19 +10,13 @@ internal record UpdateKitchenCommand(Guid Id, UpdateKitchenPayload Payload) : IC
 internal class UpdateKitchenCommandHandler : ICommandHandler<UpdateKitchenCommand, KitchenModel?>
 {
   private readonly IContext _context;
-  private readonly IDbContext _database;
-  private readonly IKitchenManager _kitchenManager;
+  private readonly IKitchenRepository _kitchenRepository;
   private readonly IPermissionService _permissionService;
 
-  public UpdateKitchenCommandHandler(
-    IContext context,
-    IDbContext database,
-    IKitchenManager kitchenManager,
-    IPermissionService permissionService)
+  public UpdateKitchenCommandHandler(IContext context, IKitchenRepository kitchenRepository, IPermissionService permissionService)
   {
     _context = context;
-    _database = database;
-    _kitchenManager = kitchenManager;
+    _kitchenRepository = kitchenRepository;
     _permissionService = permissionService;
   }
 
@@ -31,25 +25,24 @@ internal class UpdateKitchenCommandHandler : ICommandHandler<UpdateKitchenComman
     UpdateKitchenPayload payload = command.Payload;
     payload.Validate();
 
-    Kitchen? kitchen = await _database.Kitchens.SingleOrDefaultAsync(x => x.EntityId == command.Id, cancellationToken);
+    Kitchen? kitchen = await _kitchenRepository.LoadAsync(command.Id, cancellationToken);
     if (kitchen is null)
     {
       return null;
     }
     await _permissionService.CheckAsync(Actions.Update, kitchen, cancellationToken);
 
-    kitchen.Update(
+    KitchenUpdated @event = kitchen.Update(
       string.IsNullOrWhiteSpace(payload.Name) ? kitchen.Name : payload.Name,
       payload.Slug is null ? kitchen.Slug : payload.Slug.Value,
       payload.Notes is null ? kitchen.Notes : payload.Notes.Value,
       _context.UserId);
+    _kitchenRepository.Update(kitchen, @event);
 
-    await _kitchenManager.EnsureUniticityAsync(kitchen, cancellationToken);
+    await _kitchenRepository.EnsureUnicityAsync(kitchen, cancellationToken);
 
-    // TODO(fpion): audit event
+    await _context.SaveChangesAsync(cancellationToken);
 
-    await _database.SaveChangesAsync(cancellationToken);
-
-    return null; // TODO(fpion): map
+    return await _kitchenRepository.ReadAsync(kitchen, cancellationToken);
   }
 }
