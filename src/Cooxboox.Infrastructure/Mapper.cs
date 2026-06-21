@@ -40,9 +40,9 @@ internal class Mapper
     return destination;
   }
 
-  private void MapAggregate(AggregateEntity source, Aggregate destination)
+  private void MapAggregate(IAggregate source, Aggregate destination)
   {
-    destination.Id = source.Id;
+    destination.Id = source.EntityId;
     destination.Version = source.Version;
 
     destination.CreatedBy = FindActor(source.CreatedBy);

@@ -3,7 +3,7 @@ using Logitar;
 
 namespace Cooxboox.Core.Kitchens;
 
-public class Kitchen : AggregateEntity, IEntityProvider
+public class Kitchen : IAggregate, IEntityProvider
 {
   public const string EntityKind = "Kitchen";
 
@@ -17,11 +17,11 @@ public class Kitchen : AggregateEntity, IEntityProvider
   public string? Slug { get; private set; }
   public string? Notes { get; private set; }
 
-  public new long Version { get; private set; } // TODO(fpion): this is bad!
-  public new Guid CreatedBy { get; private set; } // TODO(fpion): this is bad!
-  public new DateTime CreatedOn { get; private set; } // TODO(fpion): this is bad!
-  public new Guid UpdatedBy { get; private set; } // TODO(fpion): this is bad!
-  public new DateTime UpdatedOn { get; private set; } // TODO(fpion): this is bad!
+  public long Version { get; private set; }
+  public Guid CreatedBy { get; private set; }
+  public DateTime CreatedOn { get; private set; }
+  public Guid UpdatedBy { get; private set; }
+  public DateTime UpdatedOn { get; private set; }
 
   public ContentStatus Status { get; private set; }
   public Guid? PublishedBy { get; private set; }

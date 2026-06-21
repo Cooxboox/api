@@ -2,17 +2,21 @@
 using Cooxboox.Core.Kitchens;
 using Cooxboox.Core.Kitchens.Events;
 using Cooxboox.Core.Kitchens.Models;
+using Cooxboox.Infrastructure.Actors;
+using Krakenar.Contracts.Actors;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cooxboox.Infrastructure.Repositories;
 
 internal class KitchenRepository : IKitchenRepository
 {
+  private readonly IActorService _actorService;
   private readonly IContext _context;
   private readonly CooxbooxContext _cooxboox;
 
-  public KitchenRepository(IContext context, CooxbooxContext cooxboox)
+  public KitchenRepository(IActorService actorService, IContext context, CooxbooxContext cooxboox)
   {
+    _actorService = actorService;
     _context = context;
     _cooxboox = cooxboox;
   }
@@ -84,8 +88,8 @@ internal class KitchenRepository : IKitchenRepository
   private async Task<IReadOnlyCollection<KitchenModel>> MapAsync(IEnumerable<Kitchen> kitchens, CancellationToken cancellationToken)
   {
     IEnumerable<Guid> userIds = kitchens.SelectMany(kitchen => kitchen.GetUserIds());
-    // TODO(fpion): find actors
-    Mapper mapper = new(); // TODO(fpion): pass actors
+    IReadOnlyDictionary<Guid, Actor> actors = await _actorService.FindAsync(userIds, cancellationToken);
+    Mapper mapper = new(actors);
 
     return kitchens.Select(mapper.ToKitchen).ToList().AsReadOnly();
   }
