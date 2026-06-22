@@ -1,6 +1,5 @@
 ﻿using Cooxboox.Core;
 using Logitar;
-using System.Text.Json;
 
 namespace Cooxboox.Infrastructure;
 
@@ -33,7 +32,7 @@ internal class HistoryRecord
     UserId = @event.UserId;
 
     EventType = @event.GetType().GetNamespaceQualifiedName();
-    EventData = JsonSerializer.Serialize(@event); // TODO(fpion): implement
+    EventData = EventSerializer.Instance.Serialize(@event);
   }
 
   private HistoryRecord()
