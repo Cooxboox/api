@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <PackageReference Include="Krakenar.Client" Version="2.1.0" />
+    <PackageReference Include="Logitar.Data" Version="10.0.2" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.9" />
   </ItemGroup>
 

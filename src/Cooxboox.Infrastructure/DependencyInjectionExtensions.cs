@@ -4,6 +4,7 @@ using Cooxboox.Infrastructure.Actors;
 using Cooxboox.Infrastructure.Caching;
 using Cooxboox.Infrastructure.Identity;
 using Cooxboox.Infrastructure.Repositories;
+using Logitar.CQRS;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Cooxboox.Infrastructure;
@@ -16,7 +17,8 @@ public static class DependencyInjectionExtensions
     CacheService.Register(services);
     return services
       .AddIdentityGateways()
-      .AddRepositories();
+      .AddRepositories()
+      .AddTransient<ICommandHandler<MigrateDatabaseCommand, Unit>, MigrateDatabaseCommandHandler>();
   }
 
   private static IServiceCollection AddIdentityGateways(this IServiceCollection services)

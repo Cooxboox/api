@@ -36,6 +36,6 @@ public class PermissionDeniedException : ErrorException
   private static string BuildMessage(Guid? userId, string action, Entity? resource) => new ErrorMessageBuilder(ErrorMessage)
     .AddData(nameof(UserId), userId, "<null>")
     .AddData(nameof(Action), action)
-    .AddData(nameof(Resource), resource, ">null>")
+    .AddData(nameof(Resource), resource, "<null>")
     .Build();
 }
