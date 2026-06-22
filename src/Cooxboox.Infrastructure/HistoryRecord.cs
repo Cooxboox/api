@@ -4,9 +4,9 @@ using System.Text.Json;
 
 namespace Cooxboox.Infrastructure;
 
-internal class ChangeRecord // TODO(fpion): configuration
+internal class HistoryRecord
 {
-  public int ChangeRecordId { get; private set; }
+  public int HistoryRecordId { get; private set; }
   public Guid EventId { get; private set; }
 
   public Guid? KitchenId { get; private set; }
@@ -20,7 +20,7 @@ internal class ChangeRecord // TODO(fpion): configuration
   public string EventType { get; private set; } = string.Empty;
   public string EventData { get; private set; } = string.Empty;
 
-  public ChangeRecord(ChangeEvent @event)
+  public HistoryRecord(ChangeEvent @event)
   {
     EventId = @event.EventId;
 
@@ -36,7 +36,7 @@ internal class ChangeRecord // TODO(fpion): configuration
     EventData = JsonSerializer.Serialize(@event); // TODO(fpion): implement
   }
 
-  private ChangeRecord()
+  private HistoryRecord()
   {
   }
 }

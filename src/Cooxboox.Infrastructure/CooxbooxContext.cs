@@ -9,7 +9,7 @@ public class CooxbooxContext : DbContext
   {
   }
 
-  internal DbSet<ChangeRecord> ChangeRecords => Set<ChangeRecord>();
+  internal DbSet<HistoryRecord> History => Set<HistoryRecord>();
   internal DbSet<Kitchen> Kitchens => Set<Kitchen>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)

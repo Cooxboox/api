@@ -13,7 +13,7 @@ internal abstract class Repository
 
   protected virtual void RecordChange(ChangeEvent @event)
   {
-    ChangeRecord record = new(@event);
-    Database.ChangeRecords.Add(record);
+    HistoryRecord record = new(@event);
+    Database.History.Add(record);
   }
 }
