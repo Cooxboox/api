@@ -1,5 +1,6 @@
 ﻿using Cooxboox.Core.Caching;
 using Krakenar.Contracts.Actors;
+using Krakenar.Contracts.Users;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Cooxboox.Infrastructure.Actors;
@@ -26,21 +27,21 @@ internal class ActorService : IActorService
   public async Task<IReadOnlyDictionary<Guid, Actor>> FindAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken)
   {
     int capacity = ids.Count();
-    Dictionary<Guid, Actor> actors = new(capacity);
+    Dictionary<Guid, User> users = new(capacity);
 
     if (capacity > 0)
     {
       HashSet<Guid> missingIds = new(capacity);
       foreach (Guid id in ids)
       {
-        Actor? actor = _cacheService.GetActor(id);
-        if (actor is null)
+        User? user = _cacheService.GetUser(id);
+        if (user is null)
         {
           missingIds.Add(id);
         }
         else
         {
-          actors[id] = actor;
+          users[id] = user;
         }
       }
 
@@ -49,12 +50,12 @@ internal class ActorService : IActorService
         // TODO(fpion): retrieve from Krakenar!
       }
 
-      foreach (Actor actor in actors.Values)
+      foreach (User user in users.Values)
       {
-        _cacheService.SetActor(actor);
+        _cacheService.SetUser(user);
       }
     }
 
-    return actors.AsReadOnly();
+    return users.ToDictionary(x => x.Key, x => new Actor(x.Value)).AsReadOnly();
   }
 }

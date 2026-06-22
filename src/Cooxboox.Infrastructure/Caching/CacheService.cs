@@ -1,5 +1,5 @@
 ﻿using Cooxboox.Core.Caching;
-using Krakenar.Contracts.Actors;
+using Krakenar.Contracts.Users;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,25 +24,20 @@ internal class CacheService : ICacheService
     _settings = settings;
   }
 
-  public Actor? GetActor(Guid id)
+  public User? GetUser(Guid id)
   {
-    string key = GetActorKey(id);
-    return _cache.TryGetValue(key, out object? value) ? (Actor?)value : null;
+    string key = GetUserKey(id);
+    return _cache.TryGetValue(key, out object? value) ? (User?)value : null;
   }
-  public void RemoveActor(Guid id)
+  public void RemoveUser(Guid id)
   {
-    string key = GetActorKey(id);
+    string key = GetUserKey(id);
     _cache.Remove(key);
   }
-  public void SetActor(Actor actor)
+  public void SetUser(User user)
   {
-    if (actor.Type != ActorType.User)
-    {
-      throw new NotImplementedException(); // TODO(fpion): implement
-    }
-
-    string key = GetActorKey(actor.Id);
-    _cache.Set(key, actor, _settings.ActorLifetime);
+    string key = GetUserKey(user.Id);
+    _cache.Set(key, user, _settings.ActorLifetime);
   }
-  private static string GetActorKey(Guid id) => $"Actor.Id:{id}";
+  private static string GetUserKey(Guid id) => $"User.Id:{id}";
 }

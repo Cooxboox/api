@@ -1,10 +1,10 @@
-﻿using Krakenar.Contracts.Actors;
+﻿using Krakenar.Contracts.Users;
 
 namespace Cooxboox.Core.Caching;
 
 public interface ICacheService
 {
-  Actor? GetActor(Guid id);
-  void RemoveActor(Guid id);
-  void SetActor(Actor actor);
+  User? GetUser(Guid id);
+  void RemoveUser(Guid id);
+  void SetUser(User user);
 }
