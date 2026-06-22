@@ -3,6 +3,7 @@ using Cooxboox.Extensions;
 using Cooxboox.Infrastructure;
 using Cooxboox.PostgreSQL;
 using Cooxboox.Settings;
+using Krakenar.Client;
 using Krakenar.Contracts.Constants;
 
 namespace Cooxboox;
@@ -28,6 +29,8 @@ internal class Startup : StartupBase
     services.AddCooxbooxInfrastructure();
     services.AddCooxbooxPostgreSQL(_configuration);
     services.AddSingleton<IContext, HttpApplicationContext>();
+
+    services.AddKrakenarClient(_configuration);
 
     services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
     services.AddHttpContextAccessor();
