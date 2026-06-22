@@ -1,5 +1,8 @@
-﻿using Cooxboox.Extensions;
+﻿using Cooxboox.Core;
+using Cooxboox.Core.Permissions;
+using Cooxboox.Extensions;
 using Cooxboox.Settings;
+using FluentValidation;
 using Krakenar.Contracts;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
@@ -23,7 +26,19 @@ internal class ExceptionHandler : IExceptionHandler
   public virtual async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
   {
     int? statusCode = null;
-    if (_errorSettings.ExposeDetail)
+    if (exception is ValidationException)
+    {
+      statusCode = StatusCodes.Status400BadRequest;
+    }
+    else if (exception is PermissionDeniedException)
+    {
+      statusCode = StatusCodes.Status403Forbidden;
+    }
+    else if (exception is ConflictException)
+    {
+      statusCode = StatusCodes.Status409Conflict;
+    }
+    else if (_errorSettings.ExposeDetail)
     {
       statusCode = StatusCodes.Status500InternalServerError;
     }
@@ -52,6 +67,11 @@ internal class ExceptionHandler : IExceptionHandler
     if (exception is ErrorException errorException)
     {
       error = errorException.Error;
+    }
+    else if (exception is ValidationException validation)
+    {
+      error = new("Validation", "Validation failed.");
+      validation.Data["Errors"] = validation.Errors;
     }
     else
     {

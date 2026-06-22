@@ -1,0 +1,48 @@
+﻿using Cooxboox.Core.Kitchens.Events;
+using Cooxboox.Core.Kitchens.Models;
+using Cooxboox.Core.Permissions;
+using Logitar.CQRS;
+
+namespace Cooxboox.Core.Kitchens.Commands;
+
+internal record UpdateKitchenCommand(Guid Id, UpdateKitchenPayload Payload) : ICommand<KitchenModel?>;
+
+internal class UpdateKitchenCommandHandler : ICommandHandler<UpdateKitchenCommand, KitchenModel?>
+{
+  private readonly IContext _context;
+  private readonly IKitchenRepository _kitchenRepository;
+  private readonly IPermissionService _permissionService;
+
+  public UpdateKitchenCommandHandler(IContext context, IKitchenRepository kitchenRepository, IPermissionService permissionService)
+  {
+    _context = context;
+    _kitchenRepository = kitchenRepository;
+    _permissionService = permissionService;
+  }
+
+  public async Task<KitchenModel?> HandleAsync(UpdateKitchenCommand command, CancellationToken cancellationToken)
+  {
+    UpdateKitchenPayload payload = command.Payload;
+    payload.Validate();
+
+    Kitchen? kitchen = await _kitchenRepository.LoadAsync(command.Id, cancellationToken);
+    if (kitchen is null)
+    {
+      return null;
+    }
+    await _permissionService.CheckAsync(Actions.Update, kitchen, cancellationToken);
+
+    KitchenUpdated @event = kitchen.Update(
+      string.IsNullOrWhiteSpace(payload.Name) ? kitchen.Name : payload.Name,
+      payload.Slug is null ? kitchen.Slug : payload.Slug.Value,
+      payload.Notes is null ? kitchen.Notes : payload.Notes.Value,
+      _context.UserId);
+    _kitchenRepository.Update(kitchen, @event);
+
+    await _kitchenRepository.EnsureUnicityAsync(kitchen, cancellationToken);
+
+    await _context.SaveChangesAsync(cancellationToken);
+
+    return await _kitchenRepository.ReadAsync(kitchen, cancellationToken);
+  }
+}
