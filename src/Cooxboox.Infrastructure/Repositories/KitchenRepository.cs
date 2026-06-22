@@ -8,50 +8,43 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Cooxboox.Infrastructure.Repositories;
 
-internal class KitchenRepository : IKitchenRepository
+internal class KitchenRepository : Repository, IKitchenRepository
 {
   private readonly IActorService _actorService;
   private readonly IContext _context;
-  private readonly CooxbooxContext _cooxboox;
 
-  public KitchenRepository(IActorService actorService, IContext context, CooxbooxContext cooxboox)
+  public KitchenRepository(IActorService actorService, IContext context, CooxbooxContext database) : base(database)
   {
     _actorService = actorService;
     _context = context;
-    _cooxboox = cooxboox;
   }
 
   public void Add(Kitchen kitchen)
   {
-    _cooxboox.Kitchens.Add(kitchen);
-
-    KitchenCreated @event = new(kitchen);
-    // TODO(fpion): event
+    Database.Kitchens.Add(kitchen);
+    base.RecordChange(new KitchenCreated(kitchen));
   }
   public void Remove(Kitchen kitchen)
   {
-    _cooxboox.Kitchens.Remove(kitchen);
-
-    KitchenDeleted @event = new(kitchen);
-    // TODO(fpion): event
+    Database.Kitchens.Remove(kitchen);
+    base.RecordChange(new KitchenDeleted(kitchen));
   }
   public void Update(Kitchen kitchen, KitchenUpdated @event)
   {
-    _cooxboox.Kitchens.Update(kitchen);
-
-    // TODO(fpion): event
+    Database.Kitchens.Update(kitchen);
+    base.RecordChange(@event);
   }
 
   public async Task<int> CountAsync(CancellationToken cancellationToken)
   {
-    return await _cooxboox.Kitchens.CountAsync(x => x.OwnerId == _context.UserId, cancellationToken);
+    return await Database.Kitchens.CountAsync(x => x.OwnerId == _context.UserId, cancellationToken);
   }
 
   public async Task EnsureUnicityAsync(Kitchen kitchen, CancellationToken cancellationToken)
   {
     if (kitchen.Slug is not null)
     {
-      Guid? kitchenId = await _cooxboox.Kitchens.Where(x => x.Slug == kitchen.Slug)
+      Guid? kitchenId = await Database.Kitchens.Where(x => x.Slug == kitchen.Slug)
         .Select(x => (Guid?)x.EntityId)
         .SingleOrDefaultAsync(cancellationToken);
       if (kitchenId.HasValue && !kitchenId.Value.Equals(kitchen.EntityId))
@@ -63,7 +56,7 @@ internal class KitchenRepository : IKitchenRepository
 
   public async Task<Kitchen?> LoadAsync(Guid id, CancellationToken cancellationToken)
   {
-    return await _cooxboox.Kitchens.SingleOrDefaultAsync(x => x.EntityId == id, cancellationToken);
+    return await Database.Kitchens.SingleOrDefaultAsync(x => x.EntityId == id, cancellationToken);
   }
 
   public async Task<KitchenModel> ReadAsync(Kitchen kitchen, CancellationToken cancellationToken)
@@ -73,7 +66,7 @@ internal class KitchenRepository : IKitchenRepository
   }
   public async Task<KitchenModel?> ReadAsync(Guid id, CancellationToken cancellationToken)
   {
-    Kitchen? kitchen = await _cooxboox.Kitchens.AsNoTracking()
+    Kitchen? kitchen = await Database.Kitchens.AsNoTracking()
       .Where(x => x.EntityId == id && x.OwnerId == _context.UserId)
       .SingleOrDefaultAsync(cancellationToken);
 

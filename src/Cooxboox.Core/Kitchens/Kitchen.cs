@@ -70,10 +70,6 @@ public class Kitchen : IAggregate, IEntityProvider
 
   public KitchenUpdated Update(string name, string? slug, string? notes, Guid userId, DateTime? updatedOn = null)
   {
-    Name = name.Trim();
-    Slug = SlugHelper.Format(slug);
-    Notes = notes?.CleanTrim();
-
     Version++;
     UpdatedBy = userId;
     UpdatedOn = (updatedOn ?? DateTime.Now).AsUniversalTime();
@@ -83,7 +79,30 @@ public class Kitchen : IAggregate, IEntityProvider
       Status = ContentStatus.Published;
     }
 
-    return new KitchenUpdated(this); // TODO(fpion): changes
+    KitchenUpdated @event = new(this);
+
+    name = name.Trim();
+    if (Name != name)
+    {
+      @event.Name = new Change<string>(Name, name);
+      Name = name;
+    }
+
+    slug = SlugHelper.Format(slug);
+    if (Slug != slug)
+    {
+      @event.Slug = new Change<string>(Slug, slug);
+      Slug = slug;
+    }
+
+    notes = notes?.CleanTrim();
+    if (Notes != notes)
+    {
+      @event.Notes = new Change<string>(Notes, notes);
+      Notes = notes;
+    }
+
+    return @event;
   }
 
   public override bool Equals(object? obj) => obj is Kitchen kitchen && kitchen.KitchenId == KitchenId;
