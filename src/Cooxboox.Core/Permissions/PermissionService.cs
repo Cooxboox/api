@@ -7,7 +7,7 @@ namespace Cooxboox.Core.Permissions;
 public interface IPermissionService
 {
   Task CheckAsync(string action, CancellationToken cancellationToken = default);
-  Task CheckAsync(string action, object? resource, CancellationToken cancellationToken = default);
+  Task CheckAsync(string action, IResource? resource, CancellationToken cancellationToken = default);
 }
 
 internal class PermissionService : IPermissionService
@@ -33,24 +33,24 @@ internal class PermissionService : IPermissionService
   {
     await CheckAsync(action, resource: null, cancellationToken);
   }
-  public async Task CheckAsync(string action, object? resource, CancellationToken cancellationToken)
+  public async Task CheckAsync(string action, IResource? resource, CancellationToken cancellationToken)
   {
     bool isAllowed = false;
 
-    Entity? entity = null;
+    ResourceIdentifier? identifier = null;
     if (resource is null)
     {
       isAllowed = await IsAllowedAsync(action, cancellationToken);
     }
-    else if (resource is Kitchen kitchen)
+    else
     {
-      entity = kitchen.GetEntity();
-      isAllowed = IsAllowed(action, kitchen);
+      identifier = resource.Identifier;
+      isAllowed = resource is Kitchen kitchen ? IsAllowed(action, kitchen) : IsAllowed(action, identifier);
     }
 
     if (!isAllowed)
     {
-      throw new PermissionDeniedException(_context.TryGetUserId(), action, entity);
+      throw new PermissionDeniedException(_context.TryGetUserId(), action, identifier);
     }
   }
 
@@ -71,7 +71,18 @@ internal class PermissionService : IPermissionService
     switch (action)
     {
       case Actions.Update:
-        return kitchen.OwnerId == _context.UserId;
+        return kitchen.OwnerId == _context.TryGetUserId();
+      default:
+        return false;
+    }
+  }
+
+  private bool IsAllowed(string action, ResourceIdentifier resource)
+  {
+    switch (action)
+    {
+      case Actions.Update:
+        return resource.KitchenId == _context.TryGetKitchenId() && _context.IsKitchenOwner;
       default:
         return false;
     }

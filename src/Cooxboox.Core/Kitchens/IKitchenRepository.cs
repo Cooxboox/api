@@ -1,5 +1,4 @@
-﻿using Cooxboox.Core.Kitchens.Events;
-using Cooxboox.Core.Kitchens.Models;
+﻿using Cooxboox.Core.Kitchens.Models;
 
 namespace Cooxboox.Core.Kitchens;
 
@@ -7,7 +6,7 @@ public interface IKitchenRepository
 {
   void Add(Kitchen kitchen);
   void Remove(Kitchen kitchen);
-  void Update(Kitchen kitchen, KitchenUpdated @event);
+  void Update(Kitchen kitchen);
 
   Task<int> CountAsync(CancellationToken cancellationToken = default);
 

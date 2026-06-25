@@ -1,14 +1,11 @@
-﻿using Cooxboox.Core.Kitchens.Events;
-using Logitar;
+﻿using Logitar;
 
 namespace Cooxboox.Core.Kitchens;
 
-public class Kitchen : IAggregate, IEntityProvider
+public class Kitchen : IAuditable, IPublishable, IResource, IVersioned
 {
-  public const string EntityKind = "Kitchen";
-
   public int KitchenId { get; private set; }
-  public Guid EntityId { get; private set; }
+  public Guid Id { get; private set; }
 
   public Guid OwnerId { get; private set; }
   public Confidentiality Confidentiality { get; private set; }
@@ -27,10 +24,12 @@ public class Kitchen : IAggregate, IEntityProvider
   public Guid? PublishedBy { get; private set; }
   public DateTime? PublishedOn { get; private set; }
 
+  public ResourceIdentifier Identifier => new(ResourceKind.Kitchen, Id);
+
   public Kitchen(
     Guid ownerId,
     string name,
-    Guid? entityId = null,
+    Guid? id = null,
     Confidentiality confidentiality = Confidentiality.Private,
     string? slug = null,
     string? notes = null,
@@ -38,15 +37,14 @@ public class Kitchen : IAggregate, IEntityProvider
   {
     createdOn = (createdOn ?? DateTime.Now).AsUniversalTime();
 
-    EntityId = entityId ?? Guid.NewGuid();
+    Id = id ?? Guid.NewGuid();
 
     OwnerId = ownerId;
-    Confidentiality = confidentiality;
 
     CreatedBy = ownerId;
     CreatedOn = createdOn.Value;
 
-    Update(name, slug, notes, ownerId, createdOn);
+    Update(confidentiality, name, slug, notes, ownerId, createdOn);
   }
 
   private Kitchen()
@@ -66,10 +64,14 @@ public class Kitchen : IAggregate, IEntityProvider
     return userIds;
   }
 
-  public Entity GetEntity() => new(EntityKind, EntityId);
-
-  public KitchenUpdated Update(string name, string? slug, string? notes, Guid userId, DateTime? updatedOn = null)
+  public void Update(Confidentiality confidentiality, string name, string? slug, string? notes, Guid userId, DateTime? updatedOn = null)
   {
+    Confidentiality = confidentiality;
+
+    Name = name.Trim();
+    Slug = SlugHelper.Format(slug);
+    Notes = notes?.CleanTrim();
+
     Version++;
     UpdatedBy = userId;
     UpdatedOn = (updatedOn ?? DateTime.Now).AsUniversalTime();
@@ -78,31 +80,6 @@ public class Kitchen : IAggregate, IEntityProvider
     {
       Status = ContentStatus.Published;
     }
-
-    KitchenUpdated @event = new(this);
-
-    name = name.Trim();
-    if (Name != name)
-    {
-      @event.Name = new Change<string>(Name, name);
-      Name = name;
-    }
-
-    slug = SlugHelper.Format(slug);
-    if (Slug != slug)
-    {
-      @event.Slug = new Change<string>(Slug, slug);
-      Slug = slug;
-    }
-
-    notes = notes?.CleanTrim();
-    if (Notes != notes)
-    {
-      @event.Notes = new Change<string>(Notes, notes);
-      Notes = notes;
-    }
-
-    return @event;
   }
 
   public override bool Equals(object? obj) => obj is Kitchen kitchen && kitchen.KitchenId == KitchenId;

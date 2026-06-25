@@ -11,7 +11,6 @@ internal class CommandBus : Logitar.CQRS.CommandBus
   }
 
   protected override bool ShouldRetry<TResult>(ICommand<TResult> command, Exception exception)
-    => exception is not ConflictException
-    && exception is not PermissionDeniedException
+    => exception is not PermissionDeniedException
     && exception is not ValidationException;
 }

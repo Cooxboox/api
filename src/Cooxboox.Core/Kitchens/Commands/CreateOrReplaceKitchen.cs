@@ -1,5 +1,4 @@
-﻿using Cooxboox.Core.Kitchens.Events;
-using Cooxboox.Core.Kitchens.Models;
+﻿using Cooxboox.Core.Kitchens.Models;
 using Cooxboox.Core.Permissions;
 using Logitar.CQRS;
 
@@ -25,12 +24,10 @@ internal class CreateOrReplaceKitchenCommandHandler : ICommandHandler<CreateOrRe
     CreateOrReplaceKitchenPayload payload = command.Payload;
     payload.Validate();
 
-    Guid? kitchenId = null;
     Kitchen? kitchen = null;
     if (command.Id.HasValue)
     {
-      kitchenId = command.Id.Value;
-      kitchen = await _kitchenRepository.LoadAsync(kitchenId.Value, cancellationToken);
+      kitchen = await _kitchenRepository.LoadAsync(command.Id.Value, cancellationToken);
     }
 
     bool created = false;
@@ -38,7 +35,7 @@ internal class CreateOrReplaceKitchenCommandHandler : ICommandHandler<CreateOrRe
     {
       await _permissionService.CheckAsync(Actions.CreateKitchen, cancellationToken);
 
-      kitchen = new Kitchen(_context.UserId, payload.Name, kitchenId, Confidentiality.Private, payload.Slug, payload.Notes);
+      kitchen = new Kitchen(_context.UserId, payload.Name, command.Id, payload.Confidentiality, payload.Slug, payload.Notes);
       _kitchenRepository.Add(kitchen);
       created = true;
     }
@@ -46,8 +43,8 @@ internal class CreateOrReplaceKitchenCommandHandler : ICommandHandler<CreateOrRe
     {
       await _permissionService.CheckAsync(Actions.Update, kitchen, cancellationToken);
 
-      KitchenUpdated @event = kitchen.Update(payload.Name, payload.Slug, payload.Notes, _context.UserId);
-      _kitchenRepository.Update(kitchen, @event);
+      kitchen.Update(payload.Confidentiality, payload.Name, payload.Slug, payload.Notes, _context.UserId);
+      _kitchenRepository.Update(kitchen);
     }
 
     await _kitchenRepository.EnsureUnicityAsync(kitchen, cancellationToken);

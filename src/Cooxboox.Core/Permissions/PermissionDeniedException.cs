@@ -25,7 +25,7 @@ public class PermissionDeniedException : ErrorException
 
   public override Error Error => new(this.GetErrorCode(), ErrorMessage);
 
-  public PermissionDeniedException(Guid? userId, string action, Entity? resource)
+  public PermissionDeniedException(Guid? userId, string action, ResourceIdentifier? resource)
     : base(BuildMessage(userId, action, resource))
   {
     UserId = userId;
@@ -33,7 +33,7 @@ public class PermissionDeniedException : ErrorException
     Resource = resource?.ToString();
   }
 
-  private static string BuildMessage(Guid? userId, string action, Entity? resource) => new ErrorMessageBuilder(ErrorMessage)
+  private static string BuildMessage(Guid? userId, string action, ResourceIdentifier? resource) => new ErrorMessageBuilder(ErrorMessage)
     .AddData(nameof(UserId), userId, "<null>")
     .AddData(nameof(Action), action)
     .AddData(nameof(Resource), resource, "<null>")
