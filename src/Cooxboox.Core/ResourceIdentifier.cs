@@ -1,4 +1,5 @@
-﻿using Logitar;
+﻿using Cooxboox.Core.Kitchens;
+using Logitar;
 
 namespace Cooxboox.Core;
 
@@ -20,7 +21,7 @@ public class ResourceIdentifier
     Id = id;
 
     string value = string.Join(ResourceSeparator, kind, Convert.ToBase64String(id.ToByteArray()).ToUriSafeBase64());
-    _value = kitchenId.HasValue ? string.Join(Separator, new ResourceIdentifier(ResourceKind.Kitchen, kitchenId.Value), value) : value;
+    _value = kitchenId.HasValue ? string.Join(Separator, new ResourceIdentifier(Kitchen.ResourceKind, kitchenId.Value), value) : value;
   }
 
   public static ResourceIdentifier Parse(string value, string? expectedKind = null)
@@ -31,7 +32,7 @@ public class ResourceIdentifier
       throw new ArgumentException($"The value '{value}' is not a valid resource identifier.", nameof(value));
     }
 
-    Guid? kitchenId = values.Length == 2 ? ResourceIdentifier.Parse(values.First(), ResourceKind.Kitchen).Id : null;
+    Guid? kitchenId = values.Length == 2 ? ResourceIdentifier.Parse(values.First(), Kitchen.ResourceKind).Id : null;
 
     string[] parts = values.Last().Split(ResourceSeparator);
     if (parts.Length != 2)

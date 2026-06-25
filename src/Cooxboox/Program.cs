@@ -1,8 +1,11 @@
-﻿namespace Cooxboox;
+﻿using Cooxboox.Infrastructure;
+using Logitar.CQRS;
+
+namespace Cooxboox;
 
 internal class Program
 {
-  public static void Main(string[] args)
+  public static async Task Main(string[] args)
   {
     WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
     IConfiguration configuration = builder.Configuration;
@@ -14,6 +17,15 @@ internal class Program
 
     startup.Configure(application);
 
+    await MigrateDatabaseAsync(application.Services);
+
     application.Run();
+  }
+
+  private static async Task MigrateDatabaseAsync(IServiceProvider serviceProvider, CancellationToken cancellationToken = default)
+  {
+    using IServiceScope scope = serviceProvider.CreateScope();
+    ICommandBus commandBus = scope.ServiceProvider.GetRequiredService<ICommandBus>();
+    await commandBus.ExecuteAsync(new MigrateDatabaseCommand(), cancellationToken);
   }
 }

@@ -75,7 +75,7 @@ public class KitchenIntegrationTests : IntegrationTests
       Slug = "Hell-s-Kitchen",
       Notes = "  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec consequat tortor sem, eu molestie in.  "
     };
-    Guid id = _kitchen.EntityId;
+    Guid id = _kitchen.Id;
 
     CreateOrReplaceKitchenResult result = await _kitchenService.CreateOrReplaceAsync(payload, id);
     Assert.False(result.Created);
@@ -100,9 +100,9 @@ public class KitchenIntegrationTests : IntegrationTests
   [Fact(DisplayName = "It should read a kitchen by ID.")]
   public async Task Given_Id_When_Read_Then_Kitchen()
   {
-    KitchenModel? kitchen = await _kitchenService.ReadAsync(_kitchen.EntityId);
+    KitchenModel? kitchen = await _kitchenService.ReadAsync(_kitchen.Id);
     Assert.NotNull(kitchen);
-    Assert.Equal(_kitchen.EntityId, kitchen.Id);
+    Assert.Equal(_kitchen.Id, kitchen.Id);
   }
 
   [Fact(DisplayName = "It should return null when the kitchen does not exist.")]
@@ -116,7 +116,7 @@ public class KitchenIntegrationTests : IntegrationTests
   {
     Context.User = new UserBuilder().Build();
 
-    Assert.Null(await _kitchenService.ReadAsync(_kitchen.EntityId));
+    Assert.Null(await _kitchenService.ReadAsync(_kitchen.Id));
   }
 
   [Fact(DisplayName = "It should throw PermissionDeniedException when creating a new kitchen.")]
@@ -151,10 +151,10 @@ public class KitchenIntegrationTests : IntegrationTests
       Notes = "  Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec consequat tortor sem, eu molestie in.  "
     };
 
-    var exception = await Assert.ThrowsAsync<PermissionDeniedException>(async () => await _kitchenService.CreateOrReplaceAsync(payload, _kitchen.EntityId));
+    var exception = await Assert.ThrowsAsync<PermissionDeniedException>(async () => await _kitchenService.CreateOrReplaceAsync(payload, _kitchen.Id));
     Assert.Equal(Context.User.Id, exception.UserId);
     Assert.Equal(Actions.Update, exception.Action);
-    Assert.Equal(new Entity(Kitchen.EntityKind, _kitchen.EntityId).ToString(), exception.Resource);
+    Assert.Equal(new ResourceIdentifier(Kitchen.ResourceKind, _kitchen.Id).ToString(), exception.Resource);
   }
 
   [Fact(DisplayName = "It should throw PermissionDeniedException when updating an existing kitchen.")]
@@ -162,16 +162,16 @@ public class KitchenIntegrationTests : IntegrationTests
   {
     Context.User = new UserBuilder().Build();
 
-    var exception = await Assert.ThrowsAsync<PermissionDeniedException>(async () => await _kitchenService.UpdateAsync(_kitchen.EntityId, new UpdateKitchenPayload()));
+    var exception = await Assert.ThrowsAsync<PermissionDeniedException>(async () => await _kitchenService.UpdateAsync(_kitchen.Id, new UpdateKitchenPayload()));
     Assert.Equal(Context.User.Id, exception.UserId);
     Assert.Equal(Actions.Update, exception.Action);
-    Assert.Equal(new Entity(Kitchen.EntityKind, _kitchen.EntityId).ToString(), exception.Resource);
+    Assert.Equal(new ResourceIdentifier(Kitchen.ResourceKind, _kitchen.Id).ToString(), exception.Resource);
   }
 
   [Fact(DisplayName = "It should update an existing kitchen.")]
   public async Task Given_Exists_When_Update_Then_Updated()
   {
-    Guid id = _kitchen.EntityId;
+    Guid id = _kitchen.Id;
     UpdateKitchenPayload payload = new()
     {
       Name = " Hell’s Kitchen ",

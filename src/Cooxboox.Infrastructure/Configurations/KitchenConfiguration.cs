@@ -15,7 +15,7 @@ internal class KitchenConfiguration : IEntityTypeConfiguration<Kitchen>
     builder.ToTable(nameof(CooxbooxContext.Kitchens), Schemas.Content);
     builder.HasKey(x => x.KitchenId);
 
-    builder.HasIndex(x => x.EntityId).IsUnique();
+    builder.HasIndex(x => x.Id).IsUnique();
     builder.HasIndex(x => x.OwnerId);
     builder.HasIndex(x => x.Confidentiality);
     builder.HasIndex(x => x.Name);

@@ -1,9 +1,12 @@
-﻿using Logitar;
+﻿using Cooxboox.Core.Kitchens.Events;
+using Logitar;
 
 namespace Cooxboox.Core.Kitchens;
 
 public class Kitchen : IAuditable, IPublishable, IResource, IVersioned
 {
+  public const string ResourceKind = "Kitchen";
+
   public int KitchenId { get; private set; }
   public Guid Id { get; private set; }
 
@@ -24,7 +27,7 @@ public class Kitchen : IAuditable, IPublishable, IResource, IVersioned
   public Guid? PublishedBy { get; private set; }
   public DateTime? PublishedOn { get; private set; }
 
-  public ResourceIdentifier Identifier => new(ResourceKind.Kitchen, Id);
+  public ResourceIdentifier Identifier => new(ResourceKind, Id);
 
   public Kitchen(
     Guid ownerId,
@@ -64,14 +67,8 @@ public class Kitchen : IAuditable, IPublishable, IResource, IVersioned
     return userIds;
   }
 
-  public void Update(Confidentiality confidentiality, string name, string? slug, string? notes, Guid userId, DateTime? updatedOn = null)
+  public KitchenUpdated Update(Confidentiality confidentiality, string name, string? slug, string? notes, Guid userId, DateTime? updatedOn = null)
   {
-    Confidentiality = confidentiality;
-
-    Name = name.Trim();
-    Slug = SlugHelper.Format(slug);
-    Notes = notes?.CleanTrim();
-
     Version++;
     UpdatedBy = userId;
     UpdatedOn = (updatedOn ?? DateTime.Now).AsUniversalTime();
@@ -80,6 +77,37 @@ public class Kitchen : IAuditable, IPublishable, IResource, IVersioned
     {
       Status = ContentStatus.Published;
     }
+
+    KitchenUpdated record = new(this);
+
+    if (!Equals(Confidentiality, confidentiality))
+    {
+      record.Confidentiality = new Change<Confidentiality>(Confidentiality, confidentiality);
+      Confidentiality = confidentiality;
+    }
+
+    name = name.Trim();
+    if (!Equals(Name, name))
+    {
+      record.Name = new Change<string>(Name, name);
+      Name = name;
+    }
+
+    slug = SlugHelper.Format(slug);
+    if (!Equals(Slug, slug))
+    {
+      record.Slug = new Change<string>(Slug, slug);
+      Slug = slug;
+    }
+
+    notes = notes?.CleanTrim();
+    if (!Equals(Notes, notes))
+    {
+      record.Notes = new Change<string>(Notes, notes);
+      Notes = notes;
+    }
+
+    return record;
   }
 
   public override bool Equals(object? obj) => obj is Kitchen kitchen && kitchen.KitchenId == KitchenId;

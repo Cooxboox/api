@@ -1,4 +1,5 @@
-﻿using Cooxboox.Core.Kitchens.Models;
+﻿using Cooxboox.Core.Kitchens.Events;
+using Cooxboox.Core.Kitchens.Models;
 using Cooxboox.Core.Permissions;
 using Logitar.CQRS;
 
@@ -43,8 +44,8 @@ internal class CreateOrReplaceKitchenCommandHandler : ICommandHandler<CreateOrRe
     {
       await _permissionService.CheckAsync(Actions.Update, kitchen, cancellationToken);
 
-      kitchen.Update(payload.Confidentiality, payload.Name, payload.Slug, payload.Notes, _context.UserId);
-      _kitchenRepository.Update(kitchen);
+      KitchenUpdated record = kitchen.Update(payload.Confidentiality, payload.Name, payload.Slug, payload.Notes, _context.UserId);
+      _kitchenRepository.Update(kitchen, record);
     }
 
     await _kitchenRepository.EnsureUnicityAsync(kitchen, cancellationToken);

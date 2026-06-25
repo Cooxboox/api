@@ -10,7 +10,7 @@ public static class Kitchens
   public static readonly ColumnId Confidentiality = new(nameof(Kitchen.Confidentiality), Table);
   public static readonly ColumnId CreatedBy = new(nameof(Kitchen.CreatedBy), Table);
   public static readonly ColumnId CreatedOn = new(nameof(Kitchen.CreatedOn), Table);
-  public static readonly ColumnId EntityId = new(nameof(Kitchen.EntityId), Table);
+  public static readonly ColumnId Id = new(nameof(Kitchen.Id), Table);
   public static readonly ColumnId KitchenId = new(nameof(Kitchen.KitchenId), Table);
   public static readonly ColumnId Name = new(nameof(Kitchen.Name), Table);
   public static readonly ColumnId Notes = new(nameof(Kitchen.Notes), Table);
