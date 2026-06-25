@@ -28,11 +28,15 @@ internal class Mapper
   {
     KitchenModel destination = new()
     {
+      Id = source.Id,
       Owner = FindActor(source.OwnerId),
       Confidentiality = source.Confidentiality,
       Name = source.Name,
       Slug = source.Slug,
-      Notes = source.Notes
+      Notes = source.Notes,
+      Status = source.Status,
+      PublishedBy = TryGetActor(source.PublishedBy),
+      PublishedOn = source.PublishedOn?.AsUniversalTime()
     };
 
     MapAggregate(source, destination);
@@ -40,16 +44,22 @@ internal class Mapper
     return destination;
   }
 
-  private void MapAggregate(IAggregate source, Aggregate destination)
+  // TODO(fpion): IPublishable
+
+  private void MapAggregate(object? source, Aggregate destination)
   {
-    destination.Id = source.EntityId;
-    destination.Version = source.Version;
+    if (source is IAuditable auditable)
+    {
+      destination.CreatedBy = FindActor(auditable.CreatedBy);
+      destination.CreatedOn = auditable.CreatedOn.AsUniversalTime();
+      destination.UpdatedBy = FindActor(auditable.UpdatedBy);
+      destination.UpdatedOn = auditable.UpdatedOn.AsUniversalTime();
+    }
 
-    destination.CreatedBy = FindActor(source.CreatedBy);
-    destination.CreatedOn = source.CreatedOn.AsUniversalTime();
-
-    destination.UpdatedBy = FindActor(source.UpdatedBy);
-    destination.UpdatedOn = source.UpdatedOn.AsUniversalTime();
+    if (source is IVersioned versioned)
+    {
+      destination.Version = versioned.Version;
+    }
   }
 
   private Actor FindActor(Guid? id) => TryGetActor(id) ?? _system;

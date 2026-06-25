@@ -12,5 +12,9 @@ public class KitchenModel : Aggregate
   public string? Slug { get; set; }
   public string? Notes { get; set; }
 
+  public ContentStatus Status { get; set; }
+  public Actor? PublishedBy { get; set; }
+  public DateTime? PublishedOn { get; set; }
+
   public override string ToString() => $"{Name} | {base.ToString()}";
 }
