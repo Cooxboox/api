@@ -58,7 +58,7 @@ public abstract class DeleteEvent : ChangeEvent
   {
   }
 
-  protected DeleteEvent(object? value) : base()
+  protected DeleteEvent(object? value, Guid? userId) : base()
   {
     if (value is IResource resource)
     {
@@ -70,11 +70,7 @@ public abstract class DeleteEvent : ChangeEvent
       Version = versioned.Version + 1;
     }
 
-    if (value is IAuditable auditable)
-    {
-      OccurredOn = auditable.CreatedOn;
-      UserId = auditable.CreatedBy;
-    }
+    UserId = userId;
   }
 }
 

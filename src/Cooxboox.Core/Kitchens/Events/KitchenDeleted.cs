@@ -1,17 +1,12 @@
 ﻿namespace Cooxboox.Core.Kitchens.Events;
 
-public class KitchenDeleted : ChangeEvent
+public class KitchenDeleted : DeleteEvent
 {
-  public KitchenDeleted()
+  public KitchenDeleted() : base()
   {
   }
 
-  public KitchenDeleted(Kitchen kitchen, Guid? userId = null)
+  public KitchenDeleted(Kitchen kitchen, Guid? userId = null) : base(kitchen, userId)
   {
-    EntityKind = Kitchen.EntityKind;
-    EntityId = kitchen.EntityId;
-
-    Version = kitchen.Version + 1;
-    UserId = userId;
   }
 }

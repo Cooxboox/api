@@ -9,8 +9,8 @@ internal class HistoryRecord
   public Guid EventId { get; private set; }
 
   public Guid? KitchenId { get; private set; }
-  public string EntityKind { get; private set; } = string.Empty;
-  public Guid EntityId { get; private set; }
+  public string ResourceKind { get; private set; } = string.Empty;
+  public Guid ResourceId { get; private set; }
 
   public long Version { get; private set; }
   public DateTime OccurredOn { get; private set; }
@@ -24,11 +24,11 @@ internal class HistoryRecord
     EventId = @event.EventId;
 
     KitchenId = @event.KitchenId;
-    EntityKind = @event.EntityKind;
-    EntityId = @event.EntityId;
+    ResourceKind = @event.ResourceKind;
+    ResourceId = @event.ResourceId;
 
     Version = @event.Version;
-    OccurredOn = @event.OccurredOn;
+    OccurredOn = @event.OccurredOn.AsUniversalTime();
     UserId = @event.UserId;
 
     EventType = @event.GetType().GetNamespaceQualifiedName();

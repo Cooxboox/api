@@ -29,10 +29,10 @@ internal class KitchenRepository : Repository, IKitchenRepository
     Database.Kitchens.Remove(kitchen);
     base.RecordChange(new KitchenDeleted(kitchen));
   }
-  public void Update(Kitchen kitchen, KitchenUpdated @event)
+  public void Update(Kitchen kitchen, KitchenUpdated record)
   {
     Database.Kitchens.Update(kitchen);
-    base.RecordChange(@event);
+    base.RecordChange(record);
   }
 
   public async Task<int> CountAsync(CancellationToken cancellationToken)
@@ -45,9 +45,9 @@ internal class KitchenRepository : Repository, IKitchenRepository
     if (kitchen.Slug is not null)
     {
       Guid? kitchenId = await Database.Kitchens.Where(x => x.Slug == kitchen.Slug)
-        .Select(x => (Guid?)x.EntityId)
+        .Select(x => (Guid?)x.Id)
         .SingleOrDefaultAsync(cancellationToken);
-      if (kitchenId.HasValue && !kitchenId.Value.Equals(kitchen.EntityId))
+      if (kitchenId.HasValue && !kitchenId.Value.Equals(kitchen.Id))
       {
         throw new KitchenSlugAlreadyUsedException(kitchen, kitchenId.Value);
       }
@@ -56,18 +56,18 @@ internal class KitchenRepository : Repository, IKitchenRepository
 
   public async Task<Kitchen?> LoadAsync(Guid id, CancellationToken cancellationToken)
   {
-    return await Database.Kitchens.SingleOrDefaultAsync(x => x.EntityId == id, cancellationToken);
+    return await Database.Kitchens.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
   }
 
   public async Task<KitchenModel> ReadAsync(Kitchen kitchen, CancellationToken cancellationToken)
   {
-    return await ReadAsync(kitchen.EntityId, cancellationToken)
-      ?? throw new InvalidOperationException($"The kitchen 'Id={kitchen.EntityId}' was not found.");
+    return await ReadAsync(kitchen.Id, cancellationToken)
+      ?? throw new InvalidOperationException($"The kitchen 'Id={kitchen.Id}' was not found.");
   }
   public async Task<KitchenModel?> ReadAsync(Guid id, CancellationToken cancellationToken)
   {
     Kitchen? kitchen = await Database.Kitchens.AsNoTracking()
-      .Where(x => x.EntityId == id && x.OwnerId == _context.UserId)
+      .Where(x => x.Id == id && x.OwnerId == _context.UserId)
       .SingleOrDefaultAsync(cancellationToken);
 
     return kitchen is null ? null : await MapAsync(kitchen, cancellationToken);

@@ -1,6 +1,6 @@
 ﻿namespace Cooxboox.Core.Kitchens.Events;
 
-public class KitchenCreated : ChangeEvent
+public class KitchenCreated : CreateEvent
 {
   public Guid OwnerId { get; set; }
   public Confidentiality Confidentiality { get; set; }
@@ -9,19 +9,15 @@ public class KitchenCreated : ChangeEvent
   public string? Slug { get; set; }
   public string? Notes { get; set; }
 
-  public KitchenCreated()
+  public KitchenCreated() : base()
   {
   }
 
-  public KitchenCreated(Kitchen kitchen)
+  public KitchenCreated(Kitchen kitchen) : base(kitchen)
   {
-    EntityKind = Kitchen.EntityKind;
-    EntityId = kitchen.EntityId;
-    Version = 1;
-    OccurredOn = kitchen.CreatedOn;
-    UserId = kitchen.CreatedBy;
     OwnerId = kitchen.OwnerId;
     Confidentiality = kitchen.Confidentiality;
+
     Name = kitchen.Name;
     Slug = kitchen.Slug;
     Notes = kitchen.Notes;

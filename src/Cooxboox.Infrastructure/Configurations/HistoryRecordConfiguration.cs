@@ -11,13 +11,13 @@ internal class HistoryRecordConfiguration : IEntityTypeConfiguration<HistoryReco
     builder.HasKey(x => x.HistoryRecordId);
 
     builder.HasIndex(x => x.EventId).IsUnique();
-    builder.HasIndex(x => new { x.KitchenId, x.EntityKind, x.EntityId });
+    builder.HasIndex(x => new { x.KitchenId, x.ResourceKind, x.ResourceId });
     builder.HasIndex(x => x.Version);
     builder.HasIndex(x => x.OccurredOn);
     builder.HasIndex(x => x.UserId);
     builder.HasIndex(x => x.EventType);
 
-    builder.Property(x => x.EntityKind).HasMaxLength(byte.MaxValue);
+    builder.Property(x => x.ResourceKind).HasMaxLength(byte.MaxValue);
     builder.Property(x => x.EventType).HasMaxLength(byte.MaxValue);
   }
 }

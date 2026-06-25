@@ -44,14 +44,14 @@ public class KitchenSlugAlreadyUsedException : ConflictException
   public KitchenSlugAlreadyUsedException(Kitchen kitchen, Guid conflictingId)
     : base(BuildMessage(kitchen, conflictingId))
   {
-    KitchenId = kitchen.EntityId;
+    KitchenId = kitchen.Id;
     ConflictingId = conflictingId;
     AttemptedSlug = kitchen.Slug ?? throw new ArgumentException("The slug is required.", nameof(kitchen));
     PropertyName = nameof(Kitchen.Slug);
   }
 
   private static string BuildMessage(Kitchen kitchen, Guid conflictingId) => new ErrorMessageBuilder(ErrorMessage)
-    .AddData(nameof(KitchenId), kitchen.EntityId)
+    .AddData(nameof(KitchenId), kitchen.Id)
     .AddData(nameof(ConflictingId), conflictingId)
     .AddData(nameof(AttemptedSlug), kitchen.Slug)
     .AddData(nameof(PropertyName), nameof(Kitchen.Slug))
