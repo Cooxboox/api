@@ -6,7 +6,7 @@ namespace Cooxboox.Builders;
 
 public interface IKitchenBuilder
 {
-  IKitchenBuilder WithEntityId(Guid id);
+  IKitchenBuilder WithId(Guid id);
   IKitchenBuilder WithOwner(User? owner);
   IKitchenBuilder WithConfidentiality(Confidentiality confidentiality);
   IKitchenBuilder WithName(string name);
@@ -21,7 +21,7 @@ public class KitchenBuilder : IKitchenBuilder
   private readonly Faker _faker;
 
   private Confidentiality _confidentiality = default;
-  private Guid _entityId = Guid.NewGuid();
+  private Guid _id = Guid.NewGuid();
   private string? _name = null;
   private string? _notes = null;
   private User? _owner = null;
@@ -32,9 +32,9 @@ public class KitchenBuilder : IKitchenBuilder
     _faker = faker ?? new();
   }
 
-  public IKitchenBuilder WithEntityId(Guid entityId)
+  public IKitchenBuilder WithId(Guid id)
   {
-    _entityId = entityId;
+    _id = id;
     return this;
   }
 
@@ -73,6 +73,6 @@ public class KitchenBuilder : IKitchenBuilder
     User owner = _owner ?? new UserBuilder(_faker).Build();
     string name = _name ?? _faker.Company.CompanyName();
 
-    return new Kitchen(owner.Id, name, _entityId, _confidentiality, _slug, _notes);
+    return new Kitchen(owner.Id, name, _id, _confidentiality, _slug, _notes);
   }
 }
