@@ -11,6 +11,7 @@ public class CooxbooxContext : DbContext
 
   internal DbSet<HistoryRecord> History => Set<HistoryRecord>();
   internal DbSet<Kitchen> Kitchens => Set<Kitchen>();
+  internal DbSet<KitchenLocale> KitchenLocales => Set<KitchenLocale>();
 
   protected override void OnModelCreating(ModelBuilder modelBuilder)
   {

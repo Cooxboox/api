@@ -16,5 +16,7 @@ public class KitchenModel : Aggregate, IPublishableModel
   public Actor? PublishedBy { get; set; }
   public DateTime? PublishedOn { get; set; }
 
+  public List<KitchenLocaleModel> Locales { get; set; } = [];
+
   public override string ToString() => $"{Name} | {base.ToString()}";
 }

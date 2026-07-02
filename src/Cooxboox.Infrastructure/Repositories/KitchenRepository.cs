@@ -56,7 +56,9 @@ internal class KitchenRepository : Repository, IKitchenRepository
 
   public async Task<Kitchen?> LoadAsync(Guid id, CancellationToken cancellationToken)
   {
-    return await Database.Kitchens.SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
+    return await Database.Kitchens
+      .Include(x => x.Locales)
+      .SingleOrDefaultAsync(x => x.Id == id, cancellationToken);
   }
 
   public async Task<KitchenModel> ReadAsync(Kitchen kitchen, CancellationToken cancellationToken)
@@ -68,6 +70,7 @@ internal class KitchenRepository : Repository, IKitchenRepository
   {
     Kitchen? kitchen = await Database.Kitchens.AsNoTracking()
       .Where(x => x.Id == id && x.OwnerId == _context.UserId)
+      .Include(x => x.Locales)
       .SingleOrDefaultAsync(cancellationToken);
 
     return kitchen is null ? null : await MapAsync(kitchen, cancellationToken);

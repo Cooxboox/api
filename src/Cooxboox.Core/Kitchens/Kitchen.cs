@@ -28,6 +28,8 @@ public class Kitchen : IAuditable, IPublishable, IResource, IVersioned
 
   public ResourceIdentifier Identifier => new(ResourceKind, Id);
 
+  public List<KitchenLocale> Locales { get; private set; } = [];
+
   public Kitchen(
     Guid ownerId,
     string name,
@@ -46,11 +48,12 @@ public class Kitchen : IAuditable, IPublishable, IResource, IVersioned
     Slug = SlugHelper.Format(slug);
     Notes = notes?.CleanTrim();
 
+    createdOn = (createdOn ?? DateTime.Now).AsUniversalTime();
     Version = 1;
     CreatedBy = ownerId;
-    CreatedOn = (createdOn ?? DateTime.Now).AsUniversalTime();
+    CreatedOn = createdOn.Value;
     UpdatedBy = ownerId;
-    UpdatedOn = (createdOn ?? DateTime.Now).AsUniversalTime();
+    UpdatedOn = createdOn.Value;
   }
 
   private Kitchen()
@@ -59,13 +62,17 @@ public class Kitchen : IAuditable, IPublishable, IResource, IVersioned
 
   public IReadOnlyCollection<Guid> GetUserIds()
   {
-    HashSet<Guid> userIds = new(capacity: 4);
+    HashSet<Guid> userIds = [];
     userIds.Add(OwnerId);
     userIds.Add(CreatedBy);
     userIds.Add(UpdatedBy);
     if (PublishedBy.HasValue)
     {
       userIds.Add(PublishedBy.Value);
+    }
+    foreach (KitchenLocale locale in Locales)
+    {
+      userIds.AddRange(locale.GetUserIds());
     }
     return userIds;
   }
