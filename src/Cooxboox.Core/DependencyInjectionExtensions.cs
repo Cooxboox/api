@@ -1,4 +1,5 @@
 ﻿using Cooxboox.Core.Identity;
+using Cooxboox.Core.Kitchens;
 using Cooxboox.Core.Permissions;
 using Logitar.CQRS;
 using Microsoft.Extensions.Configuration;
@@ -11,6 +12,7 @@ public static class DependencyInjectionExtensions
   public static IServiceCollection AddCooxbooxCore(this IServiceCollection services)
   {
     IdentityService.Register(services);
+    KitchenService.Register(services);
     PermissionService.Register(services);
 
     return services
