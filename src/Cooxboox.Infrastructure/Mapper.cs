@@ -36,7 +36,26 @@ internal class Mapper
       Notes = source.Notes
     };
 
+    foreach (KitchenLocale locale in source.Locales)
+    {
+      destination.Locales.Add(ToKitchenLocale(locale));
+    }
+
     MapAggregate(source, destination);
+    MapPublishable(source, destination);
+
+    return destination;
+  }
+  private KitchenLocaleModel ToKitchenLocale(KitchenLocale source)
+  {
+    KitchenLocaleModel destination = new()
+    {
+      Language = source.Language,
+      MetaDescription = source.MetaDescription,
+      HtmlContent = source.HtmlContent
+    };
+
+    MapLocale(source, destination);
     MapPublishable(source, destination);
 
     return destination;
@@ -55,6 +74,17 @@ internal class Mapper
     if (source is IVersioned versioned)
     {
       destination.Version = versioned.Version;
+    }
+  }
+
+  private void MapLocale(object? source, ILocaleModel destination)
+  {
+    if (source is IAuditable auditable)
+    {
+      destination.CreatedBy = FindActor(auditable.CreatedBy);
+      destination.CreatedOn = auditable.CreatedOn.AsUniversalTime();
+      destination.UpdatedBy = FindActor(auditable.UpdatedBy);
+      destination.UpdatedOn = auditable.UpdatedOn.AsUniversalTime();
     }
   }
 
