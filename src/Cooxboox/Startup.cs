@@ -113,6 +113,7 @@ internal class Startup : StartupBase
     application.UseMiddleware<RenewSession>();
     application.UseAuthentication();
     application.UseAuthorization();
+    application.UseMiddleware<ResolveKitchen>();
 
     application.MapControllers();
   }
