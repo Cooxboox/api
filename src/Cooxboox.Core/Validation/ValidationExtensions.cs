@@ -26,6 +26,16 @@ internal static class ValidationExtensions
     return ruleBuilder.NotEmpty().MaximumLength(LocaleValidator<T>.MaximumLength).SetValidator(new LocaleValidator<T>());
   }
 
+  public static IRuleBuilderOptions<T, string> Name<T>(this IRuleBuilder<T, string> ruleBuilder)
+  {
+    return ruleBuilder.NotEmpty().MaximumLength(Constants.NameMaximumLength);
+  }
+
+  public static IRuleBuilderOptions<T, string> Notes<T>(this IRuleBuilder<T, string> ruleBuilder)
+  {
+    return ruleBuilder.NotEmpty();
+  }
+
   public static IRuleBuilderOptions<T, string> Password<T>(this IRuleBuilder<T, string> ruleBuilder, IPasswordSettings settings)
   {
     IRuleBuilderOptions<T, string> options = ruleBuilder.NotEmpty();
@@ -71,6 +81,11 @@ internal static class ValidationExtensions
   public static IRuleBuilderOptions<T, string> PersonName<T>(this IRuleBuilder<T, string> ruleBuilder)
   {
     return ruleBuilder.NotEmpty().MaximumLength(byte.MaxValue);
+  }
+
+  public static IRuleBuilderOptions<T, string> Slug<T>(this IRuleBuilder<T, string> ruleBuilder)
+  {
+    return ruleBuilder.NotEmpty().MaximumLength(Constants.SlugMaximumLength).SetValidator(new SlugValidator<T>());
   }
 
   public static IRuleBuilderOptions<T, string> TimeZone<T>(this IRuleBuilder<T, string> ruleBuilder)

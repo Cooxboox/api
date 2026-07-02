@@ -3,6 +3,7 @@ using Cooxboox.Core.Identity.Models;
 using Krakenar.Client;
 using Krakenar.Client.Users;
 using Krakenar.Contracts;
+using Krakenar.Contracts.Search;
 using Krakenar.Contracts.Users;
 using Logitar;
 
@@ -62,6 +63,15 @@ internal class UserGateway : IUserGateway
   public async Task<User?> FindAsync(Guid id, CancellationToken cancellationToken)
   {
     return await _userClient.ReadAsync(id, uniqueName: null, customIdentifier: null, cancellationToken);
+  }
+
+  public async Task<IReadOnlyCollection<User>> FindAsync(IEnumerable<Guid> ids, CancellationToken cancellationToken)
+  {
+    SearchUsersPayload payload = new();
+    payload.Ids.AddRange(ids);
+
+    SearchResults<User> results = await _userClient.SearchAsync(payload, cancellationToken);
+    return results.Items.AsReadOnly();
   }
 
   public async Task<User?> FindAsync(string uniqueName, CancellationToken cancellationToken)

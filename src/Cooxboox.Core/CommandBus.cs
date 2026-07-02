@@ -1,4 +1,4 @@
-﻿using Cooxboox.Core.Identity;
+﻿using Cooxboox.Core.Permissions;
 using FluentValidation;
 using Logitar.CQRS;
 
@@ -11,7 +11,7 @@ internal class CommandBus : Logitar.CQRS.CommandBus
   }
 
   protected override bool ShouldRetry<TResult>(ICommand<TResult> command, Exception exception)
-    => exception is not AuthenticationFlowNotAllowedException
-    && exception is not IdentityException
+    => exception is not ConflictException
+    && exception is not PermissionDeniedException
     && exception is not ValidationException;
 }

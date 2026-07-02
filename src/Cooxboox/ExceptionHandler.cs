@@ -1,9 +1,9 @@
-﻿using Cooxboox.Core.Identity;
+﻿using Cooxboox.Core;
+using Cooxboox.Core.Permissions;
 using Cooxboox.Extensions;
 using Cooxboox.Settings;
 using FluentValidation;
 using Krakenar.Contracts;
-using Logitar;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
@@ -26,13 +26,17 @@ internal class ExceptionHandler : IExceptionHandler
   public virtual async ValueTask<bool> TryHandleAsync(HttpContext httpContext, Exception exception, CancellationToken cancellationToken)
   {
     int? statusCode = null;
-    if (IsBadRequest(exception))
+    if (exception is ValidationException)
     {
       statusCode = StatusCodes.Status400BadRequest;
     }
-    else if (IsForbidden(exception))
+    else if (exception is PermissionDeniedException)
     {
       statusCode = StatusCodes.Status403Forbidden;
+    }
+    else if (exception is ConflictException)
+    {
+      statusCode = StatusCodes.Status409Conflict;
     }
     else if (_errorSettings.ExposeDetail)
     {
@@ -57,10 +61,6 @@ internal class ExceptionHandler : IExceptionHandler
     return await _problemDetailsService.TryWriteAsync(context);
   }
 
-  private static bool IsBadRequest(Exception exception) => exception is IdentityException || exception is ValidationException;
-
-  private static bool IsForbidden(Exception exception) => exception is AuthenticationFlowNotAllowedException;
-
   private static Error ToError(Exception exception)
   {
     Error error;
@@ -68,14 +68,10 @@ internal class ExceptionHandler : IExceptionHandler
     {
       error = errorException.Error;
     }
-    else if (exception is IdentityException)
-    {
-      error = new InvalidCredentialsError();
-    }
     else if (exception is ValidationException validation)
     {
-      error = new(exception.GetErrorCode(), "Validation failed.");
-      error.Data["Failures"] = validation.Errors;
+      error = new("Validation", "Validation failed.");
+      validation.Data["Errors"] = validation.Errors;
     }
     else
     {

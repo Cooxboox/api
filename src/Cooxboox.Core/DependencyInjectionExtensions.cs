@@ -1,6 +1,6 @@
 ﻿using Cooxboox.Core.Identity;
+using Cooxboox.Core.Permissions;
 using Logitar.CQRS;
-using Logitar.EventSourcing;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -10,17 +10,12 @@ public static class DependencyInjectionExtensions
 {
   public static IServiceCollection AddCooxbooxCore(this IServiceCollection services)
   {
+    IdentityService.Register(services);
+    PermissionService.Register(services);
+
     return services
-      .AddCoreServices()
-      .AddLogitarEventSourcing()
       .AddSingleton(serviceProvider => RetrySettings.Initialize(serviceProvider.GetRequiredService<IConfiguration>()))
       .AddTransient<ICommandBus, CommandBus>()
       .AddTransient<IQueryBus, QueryBus>();
-  }
-
-  private static IServiceCollection AddCoreServices(this IServiceCollection services)
-  {
-    IdentityService.Register(services);
-    return services;
   }
 }

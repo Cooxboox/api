@@ -32,8 +32,9 @@ internal class Startup : StartupBase
     services.AddCooxbooxCore();
     services.AddCooxbooxInfrastructure();
     services.AddCooxbooxPostgreSQL(_configuration);
-    services.AddKrakenarClient(_configuration);
     services.AddSingleton<IContext, HttpApplicationContext>();
+
+    services.AddKrakenarClient(_configuration);
 
     services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter()));
     services.AddHttpContextAccessor();
@@ -112,7 +113,6 @@ internal class Startup : StartupBase
     application.UseMiddleware<RenewSession>();
     application.UseAuthentication();
     application.UseAuthorization();
-    // TODO(fpion): application.UseMiddleware<ResolveWorld>();
 
     application.MapControllers();
   }

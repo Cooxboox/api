@@ -39,6 +39,9 @@ internal class SeedingWorker : BackgroundService
       await ExecuteAsync(new SeedDictionariesTask(), cancellationToken);
       await ExecuteAsync(new SeedSendersTask(), cancellationToken);
       await ExecuteAsync(new SeedTemplatesTask(), cancellationToken);
+      await ExecuteAsync(new SeedContentTypesTask(), cancellationToken);
+      await ExecuteAsync(new SeedFieldTypesTask(), cancellationToken);
+      await ExecuteAsync(new SeedContentTypesTask(fieldDefinitions: true), cancellationToken);
     }
     catch (Exception exception)
     {

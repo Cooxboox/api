@@ -27,7 +27,7 @@ internal static class SwaggerExtensions
           Name = "Francis Pion",
           Url = new Uri("https://www.francispion.ca/", UriKind.Absolute)
         },
-        Description = "🚧",
+        Description = "A multi-tenant cooking backend managing kitchen-scoped ingredients, recipes, media, search, notes, and comments for recipe planning.",
         License = new OpenApiLicense
         {
           Name = "Use under MIT",
